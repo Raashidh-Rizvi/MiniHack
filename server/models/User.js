@@ -18,12 +18,16 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['RESIDENT', 'ADMIN'],
-      default: 'RESIDENT',
+      enum: ['CITIZEN', 'OFFICER', 'ADMIN', 'RESIDENT'],
+      default: 'CITIZEN',
     },
     communityArea: {
       type: String,
       default: 'Matale Town',
+    },
+    password: {
+      type: String,
+      default: 'password123',
     },
   },
   {

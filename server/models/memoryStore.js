@@ -5,22 +5,36 @@
 
 const { calculatePriority } = require('../utils/priorityCalculator');
 
-const demoUsers = [
+let users = [
   {
     id: 1,
+    numericId: 1,
     fullName: 'Kasun Perera',
     email: 'kasun.citizen@gramafix.lk',
-    role: 'RESIDENT',
+    role: 'CITIZEN',
     communityArea: 'Matale Town',
+    password: 'password123',
   },
   {
     id: 2,
+    numericId: 2,
     fullName: 'Eng. Bandara',
-    email: 'admin.bandara@gramafix.lk',
-    role: 'ADMIN',
+    email: 'officer.bandara@gramafix.lk',
+    role: 'OFFICER',
     communityArea: 'Matale Municipal Council',
+    password: 'officer123',
+  },
+  {
+    id: 3,
+    numericId: 3,
+    fullName: 'Dr. Priyantha',
+    email: 'admin.priyantha@gramafix.lk',
+    role: 'ADMIN',
+    communityArea: 'Central Administration',
+    password: 'admin123',
   },
 ];
+let nextUserId = 4;
 
 const categories = [
   { id: 'ROAD', code: 'ROAD', name: 'Roads & Potholes', description: 'Damaged roads, potholes, paving issues', iconName: 'Compass' },
@@ -111,7 +125,24 @@ let issues = [
 let nextIssueId = 105;
 
 module.exports = {
-  getDemoUsers: () => demoUsers,
+  getDemoUsers: () => users,
+  findUserByEmail: (email) => users.find((u) => u.email.toLowerCase() === String(email).toLowerCase().trim()),
+  findUserById: (id) => users.find((u) => u.id === Number(id) || u.id === id),
+  createUser: (userData) => {
+    const newId = nextUserId++;
+    const newUser = {
+      id: newId,
+      numericId: newId,
+      fullName: userData.fullName.trim(),
+      email: userData.email.toLowerCase().trim(),
+      role: userData.role || 'CITIZEN',
+      communityArea: userData.communityArea || 'Matale Town',
+      password: userData.password || 'password123',
+      createdAt: new Date().toISOString(),
+    };
+    users.push(newUser);
+    return newUser;
+  },
   getCategories: () => categories,
   getAllIssues: () => issues,
   getIssueById: (id) => issues.find((i) => i.id === Number(id) || i.id === id),
