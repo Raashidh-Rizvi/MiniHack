@@ -1,27 +1,7 @@
-import axios from 'axios';
+import { apiClient as api } from './api';
 import { Issue, IssueStatus, Severity } from '../types/issue';
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-const api = axios.create({
-  baseURL: BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 10000,
-});
-
-api.interceptors.request.use((config) => {
-  try {
-    const rawUser = localStorage.getItem('gramafix_user');
-    if (rawUser) {
-      const user = JSON.parse(rawUser);
-      if (user?.id) {
-        config.headers['x-user-id'] = String(user.id);
-        config.headers['x-user-role'] = user.role || 'ADMIN';
-      }
-    }
-  } catch {}
-  return config;
-});
 
 export interface AdminStats {
   totalIssues: number;
@@ -32,7 +12,8 @@ export interface AdminStats {
 }
 
 export interface StatusUpdatePayload {
-  newStatus: IssueStatus;
+  newStatus?: IssueStatus;
+  expectedUpdatedAt?: string;
   adminNotes?: string;
   adjustedSeverity?: Severity;
 }
@@ -70,15 +51,15 @@ export async function updateIssueStatus(
 }
 
 /** DELETE /api/admin/issues/:id — Moderation removal */
-export async function moderateDeleteIssue(issueId: number): Promise<void> {
-  await api.delete(`/admin/issues/${issueId}`);
+export async function moderateDeleteIssue(issueId: number, expectedUpdatedAt?: string): Promise<void> {
+  await api.delete(`/admin/issues/${issueId}`, { data: { expectedUpdatedAt } });
 }
 
 /** PATCH /api/admin/issues/:id/priority — Recalculate priority */
 export async function recalculatePriority(
-  issueId: number
+  issueId: number, expectedUpdatedAt?: string
 ): Promise<{ priorityScore: number; priorityLevel: string }> {
-  const res = await api.patch(`/admin/issues/${issueId}/priority`);
+  const res = await api.patch(`/admin/issues/${issueId}/priority`, { expectedUpdatedAt });
   return res.data.data;
 }
 
@@ -86,8 +67,16 @@ export async function recalculatePriority(
 export async function reassignOfficer(
   issueId: number,
   officerId: number,
-  officerName: string
+  officerName: string, expectedUpdatedAt?: string
 ): Promise<Issue> {
-  const res = await api.put(`/admin/issues/${issueId}/assign`, { officerId, officerName });
+  const res = await api.put(`/admin/issues/${issueId}/assign`, { officerId, officerName, expectedUpdatedAt });
   return res.data.data;
+}
+
+export interface AdminHistoryEvent {
+  id: string; type: string; timestamp: string; actorId: number; actorName: string; actorRole: string;
+  before: Record<string, unknown>; after: Record<string, unknown>; note?: string;
+}
+export async function getAdminHistory(issueId: number): Promise<AdminHistoryEvent[]> {
+  return (await api.get(`/admin/issues/${issueId}/history`)).data.data;
 }

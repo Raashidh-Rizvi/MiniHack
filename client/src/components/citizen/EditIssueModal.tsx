@@ -10,13 +10,17 @@ interface EditIssueModalProps {
   onUpdated: (updatedIssue: Issue) => void;
 }
 
-export const EditIssueModal: React.FC<EditIssueModalProps> = ({
+export const EditIssueModal: React.FC<EditIssueModalProps> = (props) => {
+  if (!props.isOpen || !props.issue) return null;
+  return <EditIssueModalContent key={props.issue.id} issue={props.issue} onClose={props.onClose} onUpdated={props.onUpdated} />;
+};
+
+const EditIssueModalContent: React.FC<Omit<EditIssueModalProps, 'issue' | 'isOpen'> & { issue: Issue }> = ({
   issue,
-  isOpen,
   onClose,
   onUpdated,
 }) => {
-  if (!isOpen || !issue) return null;
+
 
   const [title, setTitle] = useState(issue.title);
   const [description, setDescription] = useState(issue.description);

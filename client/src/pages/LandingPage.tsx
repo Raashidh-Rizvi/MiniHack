@@ -11,10 +11,10 @@ import {
   Lightbulb,
   CheckCircle2,
   ChevronRight,
-  ShieldAlert,
   AlertTriangle,
-  Clock,
   MapPin,
+  Clock,
+  ShieldAlert,
 } from 'lucide-react';
 import { ExecutiveDashboardPreview } from '../components/landing/ExecutiveDashboardPreview';
 

@@ -12,10 +12,10 @@ export const AdminPage: React.FC = () => {
           <div className="flex items-center gap-3 mb-1">
             <Link
               to="/issues"
-              className="flex items-center gap-1.5 text-rose-300 hover:text-white text-sm transition-colors"
+              className="flex items-center gap-1.5 text-indigo-300 hover:text-white text-sm transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to site
+              Community Feed
             </Link>
           </div>
           <div className="flex items-start gap-4">
@@ -23,8 +23,8 @@ export const AdminPage: React.FC = () => {
               <Shield className="w-7 h-7 text-rose-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">
-                Community Admin Portal
+              <h1 className="text-2xl font-bold tracking-tight !text-white">
+                System Administrator Dashboard
               </h1>
               <p className="mt-1 text-rose-200/90 text-sm max-w-2xl">
                 Review and triage community issues ranked by the GramaFix Priority Engine. 
@@ -44,7 +44,7 @@ export const AdminPage: React.FC = () => {
             <span className="text-emerald-300">Urgency × 0.20</span>
             {' + '}
             <span className="text-rose-300">Report Age × 0.10</span>
-            <span className="ml-4 text-slate-400">→ 0–25: LOW · 26–50: MEDIUM · 51–75: HIGH · 76–100: CRITICAL</span>
+            <span className="ml-4 text-slate-400">Normalized points → 0–34: LOW · 35–64: MEDIUM · 65–84: HIGH · 85–100: CRITICAL</span>
           </div>
         </div>
       </div>

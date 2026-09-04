@@ -3,20 +3,25 @@ const router = express.Router();
 const {
   createIssue,
   getMyReports,
+  getCitizenStats,
+  supportIssue,
+  unsupportIssue,
   updateIssue,
   cancelIssue,
   getAllIssues,
   getIssueById,
-  getCitizenStats,
 } = require('../controllers/issueController');
-const { validateIssueCreate, validateIssueUpdate } = require('../middleware/validator');
+const { requireAuth, requireRole } = require('../middleware/auth');
+const citizen = [requireAuth, requireRole('CITIZEN')];
 
 // Citizen CRUD routes (Member 1)
-router.route('/').get(getAllIssues).post(validateIssueCreate, createIssue);
+router.route('/').get(getAllIssues).post(...citizen, createIssue);
 
-router.route('/my-reports').get(getMyReports);
-router.route('/my-stats').get(getCitizenStats);
+router.route('/my-reports').get(...citizen, getMyReports);
+router.route('/my-stats').get(...citizen, getCitizenStats);
 
-router.route('/:id').get(getIssueById).put(validateIssueUpdate, updateIssue).delete(cancelIssue);
+router.route('/:id/support').post(...citizen, supportIssue).delete(...citizen, unsupportIssue);
+
+router.route('/:id').get(getIssueById).put(...citizen, updateIssue).delete(...citizen, cancelIssue);
 
 module.exports = router;

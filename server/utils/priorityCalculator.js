@@ -3,7 +3,7 @@
  * Formula: (Severity * 0.40) + (PeopleAffected * 0.30) + (Urgency * 0.20) + (ReportAge * 0.10)
  */
 
-function calculatePriority(severity = 'MEDIUM', peopleAffected = 10, urgency = null, createdAt = null) {
+function calculatePriority(severity = 'MEDIUM', peopleAffected = 10, urgency = null, createdAt = null, now = Date.now()) {
   // 1. Severity points (0-100)
   const severityPoints = {
     LOW: 25,
@@ -27,9 +27,9 @@ function calculatePriority(severity = 'MEDIUM', peopleAffected = 10, urgency = n
   const urgScore = severityPoints[effectiveUrgency.toUpperCase()] || sevScore;
 
   // 4. Report Age points (0-100, increases as unaddressed reports age)
-  let ageScore = 10;
+  let ageScore = 15;
   if (createdAt) {
-    const ageInHours = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60);
+    const ageInHours = Math.max(0, (now - new Date(createdAt).getTime()) / (1000 * 60 * 60));
     if (ageInHours > 72) ageScore = 90;
     else if (ageInHours > 48) ageScore = 70;
     else if (ageInHours > 24) ageScore = 50;

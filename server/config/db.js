@@ -6,6 +6,11 @@ let isConnected = false;
 let connectionPromise = null;
 
 const connectDB = async () => {
+  if (process.env.STORAGE_MODE === 'memory') {
+    isConnected = false;
+    return false;
+  }
+
   if (isConnected && mongoose.connection.readyState === 1) {
     return true;
   }
@@ -20,7 +25,7 @@ const connectDB = async () => {
     try {
       mongoose.set('strictQuery', false);
       const conn = await mongoose.connect(mongoURI, {
-        serverSelectionTimeoutMS: 8000,
+        serverSelectionTimeoutMS: 5000,
         connectTimeoutMS: 10000,
       });
       isConnected = true;
@@ -29,6 +34,7 @@ const connectDB = async () => {
     } catch (error) {
       isConnected = false;
       connectionPromise = null;
+      if (process.env.STORAGE_MODE === 'mongo') throw error;
       console.warn(`⚠️ MongoDB connection issue (${error.message}).`);
       console.log(`🚀 GramaFix running in Resilient In-Memory Storage Mode for seamless evaluation!`);
       return false;

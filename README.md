@@ -51,6 +51,23 @@ npm run dev
 ## 👥 Team & Contributions
 - SE3090 – Software Engineering Frameworks | Assignment 2 – Mini Hackathon
 
+### Member 3 - System Administrator (IT24103352)
+
+The implementation on branch `IT24103352` adds verified server sessions and role guards, administrative assignment/triage/moderation, private notes and recorded activity, consistent priority scoring, and responsive dashboard controls. Existing Citizen and Officer endpoints share the same identity/ownership rules. See [the implementation plan](System_Admin_implementation_plan.md) for phase results and remaining verification limits.
+
+Run `npm run build` for the frontend and `npm --prefix server test` for isolated backend tests. Tests use disposable in-memory fixtures by default and never load the development database credentials. Mongo integration is opt-in: set `RUN_MONGO_TESTS=true` and `MONGO_TEST_URI` to a dedicated database named `gramafix_test` or `gramafix_test_<suffix>` before running the tests. Only test-created records are cleaned up; collections are never dropped.
+
+For an isolated local demonstration in PowerShell:
+
+```powershell
+$env:STORAGE_MODE='memory'
+npm run dev
+```
+
+Use the existing sign-in page presets for the memory demo. Roles now require server sign-in; changing a browser-local persona cannot grant administrator access. Public registration creates citizens only. Real MongoDB officer/admin accounts can be provisioned explicitly with `npm --prefix server run provision`, using environment values `MONGO_URI`, `PROVISION_EMAIL`, `PROVISION_PASSWORD`, `PROVISION_NAME`, and `PROVISION_ROLE` (`ADMIN` or `OFFICER`). Provisioning refuses to overwrite existing accounts and is never automatic.
+
+Sessions last eight hours and expire when the API process restarts. In-memory reports are temporary; browser-local citizen demo storage is separate. Use `STORAGE_MODE=mongo` to require the configured database rather than falling back on startup. Normal startup retains the existing MongoDB-with-memory-fallback behavior. Optional offline public demo data can be enabled with `VITE_LOCAL_DEMO=true`; authenticated failures are never treated as successful citizen writes. Community support retains its existing browser-local fallback behavior and is not a new administrator feature.
+
 ---
 
 ## 📄 License & Declarations

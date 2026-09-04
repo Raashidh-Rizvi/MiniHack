@@ -60,10 +60,11 @@ const issueSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED'],
+      enum: ['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'DUPLICATE', 'REJECTED'],
       default: 'REPORTED',
       uppercase: true,
     },
+    supportedBy: { type: [Number], default: [] },
     supportCount: {
       type: Number,
       default: 0,
@@ -80,6 +81,12 @@ const issueSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    fieldNotes: { type: String, default: '', maxlength: 500 },
+    adminHistory: { type: [{
+      _id: false, id: String, type: String, timestamp: Date,
+      actorId: mongoose.Schema.Types.Mixed, actorName: String, actorRole: String,
+      before: mongoose.Schema.Types.Mixed, after: mongoose.Schema.Types.Mixed, note: String,
+    }], default: [] },
     assignedOfficer: {
       type: Number,
       default: null,
@@ -105,8 +112,7 @@ const issueSchema = new mongoose.Schema(
 // Auto-increment numericId simulation before saving
 issueSchema.pre('save', async function (next) {
   if (!this.numericId) {
-    const count = await this.constructor.countDocuments();
-    this.numericId = 101 + count;
+    this.numericId = await require('./Counter').nextId('issues', this.constructor, 100);
   }
   next();
 });

@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      default: 'password123',
+      required: true,
     },
   },
   {
@@ -47,12 +47,7 @@ const userSchema = new mongoose.Schema(
 // Automatically generate numericId if not explicitly supplied
 userSchema.pre('validate', async function (next) {
   if (!this.numericId) {
-    try {
-      const lastUser = await this.constructor.findOne().sort({ numericId: -1 });
-      this.numericId = lastUser && lastUser.numericId ? lastUser.numericId + 1 : 1;
-    } catch (e) {
-      this.numericId = Date.now();
-    }
+    this.numericId = await require('./Counter').nextId('users', this.constructor);
   }
   next();
 });

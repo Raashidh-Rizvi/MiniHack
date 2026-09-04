@@ -51,7 +51,7 @@ const OfficerUpdateModal: React.FC<OfficerModalProps> = ({
   useEffect(() => {
     if (issue) {
       setSelectedStatus('');
-      setFieldNotes(issue.adminNotes || '');
+      setFieldNotes(issue.fieldNotes || '');
     }
   }, [issue]);
 
@@ -217,7 +217,7 @@ const StatCard: React.FC<StatCardProps> = ({ id, title, value, icon: Icon, color
 
 export const OfficerPage: React.FC = () => {
   const { currentUser } = useAuth();
-  // Phase 4: officerId no longer sent to API — the backend reads it from the JWT token.
+  // Phase 4: officerId no longer sent to API — the backend reads it from the session token.
 
   const [stats, setStats] = useState<OfficerStats>({
     totalIssues: 0, openIssues: 0, inProgressIssues: 0, resolvedIssues: 0, criticalIssues: 0,
@@ -240,7 +240,7 @@ export const OfficerPage: React.FC = () => {
   const fetchStats = useCallback(async () => {
     try {
       setStatsLoading(true);
-      // Phase 4: No officerId passed — backend identifies officer via JWT token
+      // Phase 4: No officerId passed — backend identifies officer via session token
       const data = await getOfficerStats();
       setStats(data);
     } catch {
@@ -254,7 +254,7 @@ export const OfficerPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      // Phase 4: No officerId passed — backend identifies officer via JWT token
+      // Phase 4: No officerId passed — backend identifies officer via session token
       const data = await getOfficerQueue({
         search: search || undefined,
         status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
@@ -276,9 +276,9 @@ export const OfficerPage: React.FC = () => {
   const handleStatusUpdate = async (issueId: number, payload: OfficerStatusPayload) => {
     try {
       setIsSubmitting(true);
-      // Phase 4: No officerId in payload — backend enforces ownership via JWT token
+      // Phase 4: No officerId in payload — backend enforces ownership via session token
       const updated = await officerUpdateStatus(issueId, payload);
-      setIssues((prev) => prev.map((i) => (i.id === issueId ? updated : i)));
+      setIssues((prev) => prev.map((i) => (i.id === issueId ? updated : i)).filter(i => selectedStatus === 'ALL' || i.status === selectedStatus));
       setModalOpen(false);
       setSelectedIssue(null);
       setSuccessMsg(`Issue #${issueId} updated to ${payload.newStatus.replace('_', ' ')} ✓`);
@@ -314,7 +314,7 @@ export const OfficerPage: React.FC = () => {
               className="flex items-center gap-1.5 text-orange-300 hover:text-white text-sm transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to site
+              Community Feed
             </Link>
           </div>
           <div className="flex items-start gap-4">

@@ -1,33 +1,7 @@
-import axios from 'axios';
+import { apiClient as api } from './api';
 import { Issue, IssueStatus } from '../types/issue';
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-const api = axios.create({
-  baseURL: BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 10000,
-});
-
-api.interceptors.request.use((config) => {
-  try {
-    const rawUser = localStorage.getItem('gramafix_user');
-    if (rawUser) {
-      const user = JSON.parse(rawUser);
-      if (user?.id) {
-        config.headers['x-user-id'] = String(user.id);
-        config.headers['x-user-role'] = user.role || 'OFFICER';
-      }
-    }
-  } catch {}
-
-  const token = localStorage.getItem('gramafix_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
 
 export interface OfficerStats {
   totalIssues: number;
@@ -37,7 +11,7 @@ export interface OfficerStats {
   criticalIssues: number;
 }
 
-// Phase 4: officerId removed — the backend reads it from the JWT token now.
+// Phase 4: officerId removed — the backend reads it from the session token now.
 export interface OfficerStatusPayload {
   newStatus: IssueStatus;
   fieldNotes?: string;
@@ -52,13 +26,13 @@ export interface OfficerUser {
   communityArea: string;
 }
 
-/** GET /api/officer/stats — Officer dashboard KPIs (officer identified via JWT) */
+/** GET /api/officer/stats — Officer dashboard KPIs (officer identified via session) */
 export async function getOfficerStats(): Promise<OfficerStats> {
   const res = await api.get('/officer/stats');
   return res.data.data;
 }
 
-/** GET /api/officer/queue — Issues assigned to this officer (officer identified via JWT) */
+/** GET /api/officer/queue — Issues assigned to this officer (officer identified via session) */
 export async function getOfficerQueue(
   filters?: { status?: string; priorityLevel?: string; category?: string; search?: string }
 ): Promise<Issue[]> {
@@ -71,7 +45,7 @@ export async function getOfficerQueue(
   return res.data.data;
 }
 
-/** PUT /api/officer/issues/:id/status — Officer updates status (officer identified via JWT) */
+/** PUT /api/officer/issues/:id/status — Officer updates status (officer identified via session) */
 export async function officerUpdateStatus(
   issueId: number,
   payload: OfficerStatusPayload

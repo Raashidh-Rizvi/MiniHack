@@ -63,7 +63,7 @@ export const feedService = {
 
     if (isCurrentlySupported) {
       const response = await apiClient.delete<{ success: boolean; supportCount: number }>(
-        `/issues/${issueId}/support?userId=${userId}`
+        `/issues/${issueId}/support`
       );
       const supported = this.getUserSupportedIssueIds(userId).filter((id) => id !== issueId);
       sessionStorage.setItem(key, JSON.stringify(supported));
@@ -71,7 +71,7 @@ export const feedService = {
     } else {
       const response = await apiClient.post<{ success: boolean; supportCount: number }>(
         `/issues/${issueId}/support`,
-        { userId }
+        {}
       );
       const supported = this.getUserSupportedIssueIds(userId);
       if (!supported.includes(issueId)) supported.push(issueId);

@@ -444,6 +444,7 @@ export const CitizenDashboardPage: React.FC = () => {
                           {eligible && (
                             <>
                               <button
+                                disabled={['RESOLVED', 'DUPLICATE', 'REJECTED'].includes(report.status)}
                                 onClick={() => setEditingIssue(report)}
                                 className="p-2 rounded-xl text-sky-500 hover:bg-sky-500/10 transition-colors"
                                 title="Edit report"
@@ -452,6 +453,7 @@ export const CitizenDashboardPage: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => {
+                                  if (['RESOLVED', 'DUPLICATE', 'REJECTED'].includes(report.status)) return;
                                   setDeletingIssueId(report.id);
                                   setCancelModalOpen(true);
                                 }}
@@ -492,7 +494,7 @@ export const CitizenDashboardPage: React.FC = () => {
 
               {/* Status filter pills */}
               <div className="flex items-center space-x-2 overflow-x-auto pb-2 mb-4">
-                {(['ALL', 'REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED'] as const).map(
+                {(['ALL', 'REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'DUPLICATE', 'REJECTED'] as const).map(
                   (s) => (
                     <button
                       key={s}
@@ -559,6 +561,7 @@ export const CitizenDashboardPage: React.FC = () => {
                           {eligible && (
                             <>
                               <button
+                                disabled={['RESOLVED', 'DUPLICATE', 'REJECTED'].includes(report.status)}
                                 onClick={() => setEditingIssue(report)}
                                 className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-sky-600 dark:text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 transition-colors"
                               >
@@ -567,6 +570,7 @@ export const CitizenDashboardPage: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => {
+                                  if (['RESOLVED', 'DUPLICATE', 'REJECTED'].includes(report.status)) return;
                                   setDeletingIssueId(report.id);
                                   setCancelModalOpen(true);
                                 }}

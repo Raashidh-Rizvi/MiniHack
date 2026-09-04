@@ -39,6 +39,7 @@ export interface Issue {
   reportedBy: number;
   reportedByName?: string;
   adminNotes?: string;
+  fieldNotes?: string;
   assignedOfficer?: number;
   assignedOfficerName?: string;
   createdAt: string;

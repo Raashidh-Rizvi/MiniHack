@@ -19,29 +19,29 @@ export function calculatePriorityScore(
   const severityScore = severityWeights[severity] || 50;
 
   // 2. People Affected / Impact weight (30%)
-  let impactScore = 25;
+  let impactScore = 20;
   if (peopleAffected > 300) impactScore = 100;
-  else if (peopleAffected > 100) impactScore = 80;
-  else if (peopleAffected > 30) impactScore = 60;
-  else if (peopleAffected > 10) impactScore = 40;
+  else if (peopleAffected >= 151) impactScore = 85;
+  else if (peopleAffected >= 51) impactScore = 70;
+  else if (peopleAffected >= 11) impactScore = 45;
 
   // 3. Urgency weight (20%) - aligned with severity
   const urgencyWeights: Record<Severity, number> = {
-    LOW: 20,
-    MEDIUM: 45,
+    LOW: 25,
+    MEDIUM: 50,
     HIGH: 75,
     CRITICAL: 100,
   };
   const urgencyScore = urgencyWeights[severity] || 50;
 
   // 4. Age weight (10%) - increases with report age (max 100 at 72+ hours)
-  const ageScore = Math.min(100, Math.round((hoursOld / 72) * 100));
+  const ageScore = hoursOld > 72 ? 90 : hoursOld > 48 ? 70 : hoursOld > 24 ? 50 : hoursOld > 6 ? 30 : 15;
 
   // Combined score (0 - 100)
   const total = Math.round(
     severityScore * 0.4 + impactScore * 0.3 + urgencyScore * 0.2 + ageScore * 0.1
   );
-  const score = Math.max(1, Math.min(100, total));
+  const score = Math.max(0, Math.min(100, total));
 
   // Priority Level mapping
   let level: PriorityLevel = 'LOW';

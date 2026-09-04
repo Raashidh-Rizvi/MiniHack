@@ -1,457 +1,137 @@
 const Issue = require('../models/Issue');
-const memoryStore = require('../models/memoryStore');
+const memory = require('../models/memoryStore');
 const { getIsConnected } = require('../config/db');
+const store = require('../services/issueStore');
+const policy = require('../services/issuePolicy');
 const { calculatePriority } = require('../utils/priorityCalculator');
+const { handle, fail, body } = require('../utils/http');
 
-// Category → Officer routing map (mirrors memoryStore for DB path)
-const CATEGORY_OFFICER_MAP = {
-  ROAD: { id: 2, name: 'Eng. Bandara' },
-  DRAINAGE: { id: 2, name: 'Eng. Bandara' },
-  WATER: { id: 2, name: 'Eng. Bandara' },
-  WASTE: { id: 2, name: 'Eng. Bandara' },
-  STREETLIGHT: { id: 2, name: 'Eng. Bandara' },
-  TRAFFIC: { id: 2, name: 'Eng. Bandara' },
-  ENVIRONMENT: { id: 2, name: 'Eng. Bandara' },
-  OTHER: { id: 2, name: 'Eng. Bandara' },
-};
+function fields(data, create = false) {
+  const result = {};
+  const errors = [];
+  for (const [key, min, max] of [['title', 5, 100], ['description', 10, 1000], ['location', 3, 120]]) {
+    if (create || data[key] !== undefined) {
+      if (typeof data[key] !== 'string' || data[key].trim().length < min || data[key].trim().length > max) {
+        errors.push({ field: key, message: `${key} must be ${min}-${max} characters.` });
+      } else {
+        result[key] = data[key].trim();
+      }
+    }
+  }
+  if (errors.length) throw fail(400, errors[0].message, errors);
+  if (create) result.category = policy.enumValue(data.category, policy.categories, 'category');
+  if (create || data.severity !== undefined) result.severity = policy.enumValue(data.severity ?? 'MEDIUM', policy.severities, 'severity');
+  if (create || data.peopleAffected !== undefined) {
+    const value = data.peopleAffected ?? 10;
+    if (!['number', 'string'].includes(typeof value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1) throw fail(400, 'People affected must be a positive integer.');
+    result.peopleAffected = Number(value);
+  }
+  return result;
+}
 
-// @desc    Create a new issue report (Member 1 - CREATE)
-// @route   POST /api/issues
-// @access  Public (Citizen)
-const createIssue = async (req, res, next) => {
-  try {
-    const {
-      title,
-      description,
-      category,
-      location,
-      severity = 'MEDIUM',
-      peopleAffected = 10,
-      reportedBy = 1,
-      reportedByName = 'Kasun Perera',
-    } = req.body;
+function own(req, issue) {
+  if (issue.reportedBy !== Number(req.user.id)) throw fail(403, 'You can manage only your own reports.');
+}
 
-    const catKey = (category || 'OTHER').toUpperCase();
-    const officerInfo = CATEGORY_OFFICER_MAP[catKey] || CATEGORY_OFFICER_MAP['OTHER'];
-    const { priorityScore, priorityLevel } = calculatePriority(severity, peopleAffected);
-
-    if (getIsConnected()) {
-      const issue = await Issue.create({
-        title,
-        description,
-        category: catKey,
-        location,
-        severity: severity.toUpperCase(),
-        peopleAffected: Number(peopleAffected),
-        priorityScore,
-        priorityLevel,
+const createIssue = handle(async (req, res) => {
+  const data = fields(body(req), true);
+  const createdAt = new Date();
+  Object.assign(data, { reportedBy: Number(req.user.id), reportedByName: req.user.fullName });
+  const issue = getIsConnected()
+    ? (await Issue.create({
+        ...data,
+        ...calculatePriority(data.severity, data.peopleAffected, null, createdAt),
+        createdAt,
         status: 'REPORTED',
-        supportCount: 0,
-        reportedBy: Number(reportedBy),
-        reportedByName,
-        assignedOfficer: officerInfo.id,
-        assignedOfficerName: officerInfo.name,
-      });
+        assignedOfficer: 2,
+        assignedOfficerName: 'Eng. Bandara',
+      })).toJSON()
+    : memory.createIssue(data);
+  res.status(201).json({ success: true, data: policy.publicIssue(issue) });
+});
 
-      return res.status(201).json({
-        success: true,
-        message: 'Civic issue reported successfully!',
-        data: issue,
-      });
-    } else {
-      const newIssue = memoryStore.createIssue({
-        title,
-        description,
-        category,
-        location,
-        severity,
-        peopleAffected,
-        reportedBy,
-        reportedByName,
-      });
+const getMyReports = handle(async (req, res) => {
+  const data = (await store.all())
+    .filter((i) => i.reportedBy === Number(req.user.id))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map(policy.publicIssue);
+  res.json({ success: true, count: data.length, data });
+});
 
-      return res.status(201).json({
-        success: true,
-        message: 'Civic issue reported successfully! (Resilient Storage)',
-        data: newIssue,
-      });
-    }
-  } catch (error) {
-    next(error);
+const getCitizenStats = handle(async (req, res) => {
+  const issues = (await store.all()).filter((i) => i.reportedBy === Number(req.user.id));
+  res.json({
+    success: true,
+    data: {
+      total: issues.length,
+      open: issues.filter((i) => ['REPORTED', 'UNDER_REVIEW'].includes(i.status)).length,
+      inProgress: issues.filter((i) => i.status === 'IN_PROGRESS').length,
+      resolved: issues.filter((i) => i.status === 'RESOLVED').length,
+    },
+  });
+});
+
+const supportIssue = handle(async (req, res) => {
+  const issue = await store.get(req.params.id);
+  const userId = Number(req.user.id);
+  const supportedBy = Array.isArray(issue.supportedBy) ? [...issue.supportedBy] : [];
+  if (!supportedBy.includes(userId)) {
+    supportedBy.push(userId);
+    const updated = await store.save(issue, { supportedBy, supportCount: (issue.supportCount || 0) + 1 });
+    return res.json({ success: true, supportCount: updated.supportCount });
   }
-};
+  res.json({ success: true, supportCount: issue.supportCount || 0 });
+});
 
-// @desc    Get reports filed by resident (Member 1 - READ My Reports)
-// @route   GET /api/issues/my-reports
-// @access  Public (Citizen)
-const getMyReports = async (req, res, next) => {
-  try {
-    const userId = Number(req.query.userId) || 1;
-
-    if (getIsConnected()) {
-      const issues = await Issue.find({ reportedBy: userId }).sort({ createdAt: -1 });
-      return res.status(200).json({
-        success: true,
-        count: issues.length,
-        data: issues,
-      });
-    } else {
-      const issues = memoryStore.getMyReports(userId);
-      return res.status(200).json({
-        success: true,
-        count: issues.length,
-        data: issues,
-      });
-    }
-  } catch (error) {
-    next(error);
+const unsupportIssue = handle(async (req, res) => {
+  const issue = await store.get(req.params.id);
+  const userId = Number(req.user.id);
+  const supportedBy = Array.isArray(issue.supportedBy) ? [...issue.supportedBy] : [];
+  const index = supportedBy.indexOf(userId);
+  if (index !== -1) {
+    supportedBy.splice(index, 1);
+    const updated = await store.save(issue, { supportedBy, supportCount: Math.max(0, (issue.supportCount || 1) - 1) });
+    return res.json({ success: true, supportCount: updated.supportCount });
   }
-};
-// Helper to extract requesting user context from headers or query
-const getRequestingUser = (req) => {
-  let userId = req.headers['x-user-id'] || req.query.userId || req.body.userId;
-  let role = req.headers['x-user-role'];
+  res.json({ success: true, supportCount: issue.supportCount || 0 });
+});
 
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
-    const match = token.match(/gramafix_jwt_(\d+)/);
-    if (match && !userId) {
-      userId = match[1];
-    }
-  }
+const updateIssue = handle(async (req, res) => {
+  const data = body(req);
+  const issue = await store.get(req.params.id);
+  own(req, issue);
+  policy.active(issue);
+  const changes = fields(data);
+  if (!Object.keys(changes).length) throw fail(400, 'Provide editable report details.');
+  Object.assign(changes, calculatePriority(changes.severity || issue.severity, changes.peopleAffected || issue.peopleAffected, null, issue.createdAt));
+  res.json({ success: true, data: policy.publicIssue(await store.save(issue, changes, data.expectedUpdatedAt)) });
+});
 
-  return {
-    id: userId ? Number(userId) : null,
-    role: (role || 'CITIZEN').toUpperCase(),
-  };
-};
+const cancelIssue = handle(async (req, res) => {
+  const issue = await store.get(req.params.id);
+  own(req, issue);
+  policy.active(issue);
+  await store.remove(issue, req.body?.expectedUpdatedAt);
+  res.json({ success: true, message: 'Report cancelled.' });
+});
 
-// @desc    Update citizen's own report (Member 1 - UPDATE)
-// @route   PUT /api/issues/:id
-// @access  Public (Citizen)
-const updateIssue = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { description, location, peopleAffected, severity, title } = req.body;
-    const requestingUser = getRequestingUser(req);
+const getAllIssues = handle(async (req, res) => {
+  const data = policy.filterIssues(await store.all(), policy.filters(req.query)).map(policy.publicIssue);
+  if (req.query.sortBy === 'recent') data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (req.query.sortBy === 'support') data.sort((a, b) => b.supportCount - a.supportCount);
+  res.json({ success: true, count: data.length, data });
+});
 
-    if (getIsConnected()) {
-      let issue = await Issue.findOne({
-        $or: [{ numericId: isNaN(id) ? null : Number(id) }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
-      });
-
-      if (!issue) {
-        return res.status(404).json({
-          success: false,
-          message: `Issue not found with id ${id}`,
-        });
-      }
-
-      // Ownership enforcement: Citizens cannot edit another citizen's report
-      if (requestingUser.role !== 'ADMIN') {
-        if (requestingUser.id && Number(issue.reportedBy) !== Number(requestingUser.id)) {
-          return res.status(403).json({
-            success: false,
-            message: "Forbidden: You cannot edit another citizen's report.",
-          });
-        }
-      }
-
-      // Status eligibility check: Citizens may only edit REPORTED or UNDER_REVIEW reports
-      if (issue.status !== 'REPORTED' && issue.status !== 'UNDER_REVIEW') {
-        return res.status(400).json({
-          success: false,
-          message: `Only reports with status 'REPORTED' or 'UNDER_REVIEW' can be edited. Current status is ${issue.status}.`,
-        });
-      }
-
-      if (title) issue.title = title;
-      if (description) issue.description = description;
-      if (location) issue.location = location;
-      if (severity) issue.severity = severity.toUpperCase();
-      if (peopleAffected) issue.peopleAffected = Number(peopleAffected);
-
-      // Recalculate priority
-      const { priorityScore, priorityLevel } = calculatePriority(
-        issue.severity,
-        issue.peopleAffected,
-        null,
-        issue.createdAt
-      );
-      issue.priorityScore = priorityScore;
-      issue.priorityLevel = priorityLevel;
-
-      await issue.save();
-
-      return res.status(200).json({
-        success: true,
-        message: 'Issue report updated successfully',
-        data: issue,
-      });
-    } else {
-      const issue = memoryStore.getIssueById(id);
-      if (!issue) {
-        return res.status(404).json({
-          success: false,
-          message: `Issue not found with id ${id}`,
-        });
-      }
-
-      // Ownership enforcement
-      if (requestingUser.role !== 'ADMIN') {
-        if (requestingUser.id && Number(issue.reportedBy) !== Number(requestingUser.id)) {
-          return res.status(403).json({
-            success: false,
-            message: "Forbidden: You cannot edit another citizen's report.",
-          });
-        }
-      }
-
-      // Status eligibility check
-      if (issue.status !== 'REPORTED' && issue.status !== 'UNDER_REVIEW') {
-        return res.status(400).json({
-          success: false,
-          message: `Only reports with status 'REPORTED' or 'UNDER_REVIEW' can be edited. Current status is ${issue.status}.`,
-        });
-      }
-
-      const updated = memoryStore.updateIssue(id, req.body);
-      return res.status(200).json({
-        success: true,
-        message: 'Issue report updated successfully',
-        data: updated,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Cancel/Delete citizen's own report (Member 1 - DELETE)
-// @route   DELETE /api/issues/:id
-// @access  Public (Citizen)
-const cancelIssue = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const requestingUser = getRequestingUser(req);
-
-    if (getIsConnected()) {
-      const issue = await Issue.findOne({
-        $or: [{ numericId: isNaN(id) ? null : Number(id) }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
-      });
-
-      if (!issue) {
-        return res.status(404).json({
-          success: false,
-          message: `Issue not found with id ${id}`,
-        });
-      }
-
-      // Ownership enforcement: Citizens cannot cancel another citizen's report
-      if (requestingUser.role !== 'ADMIN') {
-        if (requestingUser.id && Number(issue.reportedBy) !== Number(requestingUser.id)) {
-          return res.status(403).json({
-            success: false,
-            message: "Forbidden: You cannot cancel another citizen's report.",
-          });
-        }
-      }
-
-      // Status eligibility check: Citizens may only cancel REPORTED or UNDER_REVIEW reports
-      if (issue.status !== 'REPORTED' && issue.status !== 'UNDER_REVIEW') {
-        return res.status(400).json({
-          success: false,
-          message: `Only reports with status 'REPORTED' or 'UNDER_REVIEW' can be cancelled. Current status is ${issue.status}.`,
-        });
-      }
-
-      await Issue.deleteOne({ _id: issue._id });
-
-      return res.status(200).json({
-        success: true,
-        message: 'Issue report has been cancelled successfully',
-      });
-    } else {
-      const issue = memoryStore.getIssueById(id);
-      if (!issue) {
-        return res.status(404).json({
-          success: false,
-          message: `Issue not found with id ${id}`,
-        });
-      }
-
-      // Ownership enforcement
-      if (requestingUser.role !== 'ADMIN') {
-        if (requestingUser.id && Number(issue.reportedBy) !== Number(requestingUser.id)) {
-          return res.status(403).json({
-            success: false,
-            message: "Forbidden: You cannot cancel another citizen's report.",
-          });
-        }
-      }
-
-      // Status eligibility check
-      if (issue.status !== 'REPORTED' && issue.status !== 'UNDER_REVIEW') {
-        return res.status(400).json({
-          success: false,
-          message: `Only reports with status 'REPORTED' or 'UNDER_REVIEW' can be cancelled. Current status is ${issue.status}.`,
-        });
-      }
-
-      memoryStore.deleteIssue(id);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Issue report has been cancelled successfully',
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Get all public issues (supports feed view)
-// @route   GET /api/issues
-// @access  Public
-const getAllIssues = async (req, res, next) => {
-  try {
-    const { category, severity, status, search } = req.query;
-
-    if (getIsConnected()) {
-      const query = {};
-      if (category && category !== 'ALL') query.category = category.toUpperCase();
-      if (severity && severity !== 'ALL') query.severity = severity.toUpperCase();
-      if (status && status !== 'ALL') query.status = status.toUpperCase();
-      if (search) {
-        query.$or = [
-          { title: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-          { location: { $regex: search, $options: 'i' } },
-        ];
-      }
-
-      const issues = await Issue.find(query).sort({ priorityScore: -1, createdAt: -1 });
-      return res.status(200).json({
-        success: true,
-        count: issues.length,
-        data: issues,
-      });
-    } else {
-      let issues = memoryStore.getAllIssues();
-      if (category && category !== 'ALL') {
-        issues = issues.filter((i) => i.category === category.toUpperCase());
-      }
-      if (severity && severity !== 'ALL') {
-        issues = issues.filter((i) => i.severity === severity.toUpperCase());
-      }
-      if (status && status !== 'ALL') {
-        issues = issues.filter((i) => i.status === status.toUpperCase());
-      }
-      if (search) {
-        const term = search.toLowerCase();
-        issues = issues.filter(
-          (i) =>
-            i.title.toLowerCase().includes(term) ||
-            i.description.toLowerCase().includes(term) ||
-            i.location.toLowerCase().includes(term)
-        );
-      }
-      return res.status(200).json({
-        success: true,
-        count: issues.length,
-        data: issues,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Get single issue details
-// @route   GET /api/issues/:id
-// @access  Public
-const getIssueById = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    if (getIsConnected()) {
-      const issue = await Issue.findOne({
-        $or: [{ numericId: isNaN(id) ? null : Number(id) }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
-      });
-
-      if (!issue) {
-        return res.status(404).json({
-          success: false,
-          message: `Issue not found with id ${id}`,
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        data: issue,
-      });
-    } else {
-      const issue = memoryStore.getIssueById(id);
-      if (!issue) {
-        return res.status(404).json({
-          success: false,
-          message: `Issue not found with id ${id}`,
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        data: issue,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Get citizen's own report statistics (Member 1 - Dashboard stats)
-// @route   GET /api/issues/my-stats
-// @access  Public (Citizen)
-const getCitizenStats = async (req, res, next) => {
-  try {
-    const userId = Number(req.query.userId) || 1;
-
-    if (getIsConnected()) {
-      const [total, open, inProgress, resolved] = await Promise.all([
-        Issue.countDocuments({ reportedBy: userId }),
-        Issue.countDocuments({ reportedBy: userId, status: 'REPORTED' }),
-        Issue.countDocuments({ reportedBy: userId, status: { $in: ['UNDER_REVIEW', 'IN_PROGRESS'] } }),
-        Issue.countDocuments({ reportedBy: userId, status: 'RESOLVED' }),
-      ]);
-
-      return res.status(200).json({
-        success: true,
-        data: { total, open, inProgress, resolved },
-      });
-    } else {
-      const issues = memoryStore.getMyReports(userId);
-      return res.status(200).json({
-        success: true,
-        data: {
-          total: issues.length,
-          open: issues.filter((i) => i.status === 'REPORTED').length,
-          inProgress: issues.filter((i) => i.status === 'UNDER_REVIEW' || i.status === 'IN_PROGRESS').length,
-          resolved: issues.filter((i) => i.status === 'RESOLVED').length,
-        },
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
+const getIssueById = handle(async (req, res) => res.json({ success: true, data: policy.publicIssue(await store.get(req.params.id)) }));
 
 module.exports = {
   createIssue,
   getMyReports,
+  getCitizenStats,
+  supportIssue,
+  unsupportIssue,
   updateIssue,
   cancelIssue,
   getAllIssues,
   getIssueById,
-  getCitizenStats,
 };

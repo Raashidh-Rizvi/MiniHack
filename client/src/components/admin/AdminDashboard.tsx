@@ -1,276 +1,120 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  LayoutDashboard, AlertTriangle, CheckCircle, Clock, Activity,
-  Search, RefreshCw, Shield,
-} from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { LayoutDashboard, AlertTriangle, Clock, Activity, CheckCircle } from 'lucide-react';
 import { Issue } from '../../types/issue';
 import { MetricsCard } from './MetricsCard';
 import { PriorityQueueTable } from './PriorityQueueTable';
 import { StatusUpdateModal } from './StatusUpdateModal';
 import { PriorityFilter } from '../filters/PriorityFilter';
-import { StatusFilter } from '../filters/StatusFilter';
-import {
-  getAdminStats,
-  getPriorityQueue,
-  updateIssueStatus,
-  moderateDeleteIssue,
-  reassignOfficer,
-  AdminStats,
-  StatusUpdatePayload,
-} from '../../services/adminService';
+import { getAdminStats, getPriorityQueue, updateIssueStatus, moderateDeleteIssue, reassignOfficer, recalculatePriority, AdminStats, StatusUpdatePayload } from '../../services/adminService';
 import { getOfficerList, OfficerUser } from '../../services/officerService';
-
+import { errorMessage } from '../../services/api';
+const statuses = ['ALL', 'REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'DUPLICATE', 'REJECTED'];
+const categories = ['ALL', 'ROAD', 'STREETLIGHT', 'WASTE', 'WATER', 'DRAINAGE', 'TRAFFIC', 'ENVIRONMENT', 'OTHER'];
+const nextStatus = { REPORTED: 'UNDER_REVIEW', UNDER_REVIEW: 'IN_PROGRESS', IN_PROGRESS: 'RESOLVED' } as const;
 export const AdminDashboard: React.FC = () => {
-  const [stats, setStats] = useState<AdminStats>({
-    totalIssues: 0,
-    openIssues: 0,
-    inProgressIssues: 0,
-    criticalIssues: 0,
-    resolvedIssues: 0,
-  });
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [statsError, setStatsError] = useState('');
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Filters
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [search, setSearch] = useState('');
-  const [selectedPriority, setSelectedPriority] = useState('ALL');
-  const [selectedStatus, setSelectedStatus] = useState('ALL');
-
-  // Modal
-  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Officers list for reassignment
+  const [priority, setPriority] = useState('ALL');
+  const [status, setStatus] = useState('ALL');
+  const [category, setCategory] = useState('ALL');
+  const [selected, setSelected] = useState<Issue | null>(null);
   const [officers, setOfficers] = useState<OfficerUser[]>([]);
-
+  const [officersError, setOfficersError] = useState('');
+  const [officersLoading, setOfficersLoading] = useState(true);
+  const [pending, setPending] = useState<string | null>(null);
+  const busy = useRef(false);
+  const sequence = useRef(0);
   const fetchStats = useCallback(async () => {
-    try {
-      setStatsLoading(true);
-      const data = await getAdminStats();
-      setStats(data);
-    } catch {
-      // stats failure is non-fatal
-    } finally {
-      setStatsLoading(false);
-    }
+    try { setStats(await getAdminStats()); setStatsError(''); }
+    catch (e) { setStatsError(errorMessage(e)); }
   }, []);
-
+  const fetchOfficers = useCallback(async () => {
+    setOfficersLoading(true);
+    try { setOfficers(await getOfficerList()); setOfficersError(''); }
+    catch (e) { setOfficersError(errorMessage(e)); }
+    finally { setOfficersLoading(false); }
+  }, []);
   const fetchQueue = useCallback(async () => {
+    const request = ++sequence.current; setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-      const data = await getPriorityQueue({
-        search: search || undefined,
-        priorityLevel: selectedPriority !== 'ALL' ? selectedPriority : undefined,
-        status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
-      });
-      setIssues(data);
-    } catch {
-      setError('Unable to load priority queue. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, [search, selectedPriority, selectedStatus]);
-
+      const data = await getPriorityQueue({ search, status, category, priorityLevel: priority });
+      if (request === sequence.current) { setIssues(data); setError(''); }
+    } catch (e) { if (request === sequence.current) setError(errorMessage(e)); }
+    finally { if (request === sequence.current) setLoading(false); }
+  }, [search, status, category, priority]);
+  useEffect(() => { void fetchStats(); void fetchOfficers(); }, [fetchStats, fetchOfficers]);
   useEffect(() => {
-    fetchStats();
-    // Load officer list for reassignment
-    getOfficerList().then(setOfficers).catch(() => {});
-  }, [fetchStats]);
-
-  useEffect(() => {
+    ++sequence.current;
     const timer = setTimeout(fetchQueue, 300);
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); ++sequence.current; };
   }, [fetchQueue]);
-
-  const handleSelectIssue = (issue: Issue) => {
-    setSelectedIssue(issue);
-    setModalOpen(true);
+  const run = async (key: string, operation: () => Promise<void>) => {
+    if (busy.current) throw new Error('Wait for the current action to finish.');
+    busy.current = true; setPending(key); setNotice('');
+    try { await operation(); setNotice('Saved successfully.'); await Promise.all([fetchQueue(), fetchStats()]); }
+    finally { busy.current = false; setPending(null); }
   };
-
-  const handleStatusUpdate = async (issueId: number, payload: StatusUpdatePayload) => {
-    try {
-      setIsSubmitting(true);
-      const updated = await updateIssueStatus(issueId, payload);
-      setIssues((prev) => prev.map((i) => (i.id === issueId ? updated : i)));
-      setModalOpen(false);
-      setSelectedIssue(null);
-      fetchStats();
-    } catch {
-      alert('Failed to update issue status. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleStatus = async (id: number, payload: StatusUpdatePayload) => {
+    const issue = selected?.id === id ? selected : issues.find(i => i.id === id);
+    await run('status', async () => {
+      await updateIssueStatus(id, { ...payload, expectedUpdatedAt: issue?.updatedAt });
+      setSelected(null);
+    });
   };
-
-  const handleDelete = async (issueId: number) => {
-    try {
-      await moderateDeleteIssue(issueId);
-      setIssues((prev) => prev.filter((i) => i.id !== issueId));
-      fetchStats();
-    } catch {
-      alert('Failed to remove issue. Please try again.');
-    }
+  const handleAssign = async (id: number, officerId: number, name: string) => {
+    await run('assign', async () => setSelected(await reassignOfficer(id, officerId, name, selected?.updatedAt)));
   };
-
-  const handleReassignOfficer = async (issueId: number, officerId: number, officerName: string) => {
-    try {
-      const updated = await reassignOfficer(issueId, officerId, officerName);
-      setIssues((prev) => prev.map((i) => (i.id === issueId ? updated : i)));
-      // Update selectedIssue so the modal reflects the change
-      if (selectedIssue?.id === issueId) {
-        setSelectedIssue(updated);
-      }
-    } catch {
-      alert('Failed to reassign officer. Please try again.');
-    }
+  const handlePriority = async (id: number) => {
+    await run('priority', async () => {
+      await recalculatePriority(id, selected?.updatedAt);
+      const refreshed = await getPriorityQueue();
+      setSelected(refreshed.find(i => i.id === id) || null);
+    });
   };
-
-  // Quick advance to next status
-  const STATUS_NEXT: Record<string, string> = {
-    REPORTED: 'UNDER_REVIEW',
-    UNDER_REVIEW: 'IN_PROGRESS',
-    IN_PROGRESS: 'RESOLVED',
+  const handleDelete = async (id: number) => {
+    try { await run('delete-' + id, async () => { await moderateDeleteIssue(id, issues.find(i => i.id === id)?.updatedAt); }); }
+    catch (e) { setNotice(errorMessage(e)); throw e; }
   };
-  const handleQuickAdvance = async (issueId: number) => {
-    const issue = issues.find((i) => i.id === issueId);
-    if (!issue) return;
-    const nextStatus = STATUS_NEXT[issue.status];
-    if (!nextStatus) return;
-    await handleStatusUpdate(issueId, { newStatus: nextStatus as any });
+  const quickAdvance = async (id: number) => {
+    const issue = issues.find(i => i.id === id);
+    if (!issue || !(issue.status in nextStatus)) return;
+    try { await handleStatus(id, { newStatus: nextStatus[issue.status as keyof typeof nextStatus] }); }
+    catch (e) { setNotice(errorMessage(e)); }
   };
-
-  return (
-    <div className="space-y-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <MetricsCard
-          id="stats-total"
-          title="Total Issues"
-          value={statsLoading ? '—' : stats.totalIssues}
-          icon={LayoutDashboard}
-          colorTheme="purplishRed"
-          subtitle="All reported issues"
-        />
-        <MetricsCard
-          id="stats-open"
-          title="Open"
-          value={statsLoading ? '—' : stats.openIssues}
-          icon={Clock}
-          colorTheme="sky"
-          subtitle="Awaiting action"
-        />
-        <MetricsCard
-          id="stats-critical"
-          title="Critical"
-          value={statsLoading ? '—' : stats.criticalIssues}
-          icon={AlertTriangle}
-          colorTheme="red"
-          subtitle="Highest priority"
-        />
-        <MetricsCard
-          id="stats-in-progress"
-          title="In Progress"
-          value={statsLoading ? '—' : stats.inProgressIssues}
-          icon={Activity}
-          colorTheme="amber"
-          subtitle="Being addressed"
-        />
-        <MetricsCard
-          id="stats-resolved"
-          title="Resolved"
-          value={statsLoading ? '—' : stats.resolvedIssues}
-          icon={CheckCircle}
-          colorTheme="emerald"
-          subtitle="Completed"
-        />
-      </div>
-
-      {/* Priority Queue Section */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 shadow-sm overflow-hidden">
-        {/* Queue header */}
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-purple-600 dark:text-rose-400" />
-              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
-                Community Priority Queue
-              </h2>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-rose-300 border border-purple-500/20 font-medium">
-                {issues.length} issues
-              </span>
-            </div>
-            <button
-              id="refresh-queue"
-              onClick={() => { fetchQueue(); fetchStats(); }}
-              className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-rose-400 transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Refresh
-            </button>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 space-y-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              id="admin-search"
-              type="text"
-              placeholder="Search by title, location…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-colors"
-            />
-          </div>
-
-          {/* Priority chips */}
-          <PriorityFilter selectedPriority={selectedPriority} onSelectPriority={setSelectedPriority} />
-
-          {/* Status chips */}
-          <StatusFilter selectedStatus={selectedStatus} onSelectStatus={setSelectedStatus} />
-        </div>
-
-        {/* Table */}
-        <div className="p-4">
-          {error ? (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/25 text-red-600 dark:text-red-400 text-sm">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-              {error}
-              <button
-                onClick={fetchQueue}
-                className="ml-auto text-xs underline hover:no-underline"
-              >
-                Retry
-              </button>
-            </div>
-          ) : (
-            <PriorityQueueTable
-              issues={issues}
-              loading={loading}
-              onSelectIssue={handleSelectIssue}
-              onQuickStatusUpdate={handleQuickAdvance}
-              onDelete={handleDelete}
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Status Update Modal */}
-      <StatusUpdateModal
-        issue={selectedIssue}
-        isOpen={modalOpen}
-        onClose={() => { setModalOpen(false); setSelectedIssue(null); }}
-        onSubmit={handleStatusUpdate}
-        onReassign={handleReassignOfficer}
-        officers={officers}
-        isSubmitting={isSubmitting}
-      />
+  const cards = [
+    ['totalIssues', 'Total Issues', LayoutDashboard, 'indigo', 'All reported issues'],
+    ['openIssues', 'Open', Clock, 'sky', 'Reported and under review'],
+    ['criticalIssues', 'Critical', AlertTriangle, 'red', 'Includes closed reports'],
+    ['inProgressIssues', 'In Progress', Activity, 'amber', 'Being addressed'],
+    ['resolvedIssues', 'Resolved', CheckCircle, 'emerald', 'Completed'],
+  ] as const;
+  const control = 'rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-2 text-sm';
+  return <div className="space-y-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {cards.map(([key, title, icon, colorTheme, subtitle]) => <MetricsCard id={key} key={key} title={title} value={stats ? stats[key] : '—'} icon={icon} colorTheme={colorTheme} subtitle={subtitle} />)}
     </div>
-  );
+    {statsError && <p role="alert" className="text-red-600">Statistics unavailable{stats ? ' (showing previous values)' : ''}: {statsError} <button className="underline" onClick={fetchStats}>Retry statistics</button></p>}
+    <p role="status" aria-live="polite" className="text-sm">{notice}</p>
+    <section className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 shadow-sm overflow-hidden">
+      <div className="p-5 flex items-center justify-between gap-3"><h2 className="font-bold">Community Priority Queue <span className="text-sm font-normal">({issues.length})</span></h2><button className="text-sm underline" disabled={!!pending} onClick={() => { void fetchQueue(); void fetchStats(); void fetchOfficers(); }}>Refresh</button></div>
+      <div className="p-5 border-y border-slate-200 dark:border-slate-700 space-y-3">
+        <label className="block text-sm">Search reports<input id="admin-search" maxLength={100} value={search} onChange={e => setSearch(e.target.value)} placeholder="Title, description or location" className={control + ' w-full mt-1'} /></label>
+        <div className="flex flex-wrap gap-4">
+          <label className="text-sm">Category <select aria-label="Category" value={category} onChange={e => setCategory(e.target.value)} className={control}>{categories.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ')}</option>)}</select></label>
+          <label className="text-sm">Status <select aria-label="Status" value={status} onChange={e => setStatus(e.target.value)} className={control}>{statuses.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}</select></label>
+        </div>
+        <PriorityFilter selectedPriority={priority} onSelectPriority={setPriority} />
+      </div>
+      <div className="p-4">{error ? <div role="alert" className="text-red-600">{error} <button className="underline" onClick={fetchQueue}>Retry queue</button></div> :
+        <PriorityQueueTable issues={issues} loading={loading} busy={!!pending} onSelectIssue={setSelected} onQuickStatusUpdate={quickAdvance} onDelete={handleDelete} />}</div>
+    </section>
+    <StatusUpdateModal issue={selected} isOpen={!!selected} onClose={() => setSelected(null)} onSubmit={handleStatus}
+      onReassign={handleAssign} onRecalculate={handlePriority} officers={officers} officersLoading={officersLoading}
+      officersError={officersError} onRetryOfficers={fetchOfficers} pending={pending} />
+  </div>;
 };

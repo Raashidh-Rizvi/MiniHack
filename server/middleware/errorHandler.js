@@ -1,5 +1,6 @@
 const errorHandler = (err, req, res, next) => {
-  console.error('API Error:', err);
+  if (!err.statusCode || err.statusCode >= 500) console.error('API Error:', err.name);
+  if (err.code === 11000) return res.status(409).json({ success: false, message: 'A record with this identifier already exists. Please retry.' });
 
   // Mongoose duplicate key error (e.g. unique email)
   if (err.code === 11000) {
@@ -28,10 +29,12 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  res.status(err.statusCode || 500).json({
+  const response = {
     success: false,
     message: err.message || 'Internal Server Error',
-  });
+  };
+  if (err.errors) response.errors = err.errors;
+  res.status(err.statusCode || 500).json(response);
 };
 
 module.exports = errorHandler;

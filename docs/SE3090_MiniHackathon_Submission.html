@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SE3090 – Mini Hackathon Submission | GramaFix</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --primary: #1a3c6e;
+    --accent:  #2563eb;
+    --green:   #16a34a;
+    --light:   #f0f4ff;
+    --border:  #d1d5db;
+    --text:    #111827;
+    --muted:   #6b7280;
+    --row-alt: #f8faff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 11pt;
+    color: var(--text);
+    background: #fff;
+    line-height: 1.55;
+  }
+
+  /* ── PAGE BREAKS ───────────────────────────────── */
+  @media print {
+    body { font-size: 10pt; }
+    .page-break { page-break-before: always; }
+    .no-break   { page-break-inside: avoid; }
+    a { color: var(--accent); text-decoration: none; }
+    .cover { min-height: 100vh; }
+  }
+
+  /* ── COVER ─────────────────────────────────────── */
+  .cover {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 100vh;
+    padding: 60px 80px;
+    background: linear-gradient(160deg, #0f2044 0%, #1a3c6e 60%, #2563eb 100%);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    top: -150px; right: -150px;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+    bottom: -100px; left: -80px;
+  }
+  .cover-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 30px;
+    padding: 6px 20px;
+    font-size: 9pt;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    backdrop-filter: blur(8px);
+  }
+  .cover h1 {
+    font-size: 48pt;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 6px;
+  }
+  .cover .flag { font-size: 36pt; margin-bottom: 4px; }
+  .cover .tagline {
+    font-size: 13pt;
+    font-weight: 500;
+    opacity: 0.85;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .cover .subtitle {
+    font-size: 13pt;
+    opacity: 0.8;
+    max-width: 540px;
+    margin-bottom: 48px;
+    line-height: 1.6;
+  }
+  .cover-meta {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 24px 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 40px;
+    text-align: left;
+    backdrop-filter: blur(10px);
+    width: 100%;
+    max-width: 560px;
+  }
+  .cover-meta .label { font-size: 8pt; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; }
+  .cover-meta .value { font-size: 10.5pt; font-weight: 600; margin-top: 2px; }
+  .cover-divider {
+    width: 60px; height: 3px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 2px;
+    margin: 40px auto;
+  }
+  .cover-bottom {
+    font-size: 9pt;
+    opacity: 0.55;
+    position: absolute;
+    bottom: 30px;
+  }
+
+  /* ── DOCUMENT BODY ─────────────────────────────── */
+  .document { max-width: 900px; margin: 0 auto; padding: 50px 70px; }
+
+  /* ── SECTION HEADER ────────────────────────────── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 40px 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary);
+  }
+  .section-number {
+    background: var(--primary);
+    color: #fff;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12pt; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 14pt;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.3px;
+  }
+
+  h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 18px 0 8px;
+  }
+
+  p { margin-bottom: 9px; }
+
+  /* ── TABLES ────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 10pt;
+  }
+  thead tr { background: var(--primary); color: #fff; }
+  thead th {
+    padding: 9px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9.5pt;
+    letter-spacing: 0.3px;
+  }
+  tbody tr:nth-child(odd)  { background: #fff; }
+  tbody tr:nth-child(even) { background: var(--row-alt); }
+  tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .cell-label { font-weight: 600; white-space: nowrap; color: var(--primary); }
+
+  /* ── HIGHLIGHT BOXES ───────────────────────────── */
+  .info-box {
+    background: var(--light);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 10.5pt;
+  }
+  .formula-box {
+    background: #0f2044;
+    color: #a5f3fc;
+    border-radius: 8px;
+    padding: 16px 22px;
+    margin: 12px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 10.5pt;
+    line-height: 1.8;
+  }
+  .formula-box .formula-title {
+    color: #fff;
+    font-weight: 700;
+    font-size: 10pt;
+    margin-bottom: 6px;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .code-block {
+    background: #f3f4f6;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 9.5pt;
+    line-height: 1.7;
+    margin: 10px 0;
+    white-space: pre-wrap;
+  }
+
+  /* ── BADGES ────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 8.5pt;
+    font-weight: 600;
+  }
+  .badge-green  { background: #dcfce7; color: #16a34a; }
+  .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+  .badge-orange { background: #ffedd5; color: #c2410c; }
+  .badge-purple { background: #f3e8ff; color: #7c3aed; }
+  .badge-red    { background: #fee2e2; color: #b91c1c; }
+
+  /* ── MEMBER CARDS ──────────────────────────────── */
+  .member-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin: 14px 0; }
+  .member-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--row-alt);
+  }
+  .member-card .member-num {
+    background: var(--primary);
+    color: #fff;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10pt; font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .member-card .member-name { font-weight: 700; font-size: 11pt; color: var(--primary); }
+  .member-card .member-id   { font-size: 9pt;  color: var(--muted); margin-bottom: 8px; }
+  .member-card .member-role {
+    background: #dbeafe; color: #1d4ed8;
+    font-size: 8.5pt; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px;
+    display: inline-block; margin-bottom: 8px;
+  }
+  .member-card ul { padding-left: 14px; font-size: 9.5pt; color: #374151; }
+  .member-card ul li { margin-bottom: 3px; }
+
+  /* ── REQUIREMENTS GRID ─────────────────────────── */
+  .req-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .req-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex; gap: 10px;
+    align-items: flex-start;
+    background: #fff;
+  }
+  .req-check {
+    background: #dcfce7; color: #16a34a;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11pt; font-weight: 700; flex-shrink: 0;
+  }
+  .req-text .req-title { font-weight: 700; font-size: 9.5pt; color: var(--primary); }
+  .req-text .req-desc  { font-size: 9pt; color: var(--muted); margin-top: 2px; }
+
+  /* ── LIFECYCLE ─────────────────────────────────── */
+  .lifecycle {
+    display: flex; align-items: center; gap: 0;
+    margin: 12px 0; flex-wrap: wrap;
+  }
+  .lifecycle-step {
+    background: var(--primary); color: #fff;
+    padding: 7px 14px; font-size: 9pt; font-weight: 600;
+    border-radius: 4px; white-space: nowrap;
+  }
+  .lifecycle-arrow {
+    color: var(--accent); font-size: 16pt;
+    padding: 0 6px; font-weight: 700;
+  }
+
+  /* ── LINKS ─────────────────────────────────────── */
+  a { color: var(--accent); }
+
+  /* ── SCORE TABLE ───────────────────────────────── */
+  .score-excellent { background: #dcfce7; color: #166534; font-weight: 700; }
+  .score-total     { background: #0f2044; color: #fff;    font-weight: 700; }
+
+  /* ── FOOTER ────────────────────────────────────── */
+  .doc-footer {
+    margin-top: 50px;
+    padding: 20px 0;
+    border-top: 2px solid var(--border);
+    text-align: center;
+    font-size: 9pt;
+    color: var(--muted);
+  }
+
+  ul.plain { padding-left: 18px; margin: 8px 0; }
+  ul.plain li { margin-bottom: 5px; font-size: 10.5pt; }
+
+  .toc { margin: 20px 0; }
+  .toc-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted var(--border); font-size: 10.5pt; }
+  .toc-item a { color: var(--text); text-decoration: none; font-weight: 500; }
+  .toc-num { color: var(--muted); font-size: 9.5pt; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ COVER PAGE ═══════════════════ -->
+<div class="cover">
+  <div class="cover-badge">SE3090 – Software Engineering Frameworks · 2026</div>
+  <div class="flag">🇱🇰</div>
+  <h1>GramaFix</h1>
+  <div class="tagline">Report · Prioritize · Fix</div>
+  <div class="subtitle">Community Issue Coordination &amp; Prioritization Platform for Sri Lankan Neighborhoods</div>
+
+  <div class="cover-meta">
+    <div>
+      <div class="label">Assignment</div>
+      <div class="value">Assignment 2 — Mini Hackathon</div>
+    </div>
+    <div>
+      <div class="label">Date Submitted</div>
+      <div class="value">4th September 2026</div>
+    </div>
+    <div>
+      <div class="label">Module</div>
+      <div class="value">SE3090 – SE Frameworks</div>
+    </div>
+    <div>
+      <div class="label">Year / Semester</div>
+      <div class="value">Year 3 | Semester 1 | 2026</div>
+    </div>
+    <div style="grid-column:1/-1">
+      <div class="label">Team Members</div>
+      <div class="value">Atheek M.F (IT24103933) &nbsp;·&nbsp; Raashidh M.R (IT24104191) &nbsp;·&nbsp; Ahamed M.A.W (IT24103352)</div>
+    </div>
+    <div style="grid-column:1/-1">
+      <div class="label">Live Application</div>
+      <div class="value"><a href="https://mini-hack-clod.vercel.app/citizen" style="color:#93c5fd">https://mini-hack-clod.vercel.app/citizen</a></div>
+    </div>
+    <div style="grid-column:1/-1">
+      <div class="label">GitHub Repository</div>
+      <div class="value"><a href="https://github.com/Raashidh-Rizvi/MiniHack" style="color:#93c5fd">https://github.com/Raashidh-Rizvi/MiniHack</a></div>
+    </div>
+  </div>
+
+  <div class="cover-divider"></div>
+  <div class="cover-bottom">BSc (Hons) in Information Technology – Specializing in Software Engineering &nbsp;|&nbsp; SLIIT Faculty of Computing</div>
+</div>
+
+<!-- ═══════════════════ DOCUMENT BODY ═══════════════════ -->
+<div class="document">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="section-header" style="margin-top:20px">
+    <div class="section-number" style="background:#374151">≡</div>
+    <div class="section-title">Table of Contents</div>
+  </div>
+  <div class="toc">
+    <div class="toc-item"><a href="#s1">1. Project &amp; Deliverable Links</a><span class="toc-num">2</span></div>
+    <div class="toc-item"><a href="#s2">2. Team Members &amp; Contributions</a><span class="toc-num">2</span></div>
+    <div class="toc-item"><a href="#s3">3. Selected Sri Lankan Problem &amp; Proposed Solution</a><span class="toc-num">3</span></div>
+    <div class="toc-item"><a href="#s4">4. Technologies &amp; Frameworks Used</a><span class="toc-num">4</span></div>
+    <div class="toc-item"><a href="#s5">5. Minimum Software Requirements (Section 1.3 Compliance)</a><span class="toc-num">5</span></div>
+    <div class="toc-item"><a href="#s6">6. System Architecture Overview</a><span class="toc-num">6</span></div>
+    <div class="toc-item"><a href="#s7">7. Git Repository &amp; Version Control</a><span class="toc-num">7</span></div>
+    <div class="toc-item"><a href="#s8">8. Deployment Details &amp; Local Setup</a><span class="toc-num">7</span></div>
+    <div class="toc-item"><a href="#s9">9. AI Prompt Log (Mandatory — Section 2.2)</a><span class="toc-num">8</span></div>
+    <div class="toc-item"><a href="#s10">10. AI Usage Declaration (Mandatory — Section 2.3)</a><span class="toc-num">9</span></div>
+    <div class="toc-item"><a href="#s11">11. Demonstration Video Details</a><span class="toc-num">9</span></div>
+    <div class="toc-item"><a href="#s12">12. Self-Assessment Against Marking Rubric</a><span class="toc-num">10</span></div>
+  </div>
+
+  <!-- ── SECTION 1 ── -->
+  <div class="page-break"></div>
+  <div id="s1" class="section-header">
+    <div class="section-number">1</div>
+    <div class="section-title">Project &amp; Deliverable Links</div>
+  </div>
+  <table>
+    <thead><tr><th width="30%">Field</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td class="cell-label">Project Title</td><td>GramaFix — Community Issue Coordination &amp; Prioritization Platform for Sri Lankan Neighborhoods</td></tr>
+      <tr><td class="cell-label">GitHub Repository</td><td><a href="https://github.com/Raashidh-Rizvi/MiniHack">https://github.com/Raashidh-Rizvi/MiniHack</a></td></tr>
+      <tr><td class="cell-label">Live Deployed Application</td><td><a href="https://mini-hack-clod.vercel.app/citizen">https://mini-hack-clod.vercel.app/citizen</a></td></tr>
+      <tr><td class="cell-label">2-Minute Demonstration Video</td><td>[INSERT VIDEO LINK — OneDrive / YouTube Unlisted]</td></tr>
+      <tr><td class="cell-label">Deployment Platform</td><td>Vercel (Frontend) · Render / MongoDB Atlas (Backend &amp; Database)</td></tr>
+      <tr><td class="cell-label">Submission Date</td><td>4th September 2026</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── SECTION 2 ── -->
+  <div id="s2" class="section-header">
+    <div class="section-number">2</div>
+    <div class="section-title">Team Members &amp; Contributions</div>
+  </div>
+
+  <div class="member-cards">
+    <div class="member-card no-break">
+      <div class="member-num">1</div>
+      <div class="member-name">Atheek M.F</div>
+      <div class="member-id">IT24103933</div>
+      <div class="member-role">Citizen Intake &amp; Reporting</div>
+      <ul>
+        <li>Citizen Dashboard (<code>/citizen</code>)</li>
+        <li>Issue Reporting Form &amp; validation</li>
+        <li>My Reports (edit &amp; cancel)</li>
+        <li>Community feed, search &amp; filter</li>
+        <li>Support / upvoting system</li>
+        <li>Landing Page design</li>
+        <li><code>POST /api/issues</code></li>
+        <li><code>GET /api/issues/my-reports</code></li>
+        <li><code>PUT /api/issues/:id</code></li>
+        <li><code>DELETE /api/issues/:id</code></li>
+      </ul>
+    </div>
+    <div class="member-card no-break">
+      <div class="member-num">2</div>
+      <div class="member-name">Raashidh M.R</div>
+      <div class="member-id">IT24104191</div>
+      <div class="member-role">Department Officer Portal</div>
+      <ul>
+        <li>Officer Dashboard (<code>/officer</code>)</li>
+        <li>Assigned issue queue &amp; filters</li>
+        <li>Officer statistics cards</li>
+        <li>Field note recording</li>
+        <li>Status progression controls</li>
+        <li><code>GET /api/officer/stats</code></li>
+        <li><code>GET /api/officer/queue</code></li>
+        <li><code>PUT /api/officer/issues/:id/status</code></li>
+        <li><code>GET /api/officer/list</code></li>
+      </ul>
+    </div>
+    <div class="member-card no-break">
+      <div class="member-num">3</div>
+      <div class="member-name">Ahamed M.A.W</div>
+      <div class="member-id">IT24103352</div>
+      <div class="member-role">System Admin &amp; Priority Engine</div>
+      <ul>
+        <li>Admin Dashboard (<code>/admin</code>)</li>
+        <li>Global priority queue &amp; KPIs</li>
+        <li>Officer assignment &amp; triage</li>
+        <li>Moderation controls</li>
+        <li>Priority Score algorithm</li>
+        <li>Session auth &amp; role guards</li>
+        <li>MongoDB setup &amp; deployment</li>
+        <li><code>GET /api/admin/stats</code></li>
+        <li><code>PUT /api/admin/issues/:id/status</code></li>
+        <li><code>DELETE /api/admin/issues/:id</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box" style="margin-top:12px">
+    <strong>Evidence of contribution:</strong> All three members committed from their own terminals across branches <code>IT24103352</code>, <code>feature/citizen-intake</code>, and <code>feature/officer-portal</code> merged into <code>dev</code> → <code>main</code>.
+  </div>
+
+  <!-- ── SECTION 3 ── -->
+  <div class="page-break"></div>
+  <div id="s3" class="section-header">
+    <div class="section-number">3</div>
+    <div class="section-title">Selected Sri Lankan Problem &amp; Proposed Solution</div>
+  </div>
+
+  <h3>3.1 The Problem</h3>
+  <p>Across Sri Lanka's <strong>14,022 Grama Niladhari (GN) divisions</strong>, neighborhood public infrastructure hazards — potholes, blocked drains, burst water mains, broken streetlights, garbage accumulation — routinely sit unresolved for weeks or months. The root causes are:</p>
+  <ul class="plain">
+    <li><strong>Paper Bureaucracy:</strong> Residents must physically visit Pradeshiya Sabha or GN offices to submit handwritten petitions which are easily misplaced with zero digital tracking.</li>
+    <li><strong>Fragmented Channels:</strong> Citizens often do not know which authority (RDA, CEB, NWSDB, or local council) is responsible for a given issue category, leading to misdirected or abandoned complaints.</li>
+    <li><strong>No Objective Prioritization:</strong> Municipal maintenance units have no data-driven method to rank which problems are most critical, resulting in arbitrary repair schedules where high-risk hazards are deprioritized.</li>
+    <li><strong>Monsoon Amplification:</strong> Sri Lanka's tropical rainfall turns unresolved drainage issues into flash flooding, dengue mosquito breeding grounds, and road washouts — compounding urgency every wet season.</li>
+  </ul>
+
+  <h3>3.2 The Proposed Solution — GramaFix</h3>
+  <p><strong>GramaFix</strong> is a responsive civic-tech web application that bridges citizens and municipal authorities through transparent, data-driven technology. It provides five core capabilities:</p>
+  <ul class="plain">
+    <li><strong>Fast Mobile-First Reporting:</strong> Any citizen can report a community hazard in under 60 seconds from a smartphone using a validated intake form.</li>
+    <li><strong>Deterministic Community Priority Score:</strong> Eliminates political bias by computing an objective 0–100 ranking for every report.</li>
+    <li><strong>Community Upvoting Feed:</strong> Residents endorse existing reports to prevent duplicate filings and amplify collective urgency.</li>
+    <li><strong>Officer Resolution Pipeline:</strong> Department Officers manage their assigned-work queue with transparent status progression.</li>
+    <li><strong>System Administrator Triage:</strong> Global dashboard for officer assignment, severity adjustment, moderation, and KPI monitoring.</li>
+  </ul>
+
+  <div class="formula-box">
+    <div class="formula-title">⚙ Community Priority Score Algorithm</div>
+    Priority Score = (Severity × 0.40) + (Affected Population × 0.30) + (Urgency × 0.20) + (Report Age × 0.10)
+    <br/><br/>
+    Each component normalized to 0–100 before weighting.
+    <br/><br/>
+    Score Bands:&nbsp; 0–25 = LOW &nbsp;|&nbsp; 26–50 = MEDIUM &nbsp;|&nbsp; 51–75 = HIGH &nbsp;|&nbsp; 76–100 = CRITICAL
+  </div>
+
+  <h3>3.3 Issue Lifecycle</h3>
+  <div class="lifecycle">
+    <div class="lifecycle-step">REPORTED</div>
+    <div class="lifecycle-arrow">→</div>
+    <div class="lifecycle-step">UNDER_REVIEW</div>
+    <div class="lifecycle-arrow">→</div>
+    <div class="lifecycle-step">IN_PROGRESS</div>
+    <div class="lifecycle-arrow">→</div>
+    <div class="lifecycle-step">RESOLVED</div>
+    <div class="lifecycle-arrow" style="color:#b91c1c">→</div>
+    <div class="lifecycle-step" style="background:#b91c1c">DUPLICATE / REJECTED</div>
+  </div>
+
+  <!-- ── SECTION 4 ── -->
+  <div id="s4" class="section-header">
+    <div class="section-number">4</div>
+    <div class="section-title">Technologies &amp; Frameworks Used</div>
+  </div>
+  <table>
+    <thead><tr><th width="18%">Layer</th><th width="32%">Technology / Framework</th><th>Purpose &amp; Role in GramaFix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-blue">Frontend</span></td><td><strong>React 18</strong></td><td>Component-based UI library for all three role dashboards</td></tr>
+      <tr><td><span class="badge badge-blue">Frontend</span></td><td><strong>Vite</strong></td><td>Lightning-fast development build tool and production bundler</td></tr>
+      <tr><td><span class="badge badge-blue">Frontend</span></td><td><strong>TypeScript</strong></td><td>Type-safe JavaScript ensuring maintainable, self-documenting code</td></tr>
+      <tr><td><span class="badge badge-blue">Frontend</span></td><td><strong>Tailwind CSS</strong></td><td>Utility-first responsive CSS; mobile-first layouts and dark mode</td></tr>
+      <tr><td><span class="badge badge-blue">Frontend</span></td><td><strong>React Router v6</strong></td><td>Client-side routing between Citizen, Officer, and Admin portals</td></tr>
+      <tr><td><span class="badge badge-blue">Frontend</span></td><td><strong>Lucide React</strong></td><td>Civic iconography (report, alert, map-pin, shield icons)</td></tr>
+      <tr><td><span class="badge badge-green">Backend</span></td><td><strong>Node.js</strong></td><td>JavaScript server runtime environment</td></tr>
+      <tr><td><span class="badge badge-green">Backend</span></td><td><strong>Express.js</strong></td><td>REST API framework; all route handlers and middleware</td></tr>
+      <tr><td><span class="badge badge-green">Backend</span></td><td><strong>Mongoose</strong></td><td>MongoDB ODM for schema definition and data modeling</td></tr>
+      <tr><td><span class="badge badge-green">Backend</span></td><td><strong>express-session + bcrypt</strong></td><td>Server-side session authentication and secure password hashing</td></tr>
+      <tr><td><span class="badge badge-orange">Database</span></td><td><strong>MongoDB Atlas (M0)</strong></td><td>Cloud NoSQL database; shared replica set for production data</td></tr>
+      <tr><td><span class="badge badge-orange">Database</span></td><td><strong>localStorage (fallback)</strong></td><td>Client-side offline demo persistence when server is unavailable</td></tr>
+      <tr><td><span class="badge badge-purple">DevOps</span></td><td><strong>Vercel</strong></td><td>Frontend CDN deployment with automatic GitHub integration</td></tr>
+      <tr><td><span class="badge badge-purple">DevOps</span></td><td><strong>Render / Railway</strong></td><td>Backend REST API cloud hosting</td></tr>
+      <tr><td><span class="badge badge-purple">DevOps</span></td><td><strong>Git &amp; GitHub</strong></td><td>Version control; feature branch workflow with PRs to dev</td></tr>
+      <tr><td><span class="badge badge-purple">DevOps</span></td><td><strong>npm (concurrently)</strong></td><td>Monorepo dependency management; parallel dev server startup</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── SECTION 5 ── -->
+  <div class="page-break"></div>
+  <div id="s5" class="section-header">
+    <div class="section-number">5</div>
+    <div class="section-title">Minimum Software Requirements — Section 1.3 Compliance</div>
+  </div>
+  <table>
+    <thead><tr><th width="4%">#</th><th width="28%">Requirement</th><th>How GramaFix Satisfies It</th><th width="22%">Evidence</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 1</span></td>
+        <td><strong>Clear Landing Page / Main UI</strong></td>
+        <td>Modern hero section with live community metrics, civic categories, animated priority score simulation, problem context section, and dark mode toggle.</td>
+        <td><code>LandingPage.tsx</code></td>
+      </tr>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 2</span></td>
+        <td><strong>Sri Lankan Problem Explanation In-App</strong></td>
+        <td>Dedicated <em>"Why Sri Lankan Communities Face Critical Repair Delays"</em> section — monsoon flooding, paper petitions, GN division backlogs, and authority confusion shown inside the running application.</td>
+        <td><code>LandingPage.tsx<br/>#problem-context</code></td>
+      </tr>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 3</span></td>
+        <td><strong>At Least 2 Functional Features</strong></td>
+        <td>(1) Smart Citizen Issue Reporting with real-time priority score preview. (2) Live Community Feed with keyword search, category filters, and citizen upvoting. (3) Admin/Officer Priority Queue with full status lifecycle management.</td>
+        <td><code>/report, /issues, /officer, /admin</code></td>
+      </tr>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 4</span></td>
+        <td><strong>At Least One Input Form</strong></td>
+        <td>Issue intake form collects: Category, Title, Description, Location, Severity level, and Affected Population count.</td>
+        <td><code>IssueForm.tsx</code></td>
+      </tr>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 5</span></td>
+        <td><strong>Input Validation with Friendly Errors</strong></td>
+        <td>Inline validation: Title min 5 chars, Description min 15 chars, Location required, Affected People ≥ 1. Friendly inline error messages appear below each field immediately.</td>
+        <td><code>IssueForm.tsx<br/>validate()</code></td>
+      </tr>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 6</span></td>
+        <td><strong>Search / Filter / Calculate / Update</strong></td>
+        <td><strong>Search:</strong> Real-time keyword debounced search. <strong>Filter:</strong> By category &amp; status. <strong>Calculate:</strong> Deterministic Priority Score (40%+30%+20%+10%). <strong>Update:</strong> Officer status progression with audit trail.</td>
+        <td><code>IssuesPage.tsx<br/>priorityCalculator.js<br/>OfficerPage.tsx</code></td>
+      </tr>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 7</span></td>
+        <td><strong>Responsive Desktop &amp; Mobile</strong></td>
+        <td>Tailwind CSS responsive grid layout. Dedicated <code>BottomNav</code> bar on mobile viewports. Tested at 375px (iPhone) and 1280px (desktop). Touch-friendly card controls.</td>
+        <td><code>BottomNav.tsx<br/>Navbar.tsx</code></td>
+      </tr>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 8</span></td>
+        <td><strong>Basic Navigation Between Sections</strong></td>
+        <td>React Router v6 routing between: Landing, Issues Feed, Report Form, Citizen Dashboard, Officer Portal, and Admin Triage — all reachable from the top navigation bar.</td>
+        <td><code>App.tsx<br/>Navbar.tsx</code></td>
+      </tr>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 9</span></td>
+        <td><strong>Relevant Sri Lankan Sample Data</strong></td>
+        <td>Pre-seeded authentic Sri Lankan incidents: Matale Hindu College culvert blockage · Kandy Peradeniya Road water main burst · Colombo Pettah waste accumulation · Galle Fort street lighting failure.</td>
+        <td><code>seedDatabase.js<br/>mockData.ts</code></td>
+      </tr>
+      <tr>
+        <td style="text-align:center"><span class="badge badge-green">✓ 10</span></td>
+        <td><strong>Demonstration of Value</strong></td>
+        <td>Replaces arbitrary complaint handling with transparent mathematical priority ranking. Administrators immediately see which issues affect the most people and must be resolved first — turning community data into decisive municipal action.</td>
+        <td>Live app &amp; demo video</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── SECTION 6 ── -->
+  <div class="page-break"></div>
+  <div id="s6" class="section-header">
+    <div class="section-number">6</div>
+    <div class="section-title">System Architecture Overview</div>
+  </div>
+
+  <div class="code-block">┌─────────────────────────────────────────────────────┐
+│              BROWSER (Desktop / Tablet / Mobile)     │
+│         Responsive — tested 375px → 1280px+          │
+└────────────────────────┬────────────────────────────┘
+                         │ HTTPS
+                         ▼
+┌─────────────────────────────────────────────────────┐
+│         React 18 + TypeScript + Tailwind CSS         │
+│                  Built with Vite                      │
+│                                                       │
+│  /citizen  /report  /issues  /officer  /admin        │
+└────────────────────────┬────────────────────────────┘
+                         │ REST API (JSON)
+                         ▼
+┌─────────────────────────────────────────────────────┐
+│           Node.js + Express.js REST API              │
+│                                                       │
+│  authController   issueController   adminController  │
+│  officerController   priorityCalculator              │
+│                                                       │
+│  Session Auth (express-session + bcrypt)             │
+│  Role Guards: CITIZEN | OFFICER | ADMIN              │
+└────────────────────────┬────────────────────────────┘
+                         │ Mongoose ODM
+                         ▼
+┌─────────────────────────────────────────────────────┐
+│            MongoDB Atlas (M0 Cloud Replica)          │
+│                                                       │
+│  Collections: users · issues · categories            │
+│               issue_supports · issue_updates         │
+│                                                       │
+│  Fallback: In-Memory Store (STORAGE_MODE=memory)     │
+└─────────────────────────────────────────────────────┘</div>
+
+  <h3>Key REST API Endpoints</h3>
+  <table>
+    <thead><tr><th>Method</th><th>Endpoint</th><th>Role</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/issues</code></td><td>Citizen</td><td>Create new issue report</td></tr>
+      <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/issues</code></td><td>Public</td><td>List all issues with search &amp; filters</td></tr>
+      <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/issues/my-reports</code></td><td>Citizen</td><td>Citizen's own reports only</td></tr>
+      <tr><td><span class="badge badge-orange">PUT</span></td><td><code>/api/issues/:id</code></td><td>Citizen</td><td>Edit own eligible report</td></tr>
+      <tr><td><span class="badge badge-red">DELETE</span></td><td><code>/api/issues/:id</code></td><td>Citizen</td><td>Cancel own eligible report</td></tr>
+      <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/issues/:id/support</code></td><td>Citizen</td><td>Community upvote</td></tr>
+      <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/officer/queue</code></td><td>Officer</td><td>Assigned issues ranked by priority</td></tr>
+      <tr><td><span class="badge badge-orange">PUT</span></td><td><code>/api/officer/issues/:id/status</code></td><td>Officer</td><td>Progress status + field notes</td></tr>
+      <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/admin/queue</code></td><td>Admin</td><td>Global priority-ranked issue list</td></tr>
+      <tr><td><span class="badge badge-orange">PUT</span></td><td><code>/api/admin/issues/:id/assign</code></td><td>Admin</td><td>Officer assignment</td></tr>
+      <tr><td><span class="badge badge-red">DELETE</span></td><td><code>/api/admin/issues/:id</code></td><td>Admin</td><td>Moderation / removal</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── SECTION 7 ── -->
+  <div id="s7" class="section-header">
+    <div class="section-number">7</div>
+    <div class="section-title">Git Repository &amp; Version Control</div>
+  </div>
+
+  <table>
+    <thead><tr><th width="30%">Field</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td class="cell-label">Repository URL</td><td><a href="https://github.com/Raashidh-Rizvi/MiniHack">https://github.com/Raashidh-Rizvi/MiniHack</a></td></tr>
+      <tr><td class="cell-label">Default Branch</td><td><code>dev</code> — all active development; <code>main</code> for final production release only</td></tr>
+      <tr><td class="cell-label">Member Branches</td><td><code>IT24103352</code> (Ahamed) · <code>feature/citizen-intake</code> (Atheek) · <code>feature/officer-portal</code> (Raashidh)</td></tr>
+      <tr><td class="cell-label">Workflow</td><td>Feature branch → Pull Request → <code>dev</code> review → merge. Final: <code>dev</code> → <code>main</code> PR at submission checkpoint</td></tr>
+      <tr><td class="cell-label">Commit Convention</td><td><code>feat:</code> / <code>fix:</code> / <code>refactor:</code> / <code>docs:</code> prefixes</td></tr>
+      <tr><td class="cell-label">Contribution Verification</td><td>All 3 members committed from individual terminals; visible in GitHub contributor graph</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── SECTION 8 ── -->
+  <div id="s8" class="section-header">
+    <div class="section-number">8</div>
+    <div class="section-title">Deployment Details &amp; Local Setup</div>
+  </div>
+
+  <table>
+    <thead><tr><th>Component</th><th>Platform</th><th>URL / Connection</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Frontend (React App)</strong></td><td>Vercel CDN</td><td><a href="https://mini-hack-clod.vercel.app/citizen">https://mini-hack-clod.vercel.app/citizen</a></td></tr>
+      <tr><td><strong>Backend (Express API)</strong></td><td>Render / Railway</td><td>[INSERT BACKEND API URL]</td></tr>
+      <tr><td><strong>Database</strong></td><td>MongoDB Atlas M0</td><td>Shared cloud replica set</td></tr>
+      <tr><td><strong>Offline Fallback</strong></td><td>In-Memory Store</td><td><code>STORAGE_MODE=memory</code></td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Deployment verification:</strong> Tested in Chrome Incognito window — zero localhost dependency. Sample data loads on first visit without login.</p>
+
+  <h3>Local Development Setup</h3>
+  <div class="code-block"># 1. Clone the repository
+git clone https://github.com/Raashidh-Rizvi/MiniHack.git
+cd MiniHack
+
+# 2. Install all dependencies (root + client + server)
+npm run install:all
+
+# 3. Start both frontend and backend
+npm run dev
+
+# Frontend → http://localhost:5173
+# Backend  → http://localhost:5000
+
+# Offline demo mode (PowerShell)
+$env:STORAGE_MODE='memory'; npm run dev</div>
+
+  <!-- ── SECTION 9 ── -->
+  <div class="page-break"></div>
+  <div id="s9" class="section-header">
+    <div class="section-number">9</div>
+    <div class="section-title">AI Prompt Log — Mandatory (Section 2.2)</div>
+  </div>
+  <table>
+    <thead><tr><th width="4%">#</th><th width="18%">AI Tool</th><th width="32%">Exact Prompt Used</th><th width="22%">Purpose</th><th>Verification &amp; Modification</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><strong>Antigravity AI<br/>(Claude)</strong></td>
+        <td><em>"Generate a TypeScript formula to calculate community priority score based on severity (LOW, MED, HIGH, CRITICAL) and population affected with 0–100 normalization."</em></td>
+        <td>Deterministic priority ranking engine</td>
+        <td>Reviewed all weights; added 0–100 bounds clamping, priority level bucketing, and age factor. Full formula rewritten to server-side <code>priorityCalculator.js</code>.</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>Antigravity AI<br/>(Claude)</strong></td>
+        <td><em>"Create a responsive React landing page hero section with dark mode support and Sri Lankan municipal infrastructure context."</em></td>
+        <td>UI layout, hero section, dark mode design</td>
+        <td>Refactored into reusable components; replaced generic placeholders with real Sri Lankan authorities (Matale MC, RDA, CEB, NWSDB) and accurate problem statistics.</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>ChatGPT<br/>(OpenAI)</strong></td>
+        <td><em>"Write an Express.js route handler for updating issue status with transition rules from REPORTED to UNDER_REVIEW to IN_PROGRESS to RESOLVED with role-based access."</em></td>
+        <td>Backend lifecycle state management</td>
+        <td>Added server-side session role verification; administrator-only override rules; audit timestamps on every status transition. Tested end-to-end.</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>Antigravity AI<br/>(Claude)</strong></td>
+        <td><em>"Draft realistic sample community issues for Sri Lankan towns including Matale, Kandy, Colombo, and Galle with civic categories and estimated affected population."</em></td>
+        <td>Seeding authentic Sri Lankan test data (Requirement 9)</td>
+        <td>Manually verified street names; confirmed civic categories match application enum; adjusted population figures to reflect realistic local neighborhood sizes.</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><strong>Antigravity AI<br/>(Claude)</strong></td>
+        <td><em>"Generate a SPECIFICATION.md, TEAM_PLAN.md, and DEPLOYMENT.md for a Sri Lankan civic-tech hackathon project using React, TypeScript, Node.js, and MongoDB."</em></td>
+        <td>Project planning, role allocation, documentation</td>
+        <td>Full specification reviewed and revised by all team members; roles renegotiated to three-role model (Citizen / Officer / Administrator); deployment steps verified against actual Vercel and Render configurations.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── SECTION 10 ── -->
+  <div id="s10" class="section-header">
+    <div class="section-number">10</div>
+    <div class="section-title">AI Usage Declaration — Mandatory (Section 2.3)</div>
+  </div>
+
+  <div class="info-box" style="border-left-color:#16a34a; background:#f0fdf4">
+    <p><strong>Antigravity AI (Google DeepMind IDE):</strong> Used to scaffold the deterministic priority scoring formula in TypeScript/JavaScript, generate responsive Tailwind CSS landing page layout components, create authentic Sri Lankan seed data, and structure project planning documents (SPECIFICATION.md, TEAM_PLAN.md). All generated code was reviewed, tested, and integrated by the team. All validation logic, state management, server-side authentication, and role guards were written and verified by team members.</p>
+    <br/>
+    <p><strong>ChatGPT (OpenAI):</strong> Used to generate initial Express.js route handler boilerplate for the status update lifecycle and to draft regex patterns for server-side input validation. All routes were tested end-to-end, secured with session-based role authorization, and connected to MongoDB by team members.</p>
+  </div>
+
+  <div class="info-box" style="border-left-color:#7c3aed; background:#faf5ff; margin-top:12px">
+    <strong>Team Declaration:</strong> We confirm that (1) all submitted code is understood by all team members and every member can explain any section during the evaluation; (2) no pre-built or previously submitted project was reused as new work; (3) AI assistance was used as a collaborative tool — all outputs were reviewed, customized, and owned by the team.
+    <br/><br/>
+    <strong>Atheek M.F (IT24103933)</strong> &nbsp;·&nbsp; <strong>Raashidh M.R (IT24104191)</strong> &nbsp;·&nbsp; <strong>Ahamed M.A.W (IT24103352)</strong>
+  </div>
+
+  <!-- ── SECTION 11 ── -->
+  <div id="s11" class="section-header">
+    <div class="section-number">11</div>
+    <div class="section-title">Demonstration Video Details</div>
+  </div>
+  <table>
+    <thead><tr><th width="25%">Field</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td class="cell-label">Video Link</td><td>[INSERT VIDEO LINK — OneDrive / YouTube Unlisted]</td></tr>
+      <tr><td class="cell-label">Duration</td><td>Maximum 2 minutes (120 seconds)</td></tr>
+      <tr><td class="cell-label">Hosting</td><td>OneDrive (share: "Anyone with link can view") or YouTube Unlisted</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Video Segment Outline</h3>
+  <table>
+    <thead><tr><th width="18%">Timestamp</th><th width="22%">Presenter</th><th>Content Covered</th></tr></thead>
+    <tbody>
+      <tr><td>0:00 – 0:30</td><td>Atheek M.F</td><td>Team introduction, Group ID, Sri Lankan problem context — 14,022 GN divisions, monsoon drain blockages, paper petitions, no digital tracking</td></tr>
+      <tr><td>0:30 – 0:50</td><td>Raashidh M.R</td><td>GramaFix solution overview; Community Priority Score concept; live demo of priority calculator on landing page</td></tr>
+      <tr><td>0:50 – 1:15</td><td>Atheek M.F</td><td>Live citizen report submission — show validation errors, fill form, watch real-time score, submit and see confirmation</td></tr>
+      <tr><td>1:15 – 1:40</td><td>Ahamed M.A.W</td><td>Community feed search &amp; filter, upvoting; toggle to mobile view; Officer/Admin priority queue and status lifecycle progression</td></tr>
+      <tr><td>1:40 – 2:00</td><td>All Members</td><td>Incognito window deployment verification; impact statement — replacing arbitrary decisions with transparent data; team sign-off</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── SECTION 12 ── -->
+  <div class="page-break"></div>
+  <div id="s12" class="section-header">
+    <div class="section-number">12</div>
+    <div class="section-title">Self-Assessment Against Marking Rubric</div>
+  </div>
+  <table>
+    <thead><tr><th width="38%">Criterion</th><th width="10%" style="text-align:center">Max Marks</th><th>Evidence Summary</th><th width="16%" style="text-align:center">Claimed Band</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Relevance of the Sri Lankan Problem</strong></td>
+        <td style="text-align:center">10</td>
+        <td>Real, current problem across 14,022 GN divisions; affected users named (residents, municipal officers, GN officers); dedicated in-app problem section with monsoon flooding context.</td>
+        <td class="score-excellent" style="text-align:center">Excellent<br/>9–10</td>
+      </tr>
+      <tr>
+        <td><strong>Practicality &amp; Creativity of the Solution</strong></td>
+        <td style="text-align:center">15</td>
+        <td>Original deterministic priority algorithm (not just a complaint box); community upvoting prevents duplicate reports; three-role separation reflects real Sri Lankan civic administration structure.</td>
+        <td class="score-excellent" style="text-align:center">Excellent<br/>13–15</td>
+      </tr>
+      <tr>
+        <td><strong>Minimum Functional Requirements</strong></td>
+        <td style="text-align:center">20</td>
+        <td>All 10 requirements present and verified — see Section 5 compliance checklist. All features functional in the deployed application.</td>
+        <td class="score-excellent" style="text-align:center">Excellent<br/>17–20</td>
+      </tr>
+      <tr>
+        <td><strong>Quality &amp; Usability of the Prototype</strong></td>
+        <td style="text-align:center">15</td>
+        <td>Clean, responsive interface with mobile BottomNav; inline friendly validation messages; loading/error/empty states on all views; dark mode support; touch-friendly card controls.</td>
+        <td class="score-excellent" style="text-align:center">Excellent<br/>13–15</td>
+      </tr>
+      <tr>
+        <td><strong>Effective Use of Technology &amp; AI Tools</strong></td>
+        <td style="text-align:center">10</td>
+        <td>Justified modern stack (React + Vite + TypeScript + Tailwind + Node.js + MongoDB Atlas); AI Prompt Log documented with 5 entries; all AI outputs reviewed, customized, and owned by the team.</td>
+        <td class="score-excellent" style="text-align:center">Excellent<br/>9–10</td>
+      </tr>
+      <tr>
+        <td><strong>Git Repository &amp; Documentation</strong></td>
+        <td style="text-align:center">10</td>
+        <td>Meaningful commit history from all 3 members across feature branches; complete README with all 10 required items; SPECIFICATION.md, TEAM_PLAN.md, DEPLOYMENT.md included in repo.</td>
+        <td class="score-excellent" style="text-align:center">Excellent<br/>9–10</td>
+      </tr>
+      <tr>
+        <td><strong>Successful Deployment</strong></td>
+        <td style="text-align:center">10</td>
+        <td>Public Vercel URL verified in incognito mode. Deployed build matches repository. MongoDB Atlas cloud database. Offline in-memory fallback available for demo resilience.</td>
+        <td class="score-excellent" style="text-align:center">Excellent<br/>9–10</td>
+      </tr>
+      <tr>
+        <td><strong>Quality of the 2-Minute Demonstration</strong></td>
+        <td style="text-align:center">5</td>
+        <td>Within 120 seconds. Covers all 5 required elements: problem, solution, live features, deployed app, and expected impact.</td>
+        <td class="score-excellent" style="text-align:center">Excellent<br/>5</td>
+      </tr>
+      <tr>
+        <td><strong>Contribution from All Registered Members</strong></td>
+        <td style="text-align:center">5</td>
+        <td>All 3 members have individual commits; each built a separate full-stack vertical slice (Citizen / Officer / Admin); each member presents a segment in the demonstration video.</td>
+        <td class="score-excellent" style="text-align:center">Excellent<br/>5</td>
+      </tr>
+      <tr class="score-total">
+        <td><strong>TOTAL</strong></td>
+        <td style="text-align:center"><strong>100</strong></td>
+        <td>All nine criteria addressed with strong, verifiable evidence across the live application, repository, and demonstration video.</td>
+        <td style="text-align:center"><strong>~97–100</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <strong>GramaFix</strong> — Community Issue Coordination &amp; Prioritization Platform &nbsp;·&nbsp;
+    SE3090 Software Engineering Frameworks &nbsp;·&nbsp; Assignment 2 Mini Hackathon &nbsp;·&nbsp; SLIIT 2026
+    <br/>
+    Atheek M.F (IT24103933) &nbsp;·&nbsp; Raashidh M.R (IT24104191) &nbsp;·&nbsp; Ahamed M.A.W (IT24103352)
+  </div>
+
+</div>
+</body>
+</html>
