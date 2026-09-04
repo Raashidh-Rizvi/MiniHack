@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, AlertTriangle, FileText, UserCog, Building2 } from 'lucide-react';
+import { X, CheckCircle, FileText, UserCog, Building2 } from 'lucide-react';
 import { Issue, IssueStatus, Severity } from '../../types/issue';
 import { StatusBadge } from '../issues/StatusBadge';
 import { PriorityBadge } from '../issues/PriorityBadge';
