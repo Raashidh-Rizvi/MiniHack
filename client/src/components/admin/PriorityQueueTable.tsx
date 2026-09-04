@@ -12,7 +12,8 @@ interface PriorityQueueTableProps {
   issues: Issue[];
   onSelectIssue: (issue: Issue) => void;
   onQuickStatusUpdate?: (id: number) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: number) => Promise<void>;
+  busy?: boolean;
   loading?: boolean;
 }
 
@@ -25,6 +26,7 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
   onQuickStatusUpdate,
   onDelete,
   loading = false,
+  busy = false,
 }) => {
   const [sortField, setSortField] = useState<SortField>('priorityScore');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -41,10 +43,10 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
 
   const sorted = [...issues].sort((a, b) => {
     let diff = 0;
-    if (sortField === 'priorityScore') diff = b.priorityScore - a.priorityScore;
+    if (sortField === 'priorityScore') diff = a.priorityScore - b.priorityScore;
     else if (sortField === 'createdAt') diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    else if (sortField === 'peopleAffected') diff = b.peopleAffected - a.peopleAffected;
-    return sortDir === 'desc' ? diff : -diff;
+    else if (sortField === 'peopleAffected') diff = a.peopleAffected - b.peopleAffected;
+    return (sortDir === 'desc' ? -diff : diff) || new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() || a.id - b.id;
   });
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -88,6 +90,8 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
             <th
               className="text-left px-4 py-3 font-semibold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 select-none"
               onClick={() => handleSort('priorityScore')}
+              tabIndex={0} aria-sort={sortField === 'priorityScore' ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSort('priorityScore'); } }}
             >
               <div className="flex items-center gap-1">
                 Score <SortIcon field="priorityScore" />
@@ -99,6 +103,8 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
             <th
               className="text-left px-4 py-3 font-semibold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 select-none hidden md:table-cell"
               onClick={() => handleSort('peopleAffected')}
+              tabIndex={0} aria-sort={sortField === 'peopleAffected' ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSort('peopleAffected'); } }}
             >
               <div className="flex items-center gap-1">
                 Affected <SortIcon field="peopleAffected" />
@@ -107,6 +113,8 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
             <th
               className="text-left px-4 py-3 font-semibold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-slate-200 select-none hidden lg:table-cell"
               onClick={() => handleSort('createdAt')}
+              tabIndex={0} aria-sort={sortField === 'createdAt' ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSort('createdAt'); } }}
             >
               <div className="flex items-center gap-1">
                 Reported <SortIcon field="createdAt" />
@@ -188,20 +196,22 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
 
                 {/* Actions */}
                 <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                  <div className="flex items-center justify-end gap-1">
                     <button
                       id={`view-issue-${issue.id}`}
                       onClick={() => onSelectIssue(issue)}
                       title="View & Update Issue"
+                      aria-label={`View report ${issue.id}`} disabled={busy}
                       className="p-1.5 rounded-md text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
-                    {onQuickStatusUpdate && (
+                    {onQuickStatusUpdate && ['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS'].includes(issue.status) && (
                       <button
                         id={`advance-issue-${issue.id}`}
                         onClick={() => onQuickStatusUpdate(issue.id)}
                         title="Advance Status"
+                        aria-label={`Advance report ${issue.id}`} disabled={busy}
                         className="p-1.5 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors"
                       >
                         <ArrowRight className="w-4 h-4" />
@@ -210,13 +220,15 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
                     {deleteConfirm === issue.id ? (
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() => { onDelete(issue.id); setDeleteConfirm(null); }}
+                          disabled={busy} aria-label={`Confirm removal of report ${issue.id}: ${issue.title}`}
+                          onClick={() => { void onDelete(issue.id).then(() => setDeleteConfirm(null)).catch(() => {}); }}
                           className="text-xs px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
                         >
-                          Confirm
+                          {busy ? 'Removing…' : 'Confirm'}
                         </button>
                         <button
                           onClick={() => setDeleteConfirm(null)}
+                          disabled={busy}
                           className="text-xs px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                         >
                           Cancel
@@ -227,6 +239,7 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
                         id={`delete-issue-${issue.id}`}
                         onClick={() => setDeleteConfirm(issue.id)}
                         title="Remove Issue"
+                        aria-label={`Remove report ${issue.id}`} disabled={busy}
                         className="p-1.5 rounded-md text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
