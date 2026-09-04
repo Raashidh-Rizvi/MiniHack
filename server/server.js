@@ -1,6 +1,13 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('dotenv').config({ path: path.join(__dirname, '../.env.production') });
 require('dotenv').config(); // Fallback to root .env
+
+// Fallback environment variables for zero-config deployments
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'gramafix_super_secret_jwt_key_hackathon_2026';
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -40,14 +47,21 @@ app.use(
 app.use(express.json());
 app.use(morgan('dev'));
 
-// API Routes
+// API Routes (supports both /api/* and direct /* paths inside Vercel Serverless Function)
 app.use('/api/issues', issueRoutes);
+app.use('/issues', issueRoutes);
+
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
+
 app.use('/api/officer', officerRoutes);
+app.use('/officer', officerRoutes);
 
 // Health Check
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health', '/api'], (req, res) => {
   res.json({
     status: 'online',
     product: 'GramaFix REST API',
