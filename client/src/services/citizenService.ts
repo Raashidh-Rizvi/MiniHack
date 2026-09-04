@@ -16,6 +16,25 @@ export const citizenService = {
     return response.data.data;
   },
 
+  // READ: Get citizen's own statistics (total, open, inProgress, resolved)
+  async getCitizenStats(userId: number = 1): Promise<{ total: number; open: number; inProgress: number; resolved: number }> {
+    try {
+      const response = await apiClient.get<{ success: boolean; data: { total: number; open: number; inProgress: number; resolved: number } }>(
+        `/issues/my-stats?userId=${userId}`
+      );
+      return response.data.data;
+    } catch (err) {
+      console.warn('Backend stats unavailable, computing locally:', err);
+      const reports = await this.getMyReports(userId);
+      return {
+        total: reports.length,
+        open: reports.filter((r) => r.status === 'REPORTED').length,
+        inProgress: reports.filter((r) => r.status === 'UNDER_REVIEW' || r.status === 'IN_PROGRESS').length,
+        resolved: reports.filter((r) => r.status === 'RESOLVED').length,
+      };
+    }
+  },
+
   // UPDATE: Edit report details
   async updateIssue(id: number, payload: IssueUpdateDTO): Promise<Issue> {
     const response = await apiClient.put<{ success: boolean; data: Issue }>(`/issues/${id}`, payload);
