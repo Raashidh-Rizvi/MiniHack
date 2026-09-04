@@ -19,10 +19,10 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
-  Sparkles,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { SriLankanLion } from '../common/SriLankanLion';
 
 interface IssueFormProps {
   initialValues?: Partial<IssueCreateDTO>;
@@ -476,8 +476,8 @@ export const IssueForm: React.FC<IssueFormProps> = ({
       <div className="p-4 rounded-2xl bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent border border-red-500/20 transition-all shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-5 h-5 animate-pulse" />
+            <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 text-red-500 flex items-center justify-center flex-shrink-0 shadow-sm shadow-red-500/10">
+              <SriLankanLion size={24} color="#EF4444" accentColor="#991B1B" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center space-x-2">

@@ -10,9 +10,9 @@ import {
   Shield,
   FileText,
   Clock,
-  Sparkles,
   Layers,
 } from 'lucide-react';
+import { SriLankanLion } from '../components/common/SriLankanLion';
 import { getPriorityBadgeColor } from '../utils/priority';
 
 export const ReportIssuePage: React.FC = () => {
@@ -120,7 +120,7 @@ export const ReportIssuePage: React.FC = () => {
       {/* Page Header */}
       <div className="mb-8 text-center sm:text-left">
         <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 mb-2">
-          <Sparkles className="w-3.5 h-3.5" />
+          <SriLankanLion size={15} color="#EF4444" accentColor="#991B1B" />
           <span>Citizen Intake Portal (CREATE)</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
