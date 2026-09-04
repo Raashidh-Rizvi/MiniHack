@@ -111,10 +111,14 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(false);
 
     if (result.success && result.user) {
-      if (result.user.role === 'ADMIN' || result.user.role === 'OFFICER') {
-        navigate('/issues');
+      const r = result.user.role;
+      if (r === 'ADMIN') {
+        navigate('/admin');
+      } else if (r === 'OFFICER') {
+        navigate('/officer');
       } else {
-        navigate('/my-reports');
+        // CITIZEN / RESIDENT → dedicated citizen dashboard
+        navigate('/citizen');
       }
     } else {
       setServerError(result.error || 'Invalid credentials. Please verify and try again.');
