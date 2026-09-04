@@ -8,13 +8,14 @@ const {
   getAllIssues,
   getIssueById,
 } = require('../controllers/issueController');
-const { validateIssueCreate, validateIssueUpdate } = require('../middleware/validator');
+const { requireAuth, requireRole } = require('../middleware/auth');
+const citizen = [requireAuth, requireRole('CITIZEN')];
 
 // Citizen CRUD routes (Member 1)
-router.route('/').get(getAllIssues).post(validateIssueCreate, createIssue);
+router.route('/').get(getAllIssues).post(...citizen, createIssue);
 
-router.route('/my-reports').get(getMyReports);
+router.route('/my-reports').get(...citizen, getMyReports);
 
-router.route('/:id').get(getIssueById).put(validateIssueUpdate, updateIssue).delete(cancelIssue);
+router.route('/:id').get(getIssueById).put(...citizen, updateIssue).delete(...citizen, cancelIssue);
 
 module.exports = router;
