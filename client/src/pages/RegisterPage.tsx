@@ -68,7 +68,6 @@ export const RegisterPage: React.FC = () => {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
   const [otpSuccessMessage, setOtpSuccessMessage] = useState<string | null>(null);
-  const [simulatedEmailOtp, setSimulatedEmailOtp] = useState<{ code: string; email: string } | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -177,7 +176,6 @@ export const RegisterPage: React.FC = () => {
       setIsEmailVerified(false);
       setVerificationToken(null);
       setVerifiedEmail(null);
-      setSimulatedEmailOtp(null);
     }
   };
 
@@ -192,13 +190,10 @@ export const RegisterPage: React.FC = () => {
     setOtpError(null);
     setOtpSuccessMessage(null);
     try {
-      const res = await authService.sendOtp({ email: target });
+      await authService.sendOtp({ email: target });
       setIsOtpModalOpen(true);
       setResendCooldown(60);
       setOtpDigits(['', '', '', '', '', '']);
-      if (res.otp) {
-        setSimulatedEmailOtp({ code: res.otp, email: res.email || target });
-      }
       setTimeout(() => otpInputs.current[0]?.focus(), 150);
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Failed to dispatch verification code. Please try again.';
@@ -233,12 +228,6 @@ export const RegisterPage: React.FC = () => {
     } finally {
       setIsVerifyingOtp(false);
     }
-  };
-
-  const handleQuickFillOtp = (code: string) => {
-    const digits = code.split('').slice(0, 6);
-    setOtpDigits(digits);
-    void handleVerifyOtp(code);
   };
 
   const handleOtpDigitChange = (index: number, value: string) => {
@@ -490,7 +479,6 @@ export const RegisterPage: React.FC = () => {
                         setIsEmailVerified(false);
                         setVerificationToken(null);
                         setVerifiedEmail(null);
-                        setSimulatedEmailOtp(null);
                       }}
                       className="text-xs text-slate-400 hover:text-red-500 px-2.5 py-1 rounded-lg hover:bg-red-500/10 transition-colors font-medium cursor-pointer"
                     >
