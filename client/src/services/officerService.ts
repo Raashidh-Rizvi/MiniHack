@@ -9,6 +9,16 @@ const api = axios.create({
   timeout: 10000,
 });
 
+// Phase 4: Attach the JWT token from localStorage to every API request automatically.
+// The backend auth middleware reads this token to identify the logged-in officer.
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('gramafix_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export interface OfficerStats {
   totalIssues: number;
   openIssues: number;
@@ -17,10 +27,10 @@ export interface OfficerStats {
   criticalIssues: number;
 }
 
+// Phase 4: officerId removed — the backend reads it from the JWT token now.
 export interface OfficerStatusPayload {
   newStatus: IssueStatus;
   fieldNotes?: string;
-  officerId?: number;
 }
 
 export interface OfficerUser {
@@ -32,18 +42,17 @@ export interface OfficerUser {
   communityArea: string;
 }
 
-/** GET /api/officer/stats?officerId=X — Officer dashboard KPIs */
-export async function getOfficerStats(officerId: number): Promise<OfficerStats> {
-  const res = await api.get('/officer/stats', { params: { officerId } });
+/** GET /api/officer/stats — Officer dashboard KPIs (officer identified via JWT) */
+export async function getOfficerStats(): Promise<OfficerStats> {
+  const res = await api.get('/officer/stats');
   return res.data.data;
 }
 
-/** GET /api/officer/queue?officerId=X — Issues assigned to this officer */
+/** GET /api/officer/queue — Issues assigned to this officer (officer identified via JWT) */
 export async function getOfficerQueue(
-  officerId: number,
   filters?: { status?: string; priorityLevel?: string; category?: string; search?: string }
 ): Promise<Issue[]> {
-  const params: Record<string, string | number> = { officerId };
+  const params: Record<string, string> = {};
   if (filters?.status && filters.status !== 'ALL') params.status = filters.status;
   if (filters?.priorityLevel && filters.priorityLevel !== 'ALL') params.priorityLevel = filters.priorityLevel;
   if (filters?.category && filters.category !== 'ALL') params.category = filters.category;
@@ -52,7 +61,7 @@ export async function getOfficerQueue(
   return res.data.data;
 }
 
-/** PUT /api/officer/issues/:id/status — Officer updates status */
+/** PUT /api/officer/issues/:id/status — Officer updates status (officer identified via JWT) */
 export async function officerUpdateStatus(
   issueId: number,
   payload: OfficerStatusPayload
