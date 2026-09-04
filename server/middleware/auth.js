@@ -1,7 +1,7 @@
 /**
  * Authentication and Role-Based Authorization Middleware (Member 1 & 3)
  */
-const { memoryStore } = require('../models/memoryStore');
+const memoryStore = require('../models/memoryStore');
 const User = require('../models/User');
 const { getIsConnected } = require('../config/db');
 
