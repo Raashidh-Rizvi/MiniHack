@@ -16,6 +16,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminPage } from './pages/AdminPage';
 import { OfficerPage } from './pages/OfficerPage';
+import { RequireRole } from './components/auth/RequireRole';
 
 export const App: React.FC = () => {
   return (
@@ -28,8 +29,8 @@ export const App: React.FC = () => {
               <Routes>
                 {/* Member 1: Landing Experience & Reporting Journey */}
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/report" element={<ReportIssuePage />} />
-                <Route path="/my-reports" element={<MyReportsPage />} />
+                <Route path="/report" element={<RequireRole roles={['CITIZEN']}><ReportIssuePage /></RequireRole>} />
+                <Route path="/my-reports" element={<RequireRole roles={['CITIZEN']}><MyReportsPage /></RequireRole>} />
 
                 {/* Member 2: Public Issues Discovery & Upvoting Feed */}
                 <Route path="/issues" element={<IssuesPage />} />
@@ -40,10 +41,10 @@ export const App: React.FC = () => {
                 <Route path="/register" element={<RegisterPage />} />
 
                 {/* Member 3: Admin Triage & Priority Engine */}
-                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/admin" element={<RequireRole roles={['ADMIN']}><AdminPage /></RequireRole>} />
 
                 {/* Officer Portal — Issue Management for Municipal Officers */}
-                <Route path="/officer" element={<OfficerPage />} />
+                <Route path="/officer" element={<RequireRole roles={['OFFICER']}><OfficerPage /></RequireRole>} />
 
                 {/* Catch-all redirect */}
                 <Route path="*" element={<Navigate to="/" replace />} />

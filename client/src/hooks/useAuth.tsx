@@ -1,145 +1,56 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { User, UserRole } from '../types/issue';
-import { MOCK_USERS } from '../data/mockIssues';
-import { authService, LoginCredentials, RegisterData } from '../services/authService';
-
-interface AuthResult {
-  success: boolean;
-  user?: User;
-  error?: string;
-}
-
+import { authService, AuthResponse, LoginCredentials, RegisterData } from '../services/authService';
+import { errorMessage } from '../services/api';
+interface AuthResult { success: boolean; user?: User; error?: string; }
 interface AuthContextType {
-  currentUser: User;
-  role: UserRole;
-  isAuthenticated: boolean;
-  token: string | null;
+  currentUser: User; role: UserRole; isAuthenticated: boolean; loading: boolean; token: string | null;
   login: (credentials: LoginCredentials) => Promise<AuthResult>;
   register: (data: RegisterData) => Promise<AuthResult>;
-  logout: () => void;
-  switchRole: (newRole: UserRole) => void;
-  setUser: (user: User) => void;
+  logout: () => void; switchRole: (role: UserRole) => void;
 }
-
+const guest: User = { id: 0, fullName: 'Guest', email: '', role: 'CITIZEN', communityArea: '' };
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User>(() => {
-    try {
-      const saved = localStorage.getItem('gramafix_user');
-      return saved ? JSON.parse(saved) : MOCK_USERS[0];
-    } catch {
-      return MOCK_USERS[0];
-    }
-  });
-
-  const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('gramafix_token') || 'demo_token';
-  });
-
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('gramafix_auth') === 'true';
-  });
-
+  const [currentUser, setCurrentUser] = useState<User>(guest);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('gramafix_token'));
+  const [loading, setLoading] = useState(true);
+  const generation = useRef(0);
+  const clear = useCallback(() => {
+    generation.current++;
+    setCurrentUser(guest); setToken(null); setLoading(false);
+    for (const key of ['gramafix_token', 'gramafix_user', 'gramafix_auth']) localStorage.removeItem(key);
+  }, []);
   useEffect(() => {
-    try {
-      localStorage.setItem('gramafix_user', JSON.stringify(currentUser));
-      if (token) {
-        localStorage.setItem('gramafix_token', token);
-      }
-      localStorage.setItem('gramafix_auth', String(isAuthenticated));
-    } catch (e) {
-      console.warn('Failed to persist user to localStorage', e);
-    }
-  }, [currentUser, token, isAuthenticated]);
-
-  /**
-   * Authenticate with email and password
-   */
-  const login = async (credentials: LoginCredentials): Promise<AuthResult> => {
-    try {
-      const res = await authService.login(credentials);
-      if (res.data) {
-        setCurrentUser(res.data);
-        setToken(res.token);
-        setIsAuthenticated(true);
-        return { success: true, user: res.data };
-      }
-      return { success: false, error: res.message || 'Login failed.' };
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Unable to sign in. Please verify credentials.';
-      return { success: false, error: msg };
-    }
+    let active = true; const version = generation.current;
+    if (localStorage.getItem('gramafix_token')) {
+      authService.me().then(user => { if (active && version === generation.current) setCurrentUser(user); })
+        .catch(() => { if (active && version === generation.current) clear(); })
+        .finally(() => { if (active) setLoading(false); });
+    } else setLoading(false);
+    window.addEventListener('gramafix-session-expired', clear);
+    return () => { active = false; window.removeEventListener('gramafix-session-expired', clear); };
+  }, [clear]);
+  const accept = (res: AuthResponse): AuthResult => {
+    generation.current++;
+    localStorage.setItem('gramafix_token', res.token);
+    setToken(res.token); setCurrentUser(res.data); setLoading(false);
+    return { success: true, user: res.data };
   };
-
-  /**
-   * Register a new user account
-   */
+  const login = async (data: LoginCredentials): Promise<AuthResult> => {
+    try { return accept(await authService.login(data)); } catch (e) { return { success: false, error: errorMessage(e) }; }
+  };
   const register = async (data: RegisterData): Promise<AuthResult> => {
-    try {
-      const res = await authService.register(data);
-      if (res.data) {
-        setCurrentUser(res.data);
-        setToken(res.token);
-        setIsAuthenticated(true);
-        return { success: true, user: res.data };
-      }
-      return { success: false, error: res.message || 'Registration failed.' };
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Unable to create account. Please try again.';
-      return { success: false, error: msg };
-    }
+    try { return accept(await authService.register(data)); } catch (e) { return { success: false, error: errorMessage(e) }; }
   };
-
-  /**
-   * Sign out current user
-   */
-  const logout = () => {
-    localStorage.removeItem('gramafix_token');
-    localStorage.setItem('gramafix_auth', 'false');
-    setIsAuthenticated(false);
-    // Reset to default resident for seamless browsing
-    setCurrentUser(MOCK_USERS[0]);
-  };
-
-  /**
-   * Switch active persona for hackathon judges & evaluators
-   */
-  const switchRole = (newRole: UserRole) => {
-    const normalizedRole = newRole === 'RESIDENT' ? 'CITIZEN' : newRole;
-    const targetUser = MOCK_USERS.find(
-      (u) => u.role === normalizedRole || (normalizedRole === 'CITIZEN' && u.role === 'RESIDENT')
-    ) || MOCK_USERS[0];
-    setCurrentUser(targetUser);
-    setIsAuthenticated(true);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        currentUser,
-        role: currentUser.role,
-        isAuthenticated,
-        token,
-        login,
-        register,
-        logout,
-        switchRole,
-        setUser: (user: User) => {
-          setCurrentUser(user);
-          setIsAuthenticated(true);
-        },
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const logout = () => { void authService.logout().catch(() => {}); clear(); };
+  // A role shortcut opens sign-in; it cannot change the authenticated role.
+  const switchRole = (_role: UserRole) => { window.location.assign('/login'); };
+  return <AuthContext.Provider value={{ currentUser, role: currentUser.role, isAuthenticated: !!token && currentUser.id !== 0,
+    loading, token, login, register, logout, switchRole }}>{children}</AuthContext.Provider>;
 };
-
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

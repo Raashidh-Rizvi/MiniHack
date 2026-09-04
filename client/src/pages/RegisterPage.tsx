@@ -217,13 +217,13 @@ export const RegisterPage: React.FC = () => {
         <div className="text-center mb-8 space-y-3">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold backdrop-blur-md">
             <Flame className="w-3.5 h-3.5 text-red-500" />
-            <span>Role-Based Registration</span>
+            <span>Citizen Registration</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
             Join the <span className="text-red-500">GramaFix</span> Network
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-            Choose your role to empower civic transparency and municipal response in Sri Lanka.
+            Create a citizen account. Officer and administrator accounts are provisioned separately.
           </p>
         </div>
 
@@ -244,7 +244,7 @@ export const RegisterPage: React.FC = () => {
                 Select Your Civic Role <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {roleOptions.map((opt) => {
+                {roleOptions.filter(opt => opt.role === 'CITIZEN').map((opt) => {
                   const Icon = opt.icon;
                   const isSelected = selectedRole === opt.role;
                   return (

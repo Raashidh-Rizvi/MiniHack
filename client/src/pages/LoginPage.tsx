@@ -112,7 +112,7 @@ export const LoginPage: React.FC = () => {
 
     if (result.success && result.user) {
       if (result.user.role === 'ADMIN' || result.user.role === 'OFFICER') {
-        navigate('/issues');
+        navigate(result.user.role === 'ADMIN' ? '/admin' : '/officer');
       } else {
         navigate('/my-reports');
       }
