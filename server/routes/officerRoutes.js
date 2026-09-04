@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { protect, requireRole } = require('../middleware/authMiddleware');
 const {
   getMyQueue,
   getOfficerStats,
@@ -7,16 +8,16 @@ const {
   getOfficerList,
 } = require('../controllers/officerController');
 
-// GET  /api/officer/stats?officerId=X     — Officer dashboard stats
-router.get('/stats', getOfficerStats);
+// GET  /api/officer/stats   — Officer dashboard stats (officer only)
+router.get('/stats', protect, requireRole('OFFICER'), getOfficerStats);
 
-// GET  /api/officer/queue?officerId=X     — Issues assigned to this officer
-router.get('/queue', getMyQueue);
+// GET  /api/officer/queue   — Issues assigned to this officer (officer only)
+router.get('/queue', protect, requireRole('OFFICER'), getMyQueue);
 
-// GET  /api/officer/list                  — All officers (for admin reassignment)
-router.get('/list', getOfficerList);
+// GET  /api/officer/list    — All officers (admin only, for reassignment UI)
+router.get('/list', protect, requireRole('ADMIN'), getOfficerList);
 
-// PUT  /api/officer/issues/:id/status     — Officer updates issue status
-router.put('/issues/:id/status', officerUpdateStatus);
+// PUT  /api/officer/issues/:id/status — Officer updates issue status (officer only)
+router.put('/issues/:id/status', protect, requireRole('OFFICER'), officerUpdateStatus);
 
 module.exports = router;

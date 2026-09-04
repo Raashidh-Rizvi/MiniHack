@@ -1,0 +1,10 @@
+express
+mongoose
+dotenv
+cors
+nodemon
+bcryptjs
+jsonwebtoken
+body-parser
+morgan
+validator
