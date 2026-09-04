@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const DEFAULT_MONGO_URI = 'mongodb+srv://atheekfareez47_db_user:bT1ntmAnxqf5XS5I@clustergramafiz.mt9mcof.mongodb.net/gramafix?retryWrites=true&w=majority&appName=ClusterGramaFiz';
+const DEFAULT_MONGO_URI = 'mongodb+srv://<username>:<password>@clustergramafiz.mt9mcof.mongodb.net/gramafix?retryWrites=true&w=majority&appName=ClusterGramaFiz';
 
 let isConnected = false;
 let connectionPromise = null;

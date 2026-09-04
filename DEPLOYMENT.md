@@ -154,8 +154,8 @@ Under the **Environment Variables** section on Render, add the following key-val
 
 ```env
 NODE_ENV = production
-MONGO_URI = mongodb+srv://atheekfareez47_db_user:bT1ntmAnxqf5XS5I@clustergramafiz.mt9mcof.mongodb.net/gramafix?retryWrites=true&w=majority&appName=ClusterGramaFiz
-JWT_SECRET = gramafix_super_secret_jwt_key_hackathon_2026
+MONGO_URI = mongodb+srv://<username>:<password>@clustergramafiz.mt9mcof.mongodb.net/gramafix?retryWrites=true&w=majority&appName=ClusterGramaFiz
+JWT_SECRET = your_jwt_secret_key_here
 ```
 
 ### 4. Configure Health Check Endpoint

@@ -142,16 +142,19 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Quick Role Evaluator Selector */}
-        <div className="mb-6 p-4 rounded-2xl bg-white/70 dark:bg-[#121722]/70 backdrop-blur-md border border-slate-200 dark:border-white/10 shadow-sm">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+        <div className="mb-6 p-4 rounded-2xl bg-white/80 dark:bg-[#121722]/80 backdrop-blur-xl border-2 border-amber-400/50 dark:border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.3)] dark:shadow-[0_0_30px_rgba(245,158,11,0.2)] relative overflow-hidden ring-4 ring-amber-400/20 animate-[pulse_3s_ease-in-out_infinite] transform transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_0_40px_rgba(245,158,11,0.4)]">
+          {/* Subtle animated background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-red-500/5 to-amber-500/10 blur-xl pointer-events-none" />
+
+          <div className="flex items-center justify-between mb-3 relative z-10">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center space-x-1.5 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
+              <Sparkles className="w-4 h-4 text-amber-500 animate-[spin_3s_linear_infinite]" />
               <span>1-Click Hackathon Evaluator Presets</span>
             </span>
-            <span className="text-[10px] text-slate-400">Click to autofill</span>
+            <span className="text-[10px] font-bold text-amber-600/70 dark:text-amber-400/70 animate-pulse bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">Click to autofill</span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2.5 relative z-10">
             {demoPresets.map((preset) => {
               const Icon = preset.icon;
               const isSelected = activePresetRole === preset.role;
@@ -160,18 +163,23 @@ export const LoginPage: React.FC = () => {
                   key={preset.role}
                   type="button"
                   onClick={() => handleApplyPreset(preset)}
-                  className={`p-3 rounded-2xl text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
-                    isSelected ? 'liquid-pill-active' : 'liquid-btn-glass'
+                  className={`p-3 rounded-2xl text-left transition-all duration-300 flex flex-col justify-between cursor-pointer relative overflow-hidden group ${
+                    isSelected ? 'liquid-pill-active scale-[1.02] shadow-[0_0_20px_rgba(239,68,68,0.4)] z-10' : 'liquid-btn-glass hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:border-amber-400/50 hover:bg-amber-50/50 dark:hover:bg-amber-900/20'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <Icon className="w-4 h-4" />
-                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                    <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-slate-600 dark:text-slate-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors'}`} />
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_#fff] animate-ping" />}
                   </div>
-                  <div className="mt-2">
-                    <div className="text-xs font-bold leading-tight">{preset.label}</div>
-                    <div className="text-[10px] opacity-80 truncate">{preset.sublabel}</div>
+                  <div className="mt-2.5">
+                    <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-slate-800 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-300'}`}>{preset.label}</div>
+                    <div className={`text-[10px] mt-0.5 truncate ${isSelected ? 'text-white/90' : 'text-slate-500 dark:text-slate-400 group-hover:text-amber-600/70 dark:group-hover:text-amber-400/70'}`}>{preset.sublabel}</div>
                   </div>
+                  
+                  {/* Hover glow effect for non-selected items */}
+                  {!isSelected && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-400/0 to-amber-400/0 group-hover:from-amber-400/10 group-hover:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  )}
                 </button>
               );
             })}
