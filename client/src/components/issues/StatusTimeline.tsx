@@ -60,7 +60,7 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({ currentStatus, h
 
   return (
     <div className="space-y-1">
-      <div className="flex items-start gap-0">
+      {!isTerminal && <div className="flex items-start gap-0">
         {STATUS_FLOW.map((step, index) => {
           const colors = getStepColor(step.key, currentStatus);
           const isLast = index === STATUS_FLOW.length - 1;
@@ -85,7 +85,7 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({ currentStatus, h
             </div>
           );
         })}
-      </div>
+      </div>}
 
       {/* Terminal status banner */}
       {isTerminal && (
