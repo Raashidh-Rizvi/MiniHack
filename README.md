@@ -7,7 +7,7 @@
 ## 📌 Project Overview
 **GramaFix** is a responsive civic-tech web application built for Sri Lankan communities that enables residents to report, discover, support, and track local problems (potholes, blocked drains, broken streetlights, garbage accumulation, water leaks, etc.) while providing administrators with a transparent, deterministic **Community Priority Queue** based on community impact.
 
-For complete project details, architecture, scoring formulas, and rubric alignment, see [SPECIFICATION.md](file:///d:/Project/MiniHack/SPECIFICATION.md). For the 4-hour hackathon execution plan and 3-person team responsibilities, see [TEAM_PLAN.md](file:///d:/Project/MiniHack/TEAM_PLAN.md). For UI tokens, component blueprints, and dark/light color palettes inspired by the executive SAS analytics layout, see [THEME.md](file:///d:/Project/MiniHack/THEME.md).
+For complete project details, architecture, scoring formulas, and rubric alignment, see [SPECIFICATION.md](file:///d:/Project/MiniHack/SPECIFICATION.md). For the 4-hour hackathon execution plan and 3-person team responsibilities, see [TEAM_PLAN.md](file:///d:/Project/MiniHack/TEAM_PLAN.md). For UI tokens, component blueprints, and dark/light color palettes, see [THEME.md](file:///d:/Project/MiniHack/THEME.md). For cloud hosting, environment configuration, and live launch steps, see [DEPLOYMENT.md](file:///d:/Project/MiniHack/DEPLOYMENT.md).
 
 ---
 

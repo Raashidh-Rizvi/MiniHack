@@ -15,6 +15,7 @@ import {
   Sparkles,
   Send,
   Loader2,
+  Flame,
 } from 'lucide-react';
 import { CategoryType, IssueCreateDTO, Severity } from '../../types/issue';
 
@@ -52,7 +53,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
 
-  // Real-time live priority preview calculation
+  // Real-time live priority preview calculation matching backend
   const livePriority = useMemo(() => {
     const sevMap: Record<Severity, number> = {
       LOW: 25,
@@ -84,7 +85,6 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
     return { score: clamped, level };
   }, [severity, peopleAffected]);
 
-  // Client-side validation logic
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
 
@@ -144,37 +144,42 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Real-time Priority Preview Badge Card */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-800/80 to-slate-800/40 border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <Sparkles className="w-5 h-5" />
+      {/* Real-time Priority Preview Badge Card with Crimson Accent Glow */}
+      <div className="p-4 rounded-2xl bg-surface border border-subtle relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-card">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle,rgba(239,68,68,0.15)_0%,transparent_70%)] pointer-events-none" />
+
+        <div className="flex items-center space-x-3 z-10">
+          <div className="w-10 h-10 rounded-xl bg-crimson-500/15 border border-crimson-500/30 flex items-center justify-center text-crimson-500">
+            <Flame className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-heading">
               Deterministic Priority Engine Preview
             </h4>
-            <p className="text-xs text-slate-400">
-              Calculated transparently: Severity (40%) + Affected Population (30%) + Urgency (20%)
+            <p className="text-xs text-muted">
+              Severity (40%) + Population Impact (30%) + Urgency (20%) + Baseline Age (10%)
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 self-end sm:self-auto">
+        <div className="flex items-center space-x-3 self-end sm:self-auto z-10">
           <div className="text-right">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Est. Impact Score</span>
-            <span className="text-xl font-extrabold text-white">{livePriority.score}<span className="text-xs text-slate-400">/100</span></span>
+            <span className="text-[10px] uppercase font-bold text-muted block">Est. Impact Score</span>
+            <span className="text-2xl font-black text-heading font-mono">
+              {livePriority.score}
+              <span className="text-xs text-muted font-normal">/100</span>
+            </span>
           </div>
 
           <span
             className={`px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wide border ${
               livePriority.level === 'CRITICAL'
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-[0_0_12px_rgba(239,68,68,0.25)]'
                 : livePriority.level === 'HIGH'
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
                 : livePriority.level === 'MEDIUM'
-                ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
             }`}
           >
             {livePriority.level} Priority
@@ -185,10 +190,10 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
       {/* Title Field */}
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
-          <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-            Issue Title <span className="text-rose-400">*</span>
+          <label className="text-xs font-bold uppercase tracking-wider text-heading">
+            Issue Title <span className="text-crimson-500">*</span>
           </label>
-          <span className="text-[11px] text-slate-400">{title.length}/100</span>
+          <span className="text-[11px] text-muted font-mono">{title.length}/100</span>
         </div>
         <input
           type="text"
@@ -197,7 +202,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
           onBlur={() => handleBlur('title')}
           placeholder="e.g. Broken Culvert causing flooding on Trincomalee Street"
           className={`w-full glass-input ${
-            touched.title && errors.title ? 'border-rose-500 focus:ring-rose-500/50' : ''
+            touched.title && errors.title ? 'border-crimson-500 focus:ring-crimson-500/40' : ''
           }`}
           maxLength={100}
         />
@@ -211,8 +216,8 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
 
       {/* Category Grid Selection */}
       <div className="space-y-2">
-        <label className="text-xs font-semibold uppercase tracking-wider text-slate-300 block">
-          Civic Category <span className="text-rose-400">*</span>
+        <label className="text-xs font-bold uppercase tracking-wider text-heading block">
+          Civic Category <span className="text-crimson-500">*</span>
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {CATEGORIES.map((cat) => {
@@ -224,19 +229,19 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
                 onClick={() => setCategory(cat.code)}
                 className={`p-3 rounded-xl text-left border transition-all flex flex-col justify-between ${
                   isSelected
-                    ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-md shadow-emerald-500/10 scale-[1.02]'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                    ? 'bg-crimson-500/10 border-crimson-500 text-heading shadow-[0_4px_16px_rgba(239,68,68,0.2)] scale-[1.02]'
+                    : 'bg-surface border-subtle text-muted hover:text-heading hover:border-crimson-500/30'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <div className={`${isSelected ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  <div className={`${isSelected ? 'text-crimson-500' : 'text-muted'}`}>
                     {cat.icon}
                   </div>
-                  {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+                  {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-crimson-500" />}
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-100">{cat.label}</p>
-                  <p className="text-[10px] text-slate-500 truncate">{cat.desc}</p>
+                  <p className="text-xs font-bold text-heading">{cat.label}</p>
+                  <p className="text-[10px] text-muted truncate">{cat.desc}</p>
                 </div>
               </button>
             );
@@ -246,11 +251,11 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
 
       {/* Location Input & Quick Suggestions */}
       <div className="space-y-2">
-        <label className="text-xs font-semibold uppercase tracking-wider text-slate-300 block">
-          Location or Landmark <span className="text-rose-400">*</span>
+        <label className="text-xs font-bold uppercase tracking-wider text-heading block">
+          Location or Landmark <span className="text-crimson-500">*</span>
         </label>
         <div className="relative">
-          <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+          <MapPin className="w-4 h-4 text-muted absolute left-3.5 top-3.5 pointer-events-none" />
           <input
             type="text"
             value={location}
@@ -258,7 +263,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
             onBlur={() => handleBlur('location')}
             placeholder="e.g. Near Hindu College, Trincomalee Street, Matale"
             className={`w-full glass-input pl-10 ${
-              touched.location && errors.location ? 'border-rose-500 focus:ring-rose-500/50' : ''
+              touched.location && errors.location ? 'border-crimson-500 focus:ring-crimson-500/40' : ''
             }`}
           />
         </div>
@@ -271,13 +276,13 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
 
         {/* Quick Suggestion Pills */}
         <div className="flex flex-wrap gap-1.5 pt-1">
-          <span className="text-[11px] text-slate-500 self-center mr-1">Quick Select:</span>
+          <span className="text-[11px] text-muted self-center mr-1">Sri Lankan Areas:</span>
           {QUICK_LOCATIONS.map((loc) => (
             <button
               type="button"
               key={loc}
               onClick={() => setLocation(loc)}
-              className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition-colors"
+              className="text-[11px] px-2.5 py-1 rounded-lg bg-surface border border-subtle hover:border-crimson-500/40 text-muted hover:text-heading transition-colors"
             >
               {loc}
             </button>
@@ -289,8 +294,8 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Severity Radio Options */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold uppercase tracking-wider text-slate-300 block">
-            Severity Level <span className="text-rose-400">*</span>
+          <label className="text-xs font-bold uppercase tracking-wider text-heading block">
+            Severity Level <span className="text-crimson-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-2">
             {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as Severity[]).map((lvl) => {
@@ -300,16 +305,16 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
                   type="button"
                   key={lvl}
                   onClick={() => setSeverity(lvl)}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
+                  className={`py-2.5 px-3 rounded-xl text-xs font-extrabold uppercase tracking-wider border transition-all ${
                     active
                       ? lvl === 'CRITICAL'
-                        ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/25'
+                        ? 'bg-rose-500 text-white border-rose-400 shadow-[0_4px_16px_rgba(239,68,68,0.4)]'
                         : lvl === 'HIGH'
-                        ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/25'
+                        ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_4px_16px_rgba(245,158,11,0.3)]'
                         : lvl === 'MEDIUM'
-                        ? 'bg-sky-500 text-white border-sky-400 shadow-md shadow-sky-500/25'
-                        : 'bg-emerald-500 text-white border-emerald-400 shadow-md shadow-emerald-500/25'
-                      : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-sky-500 text-white border-sky-400 shadow-[0_4px_16px_rgba(14,165,233,0.3)]'
+                        : 'bg-emerald-500 text-white border-emerald-400 shadow-[0_4px_16px_rgba(16,185,129,0.3)]'
+                      : 'bg-surface border-subtle text-muted hover:text-heading'
                   }`}
                 >
                   {lvl}
@@ -322,14 +327,14 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
         {/* People Affected Numeric Input */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Estimated Affected People <span className="text-rose-400">*</span>
+            <label className="text-xs font-bold uppercase tracking-wider text-heading">
+              Estimated Affected Residents <span className="text-crimson-500">*</span>
             </label>
-            <span className="text-xs font-semibold text-emerald-400">{peopleAffected} residents</span>
+            <span className="text-xs font-bold text-crimson-500 font-mono">{peopleAffected} people</span>
           </div>
 
           <div className="relative">
-            <Users className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+            <Users className="w-4 h-4 text-muted absolute left-3.5 top-3.5 pointer-events-none" />
             <input
               type="number"
               min="1"
@@ -343,15 +348,15 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
 
           {/* Quick presets */}
           <div className="flex gap-1.5 pt-1">
-            {[10, 50, 150, 300].map((num) => (
+            {[10, 50, 150, 350].map((num) => (
               <button
                 type="button"
                 key={num}
                 onClick={() => setPeopleAffected(num)}
                 className={`text-[11px] px-2.5 py-0.5 rounded-lg border transition-colors ${
                   peopleAffected === num
-                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
-                    : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:text-slate-200'
+                    ? 'bg-crimson-500/20 text-crimson-500 border-crimson-500/40 font-bold'
+                    : 'bg-surface text-muted border-subtle hover:text-heading'
                 }`}
               >
                 ~{num}
@@ -364,19 +369,19 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
       {/* Detailed Description Field */}
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
-          <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-            Detailed Description <span className="text-rose-400">*</span>
+          <label className="text-xs font-bold uppercase tracking-wider text-heading">
+            Detailed Description <span className="text-crimson-500">*</span>
           </label>
-          <span className="text-[11px] text-slate-400">{description.length}/1000</span>
+          <span className="text-[11px] text-muted font-mono">{description.length}/1000</span>
         </div>
         <textarea
           rows={4}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={() => handleBlur('description')}
-          placeholder="Describe the issue, hazards, when it started, and specific landmarks to help local officials locate and assess it..."
+          placeholder="Describe the issue, specific hazards, when it started, and clear landmarks to help local officials locate and evaluate it..."
           className={`w-full glass-input resize-none ${
-            touched.description && errors.description ? 'border-rose-500 focus:ring-rose-500/50' : ''
+            touched.description && errors.description ? 'border-crimson-500 focus:ring-crimson-500/40' : ''
           }`}
           maxLength={1000}
         />
@@ -388,12 +393,12 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
         )}
       </div>
 
-      {/* Submission CTA Button */}
+      {/* Submission Pill CTA Button */}
       <div className="pt-2">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all flex items-center justify-center space-x-2 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full py-4 px-6 rounded-full text-white font-bold text-sm bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-[0_4px_20px_rgba(239,68,68,0.45)] hover:shadow-[0_4px_28px_rgba(239,68,68,0.65)] transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting ? (
             <>
@@ -403,12 +408,12 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
           ) : (
             <>
               <Send className="w-4 h-4" />
-              <span>Submit Civic Issue Report</span>
+              <span>Submit Civic Issue Report 🇱🇰</span>
             </>
           )}
         </button>
-        <p className="text-[11px] text-center text-slate-500 mt-2.5">
-          Reports are immediately prioritized and routed to the public feed and municipal admin queue.
+        <p className="text-[11px] text-center text-muted mt-2.5">
+          Reports are scored deterministically and dispatched to the public feed and admin priority queue.
         </p>
       </div>
     </form>

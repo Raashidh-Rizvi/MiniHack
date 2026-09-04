@@ -1,110 +1,173 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, AlertCircle, ArrowLeft, Info } from 'lucide-react';
-import { IssueForm } from '../components/issues/IssueForm';
+import { useNavigate, Link } from 'react-router-dom';
+import { IssueCreateDTO, Issue } from '../types/issue';
 import { citizenService } from '../services/citizenService';
-import { IssueCreateDTO } from '../types/issue';
 import { useAuth } from '../hooks/useAuth';
+import { IssueForm } from '../components/citizen/IssueForm';
+import {
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  Shield,
+  FileText,
+  Clock,
+  Sparkles,
+  Layers,
+} from 'lucide-react';
+import { getPriorityBadgeColor } from '../utils/priority';
 
 export const ReportIssuePage: React.FC = () => {
-  const [submitting, setSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const [createdIssue, setCreatedIssue] = useState<Issue | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleFormSubmit = async (formData: IssueCreateDTO) => {
+  const handleSubmit = async (formData: IssueCreateDTO) => {
+    setSubmitting(true);
+    setSubmitError(null);
+
     try {
-      setSubmitting(true);
-      setErrorMessage(null);
-
-      const created = await citizenService.createIssue({
+      const payload: IssueCreateDTO = {
         ...formData,
         reportedBy: currentUser.id,
         reportedByName: currentUser.fullName,
-      });
+      };
 
-      setSuccessMessage(
-        `Report #${created.id} submitted successfully! It has been scored with a priority of ${created.priorityScore}/100 (${created.priorityLevel}).`
-      );
-
-      // Scroll to top to see confirmation
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // Automatically redirect to My Reports after a brief moment
-      setTimeout(() => {
-        navigate('/my-reports');
-      }, 1800);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to submit report. Please try again.';
-      setErrorMessage(msg);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const newIssue = await citizenService.createIssue(payload);
+      setCreatedIssue(newIssue);
+    } catch (err: any) {
+      console.error('Submission failed:', err);
+      setSubmitError(err.message || 'Unable to register issue. Please retry.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  return (
-    <div className="max-w-3xl mx-auto py-6 sm:py-10 space-y-6">
-      {/* Back button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to previous page</span>
-      </button>
+  // Success Confirmation Screen
+  if (createdIssue) {
+    const badge = getPriorityBadgeColor(createdIssue.priorityLevel);
 
-      {/* Page Header */}
-      <div className="space-y-2">
-        <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-          <span>Citizen Intake Form</span>
+    return (
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-2xl mx-auto animate-fadeIn">
+        <div className="p-8 sm:p-10 rounded-3xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 shadow-2xl text-center relative overflow-hidden">
+          {/* Ambient Glow */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Success Checkmark */}
+          <div className="w-16 h-16 rounded-3xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30 shadow-[0_0_24px_rgba(16,185,129,0.3)]">
+            <CheckCircle2 className="w-8 h-8" />
+          </div>
+
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-500">
+            Report Successfully Dispatched
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 mb-2">
+            Issue #{createdIssue.id} Registered
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto mb-6">
+            Your community issue has been validated and injected into the public Sri Lankan Community Priority Queue.
+          </p>
+
+          {/* Summary Box */}
+          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-surface-elevated border border-slate-200 dark:border-white/5 text-left mb-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase text-slate-400">{createdIssue.category}</span>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${badge.bg} ${badge.text} ${badge.border}`}>
+                {createdIssue.priorityLevel} Priority ({createdIssue.priorityScore} pts)
+              </span>
+            </div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">{createdIssue.title}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{createdIssue.location}</p>
+          </div>
+
+          {/* Action CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              to="/issues"
+              className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 shadow-[0_4px_16px_rgba(239,68,68,0.4)] hover:shadow-[0_4px_24px_rgba(239,68,68,0.6)] transition-all"
+            >
+              <Layers className="w-4 h-4" />
+              <span>View in Community Feed</span>
+            </Link>
+
+            <Link
+              to="/my-reports"
+              className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Go to My Reports</span>
+            </Link>
+
+            <button
+              onClick={() => setCreatedIssue(null)}
+              className="w-full sm:w-auto text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white py-2"
+            >
+              Report Another Issue
+            </button>
+          </div>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Report a Community Issue 🇱🇰
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+      {/* Page Header */}
+      <div className="mb-8 text-center sm:text-left">
+        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 mb-2">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Citizen Intake Portal (CREATE)</span>
+        </div>
+        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+          Report a Neighborhood Problem
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400">
-          Provide accurate details regarding the hazard or infrastructure issue. Every submission is weighted deterministically and added to the public queue.
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
+          Report potholes, blocked drains, water leaks, or streetlights. Your input is transparently ranked for municipal response.
         </p>
       </div>
 
-      {/* Success Notification Alert */}
-      {successMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-sm flex items-start space-x-3 shadow-lg shadow-emerald-500/10 animate-in fade-in">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-400 mt-0.5" />
-          <div>
-            <p className="font-bold">Submission Confirmed!</p>
-            <p className="text-xs text-emerald-300/90 mt-0.5">{successMessage}</p>
-            <p className="text-[11px] text-emerald-400/80 mt-1 font-semibold">Redirecting to your reports...</p>
+      {/* Guidelines Banner */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+        <div className="p-3.5 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 flex items-start space-x-2.5">
+          <Shield className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+          <div className="text-xs">
+            <span className="font-bold text-slate-900 dark:text-white block">Transparent Algorithm</span>
+            <span className="text-slate-500 dark:text-slate-400">Deterministic scoring prevents bias.</span>
           </div>
         </div>
-      )}
 
-      {/* Error Notification Alert */}
-      {errorMessage && (
-        <div className="p-4 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-sm flex items-start space-x-3 shadow-lg shadow-rose-500/10">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400 mt-0.5" />
-          <div>
-            <p className="font-bold">Unable to Submit</p>
-            <p className="text-xs text-rose-300/90 mt-0.5">{errorMessage}</p>
+        <div className="p-3.5 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 flex items-start space-x-2.5">
+          <Clock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="text-xs">
+            <span className="font-bold text-slate-900 dark:text-white block">Track Progress</span>
+            <span className="text-slate-500 dark:text-slate-400">Lifecycle status updates in real-time.</span>
           </div>
         </div>
-      )}
 
-      {/* Helpful Guidelines Card */}
-      <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex items-start space-x-3">
-        <Info className="w-4 h-4 text-sky-400 flex-shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <span className="font-semibold text-slate-200">Reporting Guidelines:</span>
-          <p>
-            Be specific with landmarks (e.g. "Opposite Matale Clock Tower bus halt") and estimate how many neighbors are directly affected. This helps calculate a fair community impact score.
-          </p>
+        <div className="p-3.5 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 flex items-start space-x-2.5">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+          <div className="text-xs">
+            <span className="font-bold text-slate-900 dark:text-white block">Community Endorsement</span>
+            <span className="text-slate-500 dark:text-slate-400">Neighbors can upvote your report.</span>
+          </div>
         </div>
       </div>
 
-      {/* The Intake Form */}
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl">
-        <IssueForm onSubmit={handleFormSubmit} isSubmitting={submitting} />
+      {/* Main Form Container */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 shadow-xl relative">
+        {submitError && (
+          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs text-red-600 dark:text-red-400 mb-6 flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+            <span>{submitError}</span>
+          </div>
+        )}
+
+        <IssueForm
+          onSubmit={handleSubmit}
+          isSubmitting={submitting}
+          submitButtonText="Submit Community Report"
+        />
       </div>
     </div>
   );

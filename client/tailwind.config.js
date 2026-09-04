@@ -1,33 +1,52 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  darkMode: 'class',
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          500: '#10b981',
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
+        canvas: {
+          DEFAULT: 'var(--bg-canvas)',
+          light: '#F8FAFC',
+          dark: '#0A0D14',
         },
-        civic: {
-          dark: '#0f172a',
-          surface: '#1e293b',
-          border: '#334155',
-          accent: '#38bdf8',
-        }
+        surface: {
+          DEFAULT: 'var(--bg-surface)',
+          elevated: 'var(--bg-surface-elevated)',
+          glass: 'var(--bg-surface-glass)',
+        },
+        crimson: {
+          50: '#FEF2F2',
+          100: '#FEE2E2',
+          200: '#FECACA',
+          300: '#FCA5A5',
+          400: '#F87171',
+          500: '#EF4444',
+          600: '#DC2626',
+          700: '#B91C1C',
+          800: '#991B1B',
+          900: '#7F1D1D',
+          glow: 'rgba(239, 68, 68, 0.45)',
+        },
+      },
+      boxShadow: {
+        'crimson-glow': '0 0 24px rgba(239, 68, 68, 0.40)',
+        'crimson-glow-lg': '0 0 40px rgba(239, 68, 68, 0.30)',
+        'card-glow': '0 8px 30px -4px rgba(239, 68, 68, 0.18)',
+      },
+      backgroundImage: {
+        'crimson-gradient': 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+        'dark-ambient': 'radial-gradient(circle at top right, rgba(239, 68, 68, 0.18) 0%, transparent 60%)',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-      }
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      borderRadius: {
+        '2xl': '16px',
+        '3xl': '24px',
+      },
     },
   },
   plugins: [],
-}
+};

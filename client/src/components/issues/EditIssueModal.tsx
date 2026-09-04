@@ -67,24 +67,24 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-surface border border-subtle rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-subtle pb-4">
           <div>
-            <h3 className="text-lg font-bold text-white">Edit Your Report</h3>
-            <p className="text-xs text-slate-400">Report #{issue.id} • Category: {issue.category}</p>
+            <h3 className="text-lg font-bold text-heading">Edit Community Report</h3>
+            <p className="text-xs text-muted">Report #{issue.id} • Category: {issue.category}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-xl bg-surface-elevated text-muted hover:text-heading transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
+          <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs flex items-center space-x-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -93,7 +93,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-bold uppercase tracking-wider text-heading">
               Title
             </label>
             <input
@@ -107,7 +107,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
           {/* Location */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-bold uppercase tracking-wider text-heading">
               Location / Landmark
             </label>
             <input
@@ -122,7 +122,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           {/* Severity & Affected Population */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-bold uppercase tracking-wider text-heading">
                 Severity
               </label>
               <select
@@ -138,7 +138,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-bold uppercase tracking-wider text-heading">
                 People Affected
               </label>
               <input
@@ -154,7 +154,7 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
           {/* Description */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-bold uppercase tracking-wider text-heading">
               Description
             </label>
             <textarea
@@ -167,18 +167,18 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-subtle">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
+              className="px-4 py-2 rounded-full text-xs font-semibold text-muted hover:text-heading bg-surface-elevated transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition-all flex items-center space-x-1.5"
+              className="px-5 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-[0_4px_16px_rgba(239,68,68,0.4)] transition-all flex items-center space-x-1.5"
             >
               {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
