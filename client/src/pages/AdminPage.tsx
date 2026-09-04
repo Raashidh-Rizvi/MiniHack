@@ -11,16 +11,11 @@ export const AdminPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-3 mb-1">
             <Link
-<<<<<<< HEAD
               to="/"
               className="flex items-center gap-1.5 text-rose-300 hover:text-white text-sm transition-colors"
-=======
-              to="/issues"
-              className="flex items-center gap-1.5 text-indigo-300 hover:text-white text-sm transition-colors"
->>>>>>> 90b1160f1914f19d7c0fa3ca4b22a1bc062844b5
             >
               <ArrowLeft className="w-4 h-4" />
-              Community Feed
+              Back to site
             </Link>
           </div>
           <div className="flex items-start gap-4">
@@ -28,7 +23,7 @@ export const AdminPage: React.FC = () => {
               <Shield className="w-7 h-7 text-rose-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="text-2xl font-bold tracking-tight text-white">
                 Community Admin Portal
               </h1>
               <p className="mt-1 text-rose-200/90 text-sm max-w-2xl">

@@ -149,8 +149,8 @@ export const RegisterPage: React.FC = () => {
       subtitle: 'Resident',
       desc: 'Report civic issues, track fixes, upvote community concerns.',
       icon: UserCheck,
-      color: 'border-emerald-500 bg-emerald-500/10 text-emerald-500',
-      activeRing: 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-500/15',
+      color: 'border-red-500 bg-red-500/10 text-red-500',
+      activeRing: 'ring-2 ring-red-500 border-red-500 bg-red-500/15',
     },
     {
       role: 'OFFICER' as UserRole,

@@ -16,6 +16,7 @@ import {
   LogIn,
   LogOut,
   UserPlus,
+  LayoutDashboard,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
@@ -227,7 +228,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => handleRoleSwitch('CITIZEN')}
                 className={`px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1 ${
                   isCitizen
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                    ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md shadow-red-600/30'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
                 title="Role 1: Citizen (Kasun Perera)"
@@ -331,7 +332,7 @@ export const Navbar: React.FC = () => {
                   ? 'bg-orange-500/15 border-orange-500/40 text-orange-600 dark:text-orange-400'
                   : role === 'ADMIN'
                   ? 'bg-purple-500/15 border-purple-500/40 text-purple-600 dark:text-rose-400'
-                  : 'bg-slate-100 dark:bg-surface-elevated border-slate-200 dark:border-white/10'
+                  : 'bg-red-500/15 border-red-500/40 text-red-600 dark:text-red-400'
               }`}
             >
               {role === 'OFFICER' ? '👷 Officer' : role === 'ADMIN' ? '🛡️ Admin' : '👤 Citizen'}

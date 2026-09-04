@@ -9,7 +9,6 @@ export const apiClient = axios.create({
   timeout: 8000,
 });
 
-<<<<<<< HEAD
 export interface ApiError extends Error {
   status?: number;
   errors?: Array<{ field?: string; message: string } | string>;
@@ -17,8 +16,6 @@ export interface ApiError extends Error {
   response?: any;
 }
 
-// Response interceptor for clear, suitable error messaging
-=======
 // Request interceptor to attach authentication context
 apiClient.interceptors.request.use((config) => {
   try {
@@ -41,7 +38,6 @@ apiClient.interceptors.request.use((config) => {
 });
 
 // Response interceptor for clear error messaging
->>>>>>> 90b1160f1914f19d7c0fa3ca4b22a1bc062844b5
 apiClient.interceptors.response.use(
   (response: any) => response,
   (error: any) => {

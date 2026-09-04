@@ -66,8 +66,8 @@ export const LoginPage: React.FC = () => {
       email: 'kasun.citizen@gramafix.lk',
       password: 'password123',
       icon: UserCheck,
-      color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500',
-      activeColor: 'border-emerald-500 bg-emerald-500/15 shadow-[0_0_15px_rgba(16,185,129,0.25)]',
+      color: 'text-red-500 bg-red-500/10 border-red-500/30 hover:border-red-500',
+      activeColor: 'border-red-500 bg-red-500/15 shadow-[0_0_15px_rgba(239,68,68,0.25)]',
     },
     {
       role: 'OFFICER' as UserRole,

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Building2, AlertTriangle, CheckCircle, Clock, Activity,
   Search, RefreshCw, ArrowLeft, MapPin, Users,
-  ChevronRight, FileText, Shield, X,
+  ChevronRight, FileText, X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Issue, IssueStatus } from '../types/issue';
@@ -310,16 +310,11 @@ export const OfficerPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-3 mb-4">
             <Link
-<<<<<<< HEAD
               to="/"
               className="flex items-center gap-1.5 text-orange-300 hover:text-white text-sm transition-colors"
-=======
-              to="/issues"
-              className="flex items-center gap-1.5 text-teal-300 hover:text-white text-sm transition-colors"
->>>>>>> 90b1160f1914f19d7c0fa3ca4b22a1bc062844b5
             >
               <ArrowLeft className="w-4 h-4" />
-              Community Feed
+              Back to site
             </Link>
           </div>
           <div className="flex items-start gap-4">
@@ -327,7 +322,7 @@ export const OfficerPage: React.FC = () => {
               <Building2 className="w-7 h-7 text-orange-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Officer Dashboard</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Officer Dashboard</h1>
               <p className="mt-1 text-orange-200/90 text-sm max-w-2xl">
                 Welcome, <span className="font-semibold text-white">{currentUser.fullName}</span>. 
                 Manage and update the status of civic issues assigned to you.
