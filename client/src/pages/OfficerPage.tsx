@@ -51,7 +51,7 @@ const OfficerUpdateModal: React.FC<OfficerModalProps> = ({
   useEffect(() => {
     if (issue) {
       setSelectedStatus('');
-      setFieldNotes(issue.adminNotes || '');
+      setFieldNotes(issue.fieldNotes || '');
     }
   }, [issue]);
 

@@ -1,4 +1,5 @@
-import { apiClient } from './api';
+import { apiClient, allowLocalDemo } from './api';
+import { calculatePriorityScore } from '../utils/priority';
 import { Issue, IssueCreateDTO, IssueUpdateDTO, User } from '../types/issue';
 import { MOCK_ISSUES, MOCK_USERS } from '../data/mockIssues';
 
@@ -33,6 +34,7 @@ export const citizenService = {
       const response = await apiClient.post<{ success: boolean; data: Issue }>('/issues', payload);
       return response.data.data;
     } catch (err) {
+      if (!allowLocalDemo(err)) throw err;
       console.warn('Backend unavailable, saving report locally:', err);
       // Fallback local creation
       const reports = getStoredReports();
@@ -45,8 +47,8 @@ export const citizenService = {
         location: payload.location,
         severity: payload.severity,
         peopleAffected: payload.peopleAffected,
-        priorityScore: 75,
-        priorityLevel: 'HIGH',
+        priorityScore: calculatePriorityScore(payload.severity, payload.peopleAffected).score,
+        priorityLevel: calculatePriorityScore(payload.severity, payload.peopleAffected).level,
         status: 'REPORTED',
         supportCount: 0,
         reportedBy: payload.reportedBy || 1,
@@ -67,6 +69,7 @@ export const citizenService = {
       );
       return response.data.data;
     } catch (err) {
+      if (!allowLocalDemo(err)) throw err;
       console.warn('Backend unavailable, loading local reports:', err);
       const reports = getStoredReports();
       return reports.filter((r) => r.reportedBy === userId);
@@ -79,6 +82,7 @@ export const citizenService = {
       const response = await apiClient.put<{ success: boolean; data: Issue }>(`/issues/${id}`, payload);
       return response.data.data;
     } catch (err) {
+      if (!allowLocalDemo(err)) throw err;
       console.warn('Backend unavailable, updating local report:', err);
       const reports = getStoredReports();
       const index = reports.findIndex((r) => r.id === id);
@@ -96,6 +100,7 @@ export const citizenService = {
       await apiClient.delete(`/issues/${id}`);
       return true;
     } catch (err) {
+      if (!allowLocalDemo(err)) throw err;
       console.warn('Backend unavailable, cancelling local report:', err);
       let reports = getStoredReports();
       reports = reports.filter((r) => r.id !== id);

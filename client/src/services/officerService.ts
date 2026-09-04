@@ -1,13 +1,6 @@
-import axios from 'axios';
+import { apiClient as api } from './api';
 import { Issue, IssueStatus } from '../types/issue';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-const api = axios.create({
-  baseURL: BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 10000,
-});
 
 export interface OfficerStats {
   totalIssues: number;
