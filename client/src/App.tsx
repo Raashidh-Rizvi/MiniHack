@@ -12,6 +12,7 @@ import { IssuesPage } from './pages/IssuesPage';
 import { IssueDetailPage } from './pages/IssueDetailPage';
 import { ReportIssuePage } from './pages/ReportIssuePage';
 import { MyReportsPage } from './pages/MyReportsPage';
+import { AboutPage } from './pages/AboutPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminPage } from './pages/AdminPage';
@@ -29,6 +30,7 @@ export const App: React.FC = () => {
               <Routes>
                 {/* Member 1: Landing Experience & Reporting Journey */}
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/about" element={<AboutPage />} />
                 <Route path="/report" element={<RequireRole roles={['CITIZEN']}><ReportIssuePage /></RequireRole>} />
                 <Route path="/my-reports" element={<RequireRole roles={['CITIZEN']}><MyReportsPage /></RequireRole>} />
 

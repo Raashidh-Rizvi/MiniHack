@@ -178,7 +178,7 @@ export const IssuesExplorerMap: React.FC<IssuesExplorerMapProps> = ({
             <button
               type="button"
               onClick={() => onSelectIssue(activeIssue)}
-              className="px-3.5 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-md flex items-center space-x-1 cursor-pointer transition-all"
+              className="px-3.5 py-1.5 rounded-full text-xs font-bold liquid-btn-crimson flex items-center space-x-1 cursor-pointer transition-all"
             >
               <Eye className="w-3.5 h-3.5" />
               <span>View & Endorse</span>

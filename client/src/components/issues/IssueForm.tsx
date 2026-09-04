@@ -421,7 +421,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-4 px-6 rounded-full text-white font-bold text-sm bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-[0_4px_20px_rgba(239,68,68,0.45)] hover:shadow-[0_4px_28px_rgba(239,68,68,0.65)] transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full py-4 px-6 rounded-full font-bold text-sm liquid-btn-crimson flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting ? (
             <>

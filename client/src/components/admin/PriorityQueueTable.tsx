@@ -202,7 +202,7 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
                       onClick={() => onSelectIssue(issue)}
                       title="View & Update Issue"
                       aria-label={`View report ${issue.id}`} disabled={busy}
-                      className="p-1.5 rounded-md text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
+                      className="p-1.5 rounded-lg liquid-btn-glass text-slate-500 hover:text-red-500"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
@@ -212,24 +212,24 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
                         onClick={() => onQuickStatusUpdate(issue.id)}
                         title="Advance Status"
                         aria-label={`Advance report ${issue.id}`} disabled={busy}
-                        className="p-1.5 rounded-md text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors"
+                        className="p-1.5 rounded-lg liquid-btn-emerald shadow-sm"
                       >
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     )}
                     {deleteConfirm === issue.id ? (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <button
                           disabled={busy} aria-label={`Confirm removal of report ${issue.id}: ${issue.title}`}
                           onClick={() => { void onDelete(issue.id).then(() => setDeleteConfirm(null)).catch(() => {}); }}
-                          className="text-xs px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+                          className="text-xs px-2.5 py-1 rounded-lg liquid-btn-danger"
                         >
                           {busy ? 'Removing…' : 'Confirm'}
                         </button>
                         <button
                           onClick={() => setDeleteConfirm(null)}
                           disabled={busy}
-                          className="text-xs px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                          className="text-xs px-2.5 py-1 rounded-lg liquid-btn-glass"
                         >
                           Cancel
                         </button>
@@ -240,7 +240,7 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
                         onClick={() => setDeleteConfirm(issue.id)}
                         title="Remove Issue"
                         aria-label={`Remove report ${issue.id}`} disabled={busy}
-                        className="p-1.5 rounded-md text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                        className="p-1.5 rounded-lg liquid-btn-glass text-slate-500 hover:text-red-500"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

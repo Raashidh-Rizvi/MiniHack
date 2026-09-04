@@ -3,7 +3,9 @@ const store = require('../services/issueStore');
 const policy = require('../services/issuePolicy');
 const users = require('../services/users');
 const { calculatePriority } = require('../utils/priorityCalculator');
+const { hashPassword } = require('../utils/passwords');
 const { fail, handle, body } = require('../utils/http');
+const auditLog = require('../services/auditLog');
 function stats(issues) {
   return { totalIssues: issues.length, openIssues: issues.filter(i => ['REPORTED', 'UNDER_REVIEW'].includes(i.status)).length,
     inProgressIssues: issues.filter(i => i.status === 'IN_PROGRESS').length, criticalIssues: issues.filter(i => i.priorityLevel === 'CRITICAL').length,
@@ -58,4 +60,85 @@ const moderateDeleteIssue = handle(async (req, res) => {
   res.json({ success: true, message: 'Issue removed.' });
 });
 const getHistory = handle(async (req, res) => res.json({ success: true, data: (await store.get(req.params.id)).adminHistory || [] }));
-module.exports = { getAdminStats, getPriorityQueue, updateIssueStatus, reassignOfficer, recalculatePriority, moderateDeleteIssue, getHistory, stats };
+
+const createOfficer = handle(async (req, res) => {
+  const data = body(req);
+  if (typeof data.fullName !== 'string' || data.fullName.trim().length < 3 || data.fullName.length > 100) {
+    throw fail(400, 'Officer name must be 3-100 characters.');
+  }
+  if (typeof data.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
+    throw fail(400, 'A valid officer email address is required.');
+  }
+  const email = data.email.trim().toLowerCase();
+  if (typeof data.password !== 'string' || data.password.length < 6 || data.password.length > 128) {
+    throw fail(400, 'Password must be 6-128 characters.');
+  }
+  if (data.communityArea !== undefined && (typeof data.communityArea !== 'string' || data.communityArea.length > 120)) {
+    throw fail(400, 'Invalid community area.');
+  }
+  if (await users.byEmail(email)) {
+    throw fail(409, 'An account with this email already exists.');
+  }
+
+  const officerFields = {
+    email,
+    fullName: data.fullName.trim(),
+    phone: data.phone ? String(data.phone).trim() : null,
+    phoneVerified: Boolean(data.phone),
+    password: await hashPassword(data.password),
+    role: 'OFFICER',
+    communityArea: data.communityArea?.trim() || 'Matale Municipal Council',
+  };
+
+  const officer = await users.createUser(officerFields);
+  res.status(201).json({
+    success: true,
+    message: 'Municipal officer account provisioned successfully.',
+    data: users.safeUser(officer),
+  });
+});
+
+const getLoginAuditLog = handle(async (req, res) => {
+  const { email, success, from, to, page, limit } = req.query;
+  const result = auditLog.getEntries({ email, success, from, to, page, limit });
+  res.json({ success: true, ...result });
+});
+
+const getAllUsers = handle(async (req, res) => {
+  const User = require('../models/User');
+  const memory = require('../models/memoryStore');
+  const { getIsConnected } = require('../config/db');
+  let list;
+  if (getIsConnected()) {
+    list = await User.find({}).sort({ createdAt: -1 }).lean();
+    list = list.map(u => ({
+      id: u.numericId || u._id,
+      numericId: u.numericId,
+      fullName: u.fullName,
+      email: u.email,
+      role: u.role,
+      communityArea: u.communityArea,
+      phone: u.phone || null,
+      phoneVerified: Boolean(u.phoneVerified),
+      emailVerified: Boolean(u.emailVerified),
+      createdAt: u.createdAt,
+    }));
+  } else {
+    list = memory.getUsers ? memory.getUsers().map(users.safeUser) : [];
+  }
+  res.json({ success: true, count: list.length, data: list });
+});
+
+module.exports = {
+  getAdminStats,
+  getPriorityQueue,
+  updateIssueStatus,
+  reassignOfficer,
+  recalculatePriority,
+  moderateDeleteIssue,
+  getHistory,
+  stats,
+  createOfficer,
+  getLoginAuditLog,
+  getAllUsers,
+};

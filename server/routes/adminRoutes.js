@@ -10,6 +10,9 @@ const {
   recalculatePriority,
   reassignOfficer,
   getHistory,
+  createOfficer,
+  getLoginAuditLog,
+  getAllUsers,
 } = require('../controllers/adminController');
 
 // Admin Priority Engine Routes (Member 3)
@@ -31,5 +34,14 @@ router.delete('/issues/:id', moderateDeleteIssue);
 
 // PUT /api/admin/issues/:id/assign — Reassign issue to a different officer
 router.put('/issues/:id/assign', reassignOfficer);
+
+// POST /api/admin/officers — Provision a new municipal officer (Admin only)
+router.post('/officers', createOfficer);
+
+// GET /api/admin/audit-log — Login audit log with IP, timestamp, user-agent
+router.get('/audit-log', getLoginAuditLog);
+
+// GET /api/admin/users — All registered users
+router.get('/users', getAllUsers);
 
 module.exports = router;

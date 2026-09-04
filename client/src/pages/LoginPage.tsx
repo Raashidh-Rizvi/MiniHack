@@ -160,17 +160,17 @@ export const LoginPage: React.FC = () => {
                   key={preset.role}
                   type="button"
                   onClick={() => handleApplyPreset(preset)}
-                  className={`p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between ${
-                    isSelected ? preset.activeColor : preset.color
+                  className={`p-3 rounded-2xl text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                    isSelected ? 'liquid-pill-active' : 'liquid-btn-glass'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between w-full">
                     <Icon className="w-4 h-4" />
-                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                   </div>
                   <div className="mt-2">
                     <div className="text-xs font-bold leading-tight">{preset.label}</div>
-                    <div className="text-[10px] opacity-75 truncate">{preset.sublabel}</div>
+                    <div className="text-[10px] opacity-80 truncate">{preset.sublabel}</div>
                   </div>
                 </button>
               );
@@ -302,7 +302,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-500 via-red-600 to-rose-600 hover:from-red-600 hover:to-rose-700 shadow-[0_4px_20px_rgba(239,68,68,0.4)] hover:shadow-[0_6px_28px_rgba(239,68,68,0.6)] transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
+              className="w-full py-3.5 px-4 rounded-xl font-bold text-sm liquid-btn-crimson flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (
                 <>

@@ -77,11 +77,11 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="emergency-directory-title"
-      className="fixed inset-0 z-[99999] overflow-y-auto bg-black/80 backdrop-blur-md p-3 sm:p-6 flex items-start sm:items-center justify-center animate-fadeIn"
+      className="liquid-modal-backdrop overflow-y-auto p-3 sm:p-6 flex items-start sm:items-center justify-center"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#0E131F] border border-red-500/40 w-full max-w-3xl my-auto max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden relative"
+        className="liquid-modal w-full max-w-3xl my-auto max-h-[90vh] shadow-2xl relative border border-white/20 dark:border-white/15"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Emergency Alert Header */}
@@ -105,9 +105,9 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({
           <button
             onClick={onClose}
             aria-label="Close emergency modal"
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-colors cursor-pointer flex-shrink-0 ml-2"
+            className="liquid-modal-close text-white bg-white/15 hover:bg-white/25 border-white/25 ml-2"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -124,7 +124,7 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({
         </div>
 
         {/* Category Tabs */}
-        <div className="px-5 pt-3 pb-2 border-b border-slate-200 dark:border-white/10 flex-shrink-0 overflow-x-auto">
+        <div className="px-5 pt-3 pb-2 border-b border-slate-200/60 dark:border-white/10 flex-shrink-0 overflow-x-auto">
           <div className="flex items-center space-x-1.5 min-w-max pb-1">
             {[
               { id: 'ALL', label: 'All Services' },
@@ -137,10 +137,10 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setSelectedCategory(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                   selectedCategory === tab.id
-                    ? 'bg-red-500 text-white shadow-sm'
-                    : 'bg-slate-100 dark:bg-surface-elevated text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                    ? 'liquid-pill-active'
+                    : 'liquid-pill'
                 }`}
               >
                 {tab.label}
@@ -198,7 +198,7 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({
                   <div className="flex items-center space-x-2 pt-2 border-t border-slate-200/60 dark:border-white/5">
                     <a
                       href={`tel:${contact.number}`}
-                      className="flex-1 py-1.5 px-3 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-bold flex items-center justify-center space-x-1.5 shadow-sm transition-all"
+                      className="flex-1 py-2 px-3 rounded-xl liquid-btn-crimson text-xs font-bold flex items-center justify-center space-x-1.5 shadow-sm transition-all"
                     >
                       <Phone className="w-3.5 h-3.5" />
                       <span>Call {contact.displayNumber}</span>
@@ -207,7 +207,7 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({
                       type="button"
                       onClick={() => handleCopy(contact.id, contact.number)}
                       title="Copy Number"
-                      className="px-3 py-1.5 rounded-xl bg-slate-200/70 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center space-x-1 transition-colors cursor-pointer"
+                      className="px-3 py-2 rounded-xl liquid-btn-glass text-xs font-semibold flex items-center space-x-1 transition-colors cursor-pointer"
                     >
                       {isCopied ? (
                         <>
@@ -229,7 +229,7 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({
         </div>
 
         {/* Footer info note */}
-        <div className="px-5 py-3 bg-slate-50 dark:bg-canvas border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2 flex-shrink-0">
+        <div className="px-5 py-3.5 liquid-modal-footer flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2 flex-shrink-0">
           <div className="flex items-center space-x-2 text-[11px]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
             <span>Shortcodes (119, 1990, 117, 110, 1987, 1939, 1919) are free from Dialog, Mobitel, Airtel, Hutch & SLT.</span>
@@ -237,7 +237,7 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-slate-200 dark:bg-surface-elevated hover:bg-slate-300 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl liquid-btn-glass text-xs font-bold transition-colors cursor-pointer"
           >
             Close Directory
           </button>

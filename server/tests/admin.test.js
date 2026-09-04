@@ -79,6 +79,85 @@ test('public registration cannot grant privileged roles', async () => {
   assert.equal(created.status,201); assert.equal(created.body.data.role,'CITIZEN'); assert.equal(created.body.data.password,undefined);
   assert.equal((await request('POST','/auth/register',null,{fullName:'Test Citizen',email:'new@example.test',password:'test-password'})).status,409);
 });
+test('only admin can create municipal officers and created officer can log in', async () => {
+  const newOfficerData = {
+    fullName: 'Provisioned Officer Bandara',
+    email: 'prov.officer@gramafix.lk',
+    password: 'officer-secure-pass-123',
+    communityArea: 'Kandy Municipal Ward 3',
+    phone: '0771234567',
+  };
+
+  // 1. Unauthenticated or non-admin cannot create officer
+  assert.equal((await request('POST', '/admin/officers', null, newOfficerData)).status, 401);
+  assert.equal((await request('POST', '/admin/officers', citizen, newOfficerData)).status, 403);
+  assert.equal((await request('POST', '/admin/officers', officer, newOfficerData)).status, 403);
+
+  // 2. Validation: short password or missing email
+  assert.equal((await request('POST', '/admin/officers', admin, { ...newOfficerData, password: '123' })).status, 400);
+  assert.equal((await request('POST', '/admin/officers', admin, { ...newOfficerData, email: 'not-an-email' })).status, 400);
+
+  // 3. Admin successfully provisions new officer
+  const created = await request('POST', '/admin/officers', admin, newOfficerData);
+  assert.equal(created.status, 201);
+  assert.equal(created.body.data.role, 'OFFICER');
+  assert.equal(created.body.data.email, 'prov.officer@gramafix.lk');
+  assert.equal(created.body.data.fullName, 'Provisioned Officer Bandara');
+  assert.equal(created.body.data.password, undefined);
+
+  // 4. Duplicate email is rejected
+  assert.equal((await request('POST', '/admin/officers', admin, newOfficerData)).status, 409);
+
+  // 5. Newly created officer can log in with their credentials and access officer portal
+  const officerToken = await login(newOfficerData.email, newOfficerData.password);
+  assert.ok(officerToken);
+  const statsRes = await request('GET', '/officer/stats', officerToken);
+  assert.equal(statsRes.status, 200);
+  assert.equal(statsRes.body.success, true);
+});
+test('citizen registration requires email OTP verification and sends OTP', async () => {
+  // Invalid email format fails
+  const badEmail = await request('POST', '/auth/send-otp', null, { email: 'not-an-email' });
+  assert.equal(badEmail.status, 400);
+
+  // Valid email receives OTP
+  const testEmail = 'verified.citizen@example.test';
+  const otpRes = await request('POST', '/auth/send-otp', null, { email: testEmail });
+  assert.equal(otpRes.status, 200);
+  assert.ok(otpRes.body.otp);
+  assert.equal(otpRes.body.email, testEmail);
+
+  // Bad OTP fails verification
+  const badVerify = await request('POST', '/auth/verify-otp', null, { email: testEmail, otp: '000000' });
+  assert.equal(badVerify.status, 400);
+
+  // Correct OTP verification returns token
+  const goodVerify = await request('POST', '/auth/verify-otp', null, { email: testEmail, otp: otpRes.body.otp });
+  assert.equal(goodVerify.status, 200);
+  assert.ok(goodVerify.body.verificationToken);
+
+  // Register with verified token succeeds
+  const regRes = await request('POST', '/auth/register', null, {
+    fullName: 'Verified Email Citizen',
+    email: testEmail,
+    password: 'password123',
+    verificationToken: goodVerify.body.verificationToken,
+  });
+  assert.equal(regRes.status, 201);
+  assert.equal(regRes.body.data.email, testEmail);
+  assert.equal(regRes.body.data.emailVerified, true);
+
+  // Duplicate email registration or OTP is rejected
+  const dupOtp = await request('POST', '/auth/send-otp', null, { email: testEmail });
+  assert.equal(dupOtp.status, 409);
+
+  const dupReg = await request('POST', '/auth/register', null, {
+    fullName: 'Duplicate Citizen',
+    email: testEmail,
+    password: 'password123',
+  });
+  assert.equal(dupReg.status, 409);
+});
 test('report -> admin assignment -> officer resolution uses the same records and private notes', async () => {
   const issue = await create();
   assert.equal((await request('PUT','/issues/'+issue.id,officer,{title:'Not allowed'})).status,403);

@@ -80,3 +80,28 @@ export interface AdminHistoryEvent {
 export async function getAdminHistory(issueId: number): Promise<AdminHistoryEvent[]> {
   return (await api.get(`/admin/issues/${issueId}/history`)).data.data;
 }
+
+export interface CreateOfficerPayload {
+  fullName: string;
+  email: string;
+  password: string;
+  communityArea?: string;
+  phone?: string;
+}
+
+export interface CreatedOfficer {
+  id: number;
+  numericId: number;
+  fullName: string;
+  email: string;
+  role: string;
+  communityArea?: string;
+  phone?: string | null;
+  phoneVerified?: boolean;
+}
+
+/** POST /api/admin/officers — Provision a new municipal officer (Admin only) */
+export async function createOfficer(data: CreateOfficerPayload): Promise<CreatedOfficer> {
+  const res = await api.post('/admin/officers', data);
+  return res.data.data;
+}

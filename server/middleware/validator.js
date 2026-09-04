@@ -1,4 +1,4 @@
-const validCategories = ['ROAD', 'STREETLIGHT', 'WASTE', 'WATER', 'DRAINAGE', 'TRAFFIC', 'ENVIRONMENT', 'OTHER'];
+const validCategories = ['ROAD', 'STREETLIGHT', 'WASTE', 'WATER', 'DRAINAGE', 'TRAFFIC', 'ENVIRONMENT', 'ACCIDENT', 'OTHER'];
 const validSeverities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const validRoles = ['CITIZEN', 'OFFICER', 'ADMIN', 'RESIDENT'];
 

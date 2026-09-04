@@ -26,6 +26,9 @@ let users = [
     email: 'kasun.citizen@gramafix.lk',
     role: 'CITIZEN',
     communityArea: 'Matale Town',
+    phone: '+94771234567',
+    phoneVerified: true,
+    emailVerified: true,
     password: 'password123',
   },
   {
@@ -156,6 +159,12 @@ let nextIssueId = 105;
 module.exports = {
   getDemoUsers: () => users,
   findUserByEmail: (email) => users.find((u) => u.email.toLowerCase() === String(email).toLowerCase().trim()),
+  findUserByPhone: (phone) => {
+    if (!phone) return null;
+    const clean = String(phone).replace(/\D/g, '');
+    if (!clean) return null;
+    return users.find((u) => u.phone && u.phone.replace(/\D/g, '').endsWith(clean.slice(-9)));
+  },
   findUserById: (id) => users.find((u) => u.id === Number(id) || u.id === id),
   createUser: (userData) => {
     const newId = nextUserId++;
@@ -164,6 +173,9 @@ module.exports = {
       numericId: newId,
       fullName: userData.fullName.trim(),
       email: userData.email.toLowerCase().trim(),
+      phone: userData.phone || null,
+      phoneVerified: Boolean(userData.phoneVerified),
+      emailVerified: Boolean(userData.emailVerified),
       role: userData.role || 'CITIZEN',
       communityArea: userData.communityArea || 'Matale Town',
       password: userData.password || 'password123',
@@ -344,4 +356,6 @@ module.exports = {
     issues[issueIndex] = updated;
     return updated;
   },
+
+  getUsers: () => [...users],
 };

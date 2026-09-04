@@ -1,7 +1,7 @@
 const { fail } = require('../utils/http');
 const statuses = ['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'DUPLICATE', 'REJECTED'];
 const severities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-const categories = ['ROAD', 'STREETLIGHT', 'WASTE', 'WATER', 'DRAINAGE', 'TRAFFIC', 'ENVIRONMENT', 'OTHER'];
+const categories = ['ROAD', 'STREETLIGHT', 'WASTE', 'WATER', 'DRAINAGE', 'TRAFFIC', 'ENVIRONMENT', 'ACCIDENT', 'OTHER'];
 const terminal = (status) => ['RESOLVED', 'DUPLICATE', 'REJECTED'].includes(status);
 const adminTransitions = { REPORTED: ['UNDER_REVIEW', 'DUPLICATE', 'REJECTED'], UNDER_REVIEW: ['IN_PROGRESS', 'REPORTED', 'DUPLICATE', 'REJECTED'], IN_PROGRESS: ['RESOLVED', 'UNDER_REVIEW'] };
 const officerTransitions = { REPORTED: ['UNDER_REVIEW'], UNDER_REVIEW: ['IN_PROGRESS'], IN_PROGRESS: ['RESOLVED'] };

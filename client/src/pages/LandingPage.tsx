@@ -52,19 +52,17 @@ export const LandingPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
               <Link
                 to="/report"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-[0_4px_24px_rgba(239,68,68,0.45)] hover:shadow-[0_4px_32px_rgba(239,68,68,0.65)] transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 text-center"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-bold liquid-btn-crimson text-center"
               >
                 Report an Issue
               </Link>
 
               <Link
                 to="/issues"
-                className="w-full sm:w-auto px-6 py-3.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-red-500 dark:hover:text-red-400 transition-colors flex items-center justify-center space-x-1 group text-center"
+                className="w-full sm:w-auto px-6 py-3.5 rounded-full text-sm font-semibold liquid-btn-glass text-center flex items-center justify-center space-x-1"
               >
-                <span className="underline decoration-slate-300 dark:decoration-slate-700 underline-offset-4 group-hover:decoration-red-500">
-                  Explore Community Feed
-                </span>
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                <span>Explore Community Feed</span>
+                <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
 
@@ -354,13 +352,13 @@ export const LandingPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/report"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-[0_4px_24px_rgba(239,68,68,0.45)] hover:shadow-[0_4px_32px_rgba(239,68,68,0.65)] transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-bold liquid-btn-crimson"
             >
               Submit a Report Now
             </Link>
             <Link
               to="/issues"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 hover:border-red-500/40 transition-colors"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full text-sm font-semibold liquid-btn-glass"
             >
               Browse Public Feed
             </Link>

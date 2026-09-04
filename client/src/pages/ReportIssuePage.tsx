@@ -89,7 +89,7 @@ export const ReportIssuePage: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               to="/issues"
-              className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 shadow-[0_4px_16px_rgba(239,68,68,0.4)] hover:shadow-[0_4px_24px_rgba(239,68,68,0.6)] transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-full text-sm font-bold text-white liquid-btn-crimson shadow-lg transition-all"
             >
               <Layers className="w-4 h-4" />
               <span>View in Community Feed</span>
@@ -97,7 +97,7 @@ export const ReportIssuePage: React.FC = () => {
 
             <Link
               to="/my-reports"
-              className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 liquid-btn-glass transition-all"
             >
               <FileText className="w-4 h-4" />
               <span>Go to My Reports</span>
@@ -105,7 +105,7 @@ export const ReportIssuePage: React.FC = () => {
 
             <button
               onClick={() => setCreatedIssue(null)}
-              className="w-full sm:w-auto text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white py-2"
+              className="w-full sm:w-auto text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white py-2 px-4 rounded-xl hover:bg-white/5 transition-all"
             >
               Report Another Issue
             </button>

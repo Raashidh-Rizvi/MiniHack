@@ -94,19 +94,19 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-surface border border-subtle rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+    <div className="liquid-modal-backdrop overflow-y-auto p-3 sm:p-6 flex items-center justify-center">
+      <div className="liquid-modal max-w-lg w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto border border-white/20 dark:border-white/15">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-subtle pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-white/10 pb-4">
           <div>
             <h3 className="text-lg font-bold text-heading">Edit Community Report</h3>
             <p className="text-xs text-muted">Report #{issue.id} • Category: {issue.category}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl bg-surface-elevated text-muted hover:text-heading transition-colors"
+            className="liquid-modal-close"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -205,18 +205,18 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-subtle">
+          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-200/60 dark:border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-full text-xs font-semibold text-muted hover:text-heading bg-surface-elevated transition-colors"
+              className="px-4 py-2 text-xs font-semibold liquid-btn-glass"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-[0_4px_16px_rgba(239,68,68,0.4)] transition-all flex items-center space-x-1.5"
+              className="px-5 py-2 text-xs font-bold liquid-btn-crimson flex items-center space-x-1.5"
             >
               {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />

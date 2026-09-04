@@ -92,10 +92,15 @@
   }
 }
 
-/* Glassmorphism & Surface Helpers */
+/* ==========================================================================
+   LIQUID GLASS THEME SYSTEM (Visionary Frosted Refraction & Specular Bevels)
+   ========================================================================== */
+
+/* Glass Panels, Cards & Inputs */
 .glass-panel {
   background-color: var(--bg-surface-glass);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-card);
 }
@@ -127,22 +132,358 @@
   box-shadow: 0 0 0 3px var(--accent-subtle);
 }
 
-/* Glowing Crimson CTA Button */
-.btn-crimson {
-  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-  color: #FFFFFF;
-  font-weight: 600;
-  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.45);
-  transition: all 0.3s ease;
+/* ──────────────────────────────────────────────────────────────────────────
+   LIQUID GLASS MODALS
+   ────────────────────────────────────────────────────────────────────────── */
+.liquid-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(4, 7, 13, 0.72);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  animation: liquid-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.liquid-modal {
+  position: relative;
+  width: 100%;
+  border-radius: 1.5rem; /* rounded-3xl */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: liquid-scale-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Light mode liquid modal surface */
+:root .liquid-modal {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.88) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 
+    0 25px 60px -12px rgba(15, 23, 42, 0.25),
+    0 0 0 1px rgba(226, 232, 240, 0.8),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+/* Dark mode liquid modal surface */
+.dark .liquid-modal,
+[data-theme='dark'] .liquid-modal {
+  background: linear-gradient(145deg, rgba(18, 23, 34, 0.88) 0%, rgba(10, 13, 20, 0.94) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 
+    0 32px 75px -15px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.30),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.40);
+}
+
+/* Modal header & footer glass dividers */
+.liquid-modal-header {
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.liquid-modal-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.dark .liquid-modal-footer,
+[data-theme='dark'] .liquid-modal-footer {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Circular frosted liquid modal close button */
+.liquid-modal-close {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.3), 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.liquid-modal-close:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.20);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: scale(1.06);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.liquid-modal-close:active {
+  transform: scale(0.96);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   LIQUID GLASS BUTTON SUITE
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* 1. Primary Liquid Crimson Glass Button */
+.liquid-btn-crimson,
+.btn-crimson {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #FFFFFF !important;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 0.875rem; /* rounded-xl */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 
+    0 4px 18px -2px rgba(239, 68, 68, 0.45),
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.50),
+    inset 0 -1.5px 1.5px 0 rgba(0, 0, 0, 0.20);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.liquid-btn-crimson:hover,
 .btn-crimson:hover {
-  box-shadow: 0 6px 28px rgba(239, 68, 68, 0.65);
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.98) 0%, rgba(220, 38, 38, 1) 100%);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 
+    0 8px 28px -2px rgba(239, 68, 68, 0.65),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.70),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.15);
+  transform: translateY(-1.5px);
+}
+
+.liquid-btn-crimson:active,
+.btn-crimson:active {
+  transform: translateY(0.5px);
+  box-shadow: 
+    0 2px 10px rgba(239, 68, 68, 0.40),
+    inset 0 2px 4px rgba(0, 0, 0, 0.30);
+}
+
+.liquid-btn-crimson:disabled,
+.btn-crimson:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* 2. Secondary Frosted Liquid Crystal Glass Button */
+.liquid-btn-glass,
+.liquid-btn-secondary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-radius: 0.875rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+:root .liquid-btn-glass,
+:root .liquid-btn-secondary {
+  color: #1E293B;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.85) 0%, rgba(241, 245, 249, 0.75) 100%);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 
+    0 2px 8px -2px rgba(15, 23, 42, 0.06),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.90);
+}
+
+.dark .liquid-btn-glass,
+[data-theme='dark'] .liquid-btn-glass,
+.dark .liquid-btn-secondary,
+[data-theme='dark'] .liquid-btn-secondary {
+  color: #E2E8F0;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 
+    0 4px 14px -3px rgba(0, 0, 0, 0.35),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.20);
+}
+
+.liquid-btn-glass:hover,
+.liquid-btn-secondary:hover {
+  border-color: rgba(239, 68, 68, 0.40);
   transform: translateY(-1px);
 }
 
-.btn-crimson:active {
-  transform: translateY(0);
+:root .liquid-btn-glass:hover,
+:root .liquid-btn-secondary:hover {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 245, 249, 0.90) 100%);
+  box-shadow: 
+    0 6px 16px -2px rgba(220, 38, 38, 0.12),
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1);
+}
+
+.dark .liquid-btn-glass:hover,
+[data-theme='dark'] .liquid-btn-glass:hover,
+.dark .liquid-btn-secondary:hover,
+[data-theme='dark'] .liquid-btn-secondary:hover {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.07) 100%);
+  box-shadow: 
+    0 6px 20px -3px rgba(239, 68, 68, 0.25),
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.35);
+}
+
+.liquid-btn-glass:active,
+.liquid-btn-secondary:active {
+  transform: translateY(0.5px);
+}
+
+.liquid-btn-glass:disabled,
+.liquid-btn-secondary:disabled {
+  opacity: 0.50;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* 3. Liquid Danger / Cancel Button */
+.liquid-btn-danger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #FFFFFF !important;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.94) 0%, rgba(185, 28, 28, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 0.875rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 
+    0 4px 18px -2px rgba(220, 38, 38, 0.45),
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.50),
+    inset 0 -1.5px 1.5px 0 rgba(0, 0, 0, 0.25);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.liquid-btn-danger:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.98) 0%, rgba(185, 28, 28, 1) 100%);
+  box-shadow: 
+    0 8px 24px -2px rgba(220, 38, 38, 0.65),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.65);
+  transform: translateY(-1.5px);
+}
+
+.liquid-btn-danger:active {
+  transform: translateY(0.5px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+/* 4. Liquid Emerald / Success Button */
+.liquid-btn-emerald {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #FFFFFF !important;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 0.875rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 
+    0 4px 16px -2px rgba(16, 185, 129, 0.45),
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.50);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.liquid-btn-emerald:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 
+    0 8px 24px -2px rgba(16, 185, 129, 0.60),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.65);
+}
+
+/* 5. Liquid Icon Button (Eye, Trash, Share, Copy) */
+.liquid-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.20), 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.liquid-btn-icon:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+/* 6. Liquid Glass Filter Pills */
+.liquid-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.liquid-pill:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+.liquid-pill-active {
+  color: #FFFFFF !important;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.98) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 
+    0 4px 16px -2px rgba(239, 68, 68, 0.50),
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.55) !important;
+}
+
+@keyframes liquid-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes liquid-scale-up {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* Scrollbar */

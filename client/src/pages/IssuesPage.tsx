@@ -106,7 +106,7 @@ export const IssuesPage: React.FC = () => {
 
         <Link
           to="/report"
-          className="inline-flex items-center space-x-2 px-6 py-3 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 shadow-[0_4px_20px_rgba(239,68,68,0.4)] hover:shadow-[0_4px_28px_rgba(239,68,68,0.6)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 w-fit"
+          className="inline-flex items-center space-x-2 px-6 py-3 rounded-full text-sm font-semibold liquid-btn-crimson w-fit"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Report an Issue</span>
@@ -220,10 +220,10 @@ export const IssuesPage: React.FC = () => {
                 key={status}
                 type="button"
                 onClick={() => setSelectedStatus(status)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                    ? 'liquid-pill-active'
+                    : 'liquid-pill'
                 }`}
               >
                 {status === 'ALL' ? 'All Statuses' : status.replace('_', ' ')}
@@ -244,7 +244,7 @@ export const IssuesPage: React.FC = () => {
               onClick={() => setViewMode('list')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${
                 viewMode === 'list'
-                  ? 'bg-white dark:bg-surface text-slate-900 dark:text-white shadow-sm'
+                  ? 'liquid-btn-crimson shadow-sm'
                   : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -257,12 +257,12 @@ export const IssuesPage: React.FC = () => {
               onClick={() => setViewMode('map')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${
                 viewMode === 'map'
-                  ? 'bg-red-500 text-white shadow-sm'
-                  : 'text-slate-500 hover:text-red-500 dark:hover:text-red-400'
+                  ? 'liquid-btn-crimson shadow-sm'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Map className="w-3.5 h-3.5" />
-              <span>Map View (OpenStreetMap)</span>
+              <span>Map View</span>
             </button>
           </div>
         </div>

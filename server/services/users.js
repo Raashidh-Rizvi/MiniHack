@@ -4,7 +4,7 @@ const { getIsConnected } = require('../config/db');
 function safeUser(user) {
   const value = user.toJSON ? user.toJSON() : user;
   return { id: value.numericId || value.id, numericId: value.numericId || value.id, fullName: value.fullName,
-    email: value.email, role: value.role, communityArea: value.communityArea };
+    email: value.email, role: value.role, communityArea: value.communityArea, phone: value.phone || null, phoneVerified: Boolean(value.phoneVerified), emailVerified: Boolean(value.emailVerified) };
 }
 async function byId(id) {
   if (!getIsConnected()) return memory.findUserById(id);
@@ -13,6 +13,7 @@ async function byId(id) {
   return null;
 }
 async function byEmail(email) { return getIsConnected() ? User.findOne({ email }) : memory.findUserByEmail(email); }
+async function byPhone(phone) { return getIsConnected() ? User.findOne({ phone }) : memory.findUserByPhone(phone); }
 async function savePassword(user, password) {
   user.password = password;
   if (getIsConnected()) await user.save();
@@ -21,4 +22,7 @@ async function officers() {
   const list = getIsConnected() ? await User.find({ role: 'OFFICER' }) : memory.getOfficers();
   return list.map(safeUser);
 }
-module.exports = { safeUser, byId, byEmail, savePassword, officers };
+async function createUser(fields) {
+  return getIsConnected() ? User.create(fields) : memory.createUser(fields);
+}
+module.exports = { safeUser, byId, byEmail, byPhone, savePassword, officers, createUser };

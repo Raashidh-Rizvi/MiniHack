@@ -144,19 +144,19 @@ const EditIssueModalContent: React.FC<Omit<EditIssueModalProps, 'issue' | 'isOpe
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fadeIn"
+      className="liquid-modal-backdrop overflow-y-auto p-3 sm:p-6 flex items-center justify-center"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-xl rounded-3xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="liquid-modal relative w-full max-w-xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto border border-white/20 dark:border-white/15"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated transition-colors cursor-pointer"
+          className="liquid-modal-close absolute top-5 right-5"
           aria-label="Close modal"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         <div className="mb-6">
@@ -299,18 +299,18 @@ const EditIssueModalContent: React.FC<Omit<EditIssueModalProps, 'issue' | 'isOpe
             )}
           </div>
 
-          <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex justify-end space-x-3">
+          <div className="pt-4 border-t border-slate-200/60 dark:border-white/10 flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-elevated cursor-pointer transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold liquid-btn-glass cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 shadow-[0_4px_14px_rgba(239,68,68,0.4)] hover:shadow-[0_4px_20px_rgba(239,68,68,0.6)] flex items-center space-x-1.5 transition-all cursor-pointer disabled:opacity-50"
+              className="px-5 py-2 rounded-xl text-xs font-semibold liquid-btn-crimson flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <>

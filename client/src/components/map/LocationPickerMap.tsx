@@ -302,10 +302,10 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
             type="button"
             onClick={handleLocateMe}
             disabled={isLocating}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer ${
               locationSuccess
-                ? 'bg-emerald-500 text-white'
-                : 'bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20'
+                ? 'liquid-btn-emerald'
+                : 'liquid-btn-glass text-red-600 dark:text-red-400'
             }`}
             title="Use current GPS location"
           >
@@ -323,7 +323,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1.5 rounded-xl bg-slate-100 dark:bg-surface-elevated text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl liquid-btn-glass text-slate-600 dark:text-slate-300 cursor-pointer"
             title={isExpanded ? 'Collapse Map' : 'Enlarge Map'}
           >
             {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -347,7 +347,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
           <button
             type="submit"
             disabled={isSearching || !searchQuery.trim()}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 disabled:opacity-50 transition-colors flex items-center space-x-1 cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs font-bold liquid-btn-crimson disabled:opacity-50 transition-all flex items-center space-x-1 cursor-pointer"
           >
             {isSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Search</span>}
           </button>
@@ -424,7 +424,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
             key={town.name}
             type="button"
             onClick={() => handleSelectPreset(town)}
-            className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-surface-elevated hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 whitespace-nowrap cursor-pointer transition-all"
+            className="px-2.5 py-1 text-xs whitespace-nowrap cursor-pointer transition-all liquid-pill"
           >
             {town.name}
           </button>

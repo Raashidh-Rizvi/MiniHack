@@ -71,7 +71,7 @@ export const HomePage: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
               <Link
                 to="/report"
-                className="px-7 py-3.5 rounded-full text-white font-semibold text-sm bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-[0_4px_20px_rgba(239,68,68,0.45)] hover:shadow-[0_4px_28px_rgba(239,68,68,0.65)] transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 group"
+                className="px-7 py-3.5 rounded-full text-sm liquid-btn-crimson flex items-center justify-center gap-2 group"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Report an Issue</span>
@@ -80,7 +80,7 @@ export const HomePage: React.FC = () => {
 
               <Link
                 to="/issues"
-                className="px-6 py-3.5 rounded-full text-muted hover:text-heading font-semibold text-sm border border-subtle hover:border-crimson-500/40 hover:bg-surface-elevated transition-all flex items-center justify-center gap-2"
+                className="px-6 py-3.5 rounded-full text-sm liquid-btn-glass flex items-center justify-center gap-2"
               >
                 <Layers className="w-4 h-4 text-crimson-500" />
                 <span>Explore Community Feed</span>
@@ -183,7 +183,7 @@ export const HomePage: React.FC = () => {
               {/* Card Footer Link */}
               <Link
                 to="/my-reports"
-                className="w-full py-2.5 rounded-xl bg-surface border border-subtle hover:border-crimson-500/40 text-center text-xs font-semibold text-heading flex items-center justify-center space-x-1.5 transition-colors"
+                className="w-full py-2.5 rounded-xl text-xs font-semibold liquid-btn-glass flex items-center justify-center space-x-1.5"
               >
                 <span>Inspect My Submissions</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-crimson-500" />
@@ -373,7 +373,7 @@ export const HomePage: React.FC = () => {
 
         <Link
           to="/report"
-          className="relative z-10 px-8 py-4 rounded-full text-white font-bold text-sm bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-[0_4px_20px_rgba(239,68,68,0.45)] hover:shadow-[0_4px_28px_rgba(239,68,68,0.65)] whitespace-nowrap active:scale-95 transition-all"
+          className="relative z-10 px-8 py-4 rounded-full text-sm font-bold liquid-btn-crimson whitespace-nowrap active:scale-95 transition-all"
         >
           Submit Community Report 🇱🇰
         </Link>

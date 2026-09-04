@@ -6,6 +6,7 @@ export type CategoryType =
   | 'DRAINAGE'
   | 'TRAFFIC'
   | 'ENVIRONMENT'
+  | 'ACCIDENT'
   | 'OTHER';
 
 export type Severity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -22,6 +23,8 @@ export interface User {
   email: string;
   role: UserRole;
   communityArea: string;
+  phone?: string;
+  phoneVerified?: boolean;
 }
 
 export interface Issue {

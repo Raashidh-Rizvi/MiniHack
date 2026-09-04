@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   User as UserIcon,
@@ -7,9 +7,6 @@ import {
   Eye,
   EyeOff,
   MapPin,
-  Shield,
-  UserCheck,
-  Building2,
   AlertCircle,
   CheckCircle2,
   ArrowRight,
@@ -19,11 +16,12 @@ import {
 } from 'lucide-react';
 import { SriLankanLion } from '../components/common/SriLankanLion';
 import { useAuth } from '../hooks/useAuth';
-import { UserRole } from '../types/issue';
+import { authService } from '../services/authService';
 
 interface FormTouched {
   fullName?: boolean;
   email?: boolean;
+  phone?: boolean;
   communityArea?: boolean;
   password?: boolean;
   confirmPassword?: boolean;
@@ -49,13 +47,29 @@ export const RegisterPage: React.FC = () => {
 
   // Form states
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
   const [communityArea, setCommunityArea] = useState(SRI_LANKAN_AREAS[0]);
   const [customArea, setCustomArea] = useState('');
-  const [selectedRole, setSelectedRole] = useState<UserRole>('CITIZEN');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
+
+  // Email & OTP states
+  const [email, setEmail] = useState('');
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [phone, setPhone] = useState('');
+
+  // OTP Modal / Flow states
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpSuccessMessage, setOtpSuccessMessage] = useState<string | null>(null);
+  const [simulatedEmailOtp, setSimulatedEmailOtp] = useState<{ code: string; email: string } | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
   // UI States
   const [showPassword, setShowPassword] = useState(false);
@@ -63,6 +77,15 @@ export const RegisterPage: React.FC = () => {
   const [touched, setTouched] = useState<FormTouched>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  // Resend timer countdown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   // Password strength calculations
   const passwordChecks = useMemo(() => {
@@ -92,6 +115,8 @@ export const RegisterPage: React.FC = () => {
   // Validations
   const isFullNameValid = fullName.trim().length >= 3;
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const cleanPhoneDigits = phone.replace(/\D/g, '');
+  const isPhoneValid = !phone.trim() || cleanPhoneDigits.length >= 9;
   const effectiveArea = communityArea === 'Custom Area...' ? customArea.trim() : communityArea;
   const isAreaValid = effectiveArea.length >= 3;
   const isPasswordValid = password.length >= 6;
@@ -111,6 +136,13 @@ export const RegisterPage: React.FC = () => {
       ? 'Email address is required.'
       : touched.email && !isEmailValid
       ? 'Please enter a valid email address (e.g. name@domain.com).'
+      : touched.email && !isEmailVerified
+      ? 'Email address must be verified via OTP to register.'
+      : null;
+
+  const phoneError =
+    touched.phone && phone.trim() && !isPhoneValid
+      ? 'Please enter a valid contact number (optional).'
       : null;
 
   const areaError =
@@ -137,52 +169,136 @@ export const RegisterPage: React.FC = () => {
   const isFormValid =
     isFullNameValid &&
     isEmailValid &&
+    isEmailVerified &&
+    isPhoneValid &&
     isAreaValid &&
     isPasswordValid &&
     isConfirmPasswordValid &&
     isTermsValid;
 
-  const roleOptions = [
-    {
-      role: 'CITIZEN' as UserRole,
-      title: 'Citizen',
-      subtitle: 'Resident',
-      desc: 'Report civic issues, track fixes, upvote community concerns.',
-      icon: UserCheck,
-      color: 'border-red-500 bg-red-500/10 text-red-500',
-      activeRing: 'ring-2 ring-red-500 border-red-500 bg-red-500/15',
-    },
-    {
-      role: 'OFFICER' as UserRole,
-      title: 'Municipal Officer',
-      subtitle: 'Field Staff',
-      desc: 'Triage reported hazards, update repair status, write notes.',
-      icon: Building2,
-      color: 'border-orange-500 bg-orange-500/10 text-orange-500',
-      activeRing: 'ring-2 ring-orange-500 border-orange-500 bg-orange-500/15',
-    },
-    {
-      role: 'ADMIN' as UserRole,
-      title: 'System Admin',
-      subtitle: 'Governance',
-      desc: 'Platform governance, priority scoring, analytics & moderation.',
-      icon: Shield,
-      color: 'border-purple-600 dark:border-rose-500 bg-purple-500/10 text-purple-600 dark:text-rose-400',
-      activeRing: 'ring-2 ring-purple-600 border-purple-600 dark:border-rose-500 bg-purple-900/20 shadow-[0_0_15px_rgba(168,85,247,0.25)]',
-    },
-  ];
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    if (serverError) setServerError(null);
+    if (isEmailVerified) {
+      setIsEmailVerified(false);
+      setVerificationToken(null);
+      setVerifiedEmail(null);
+      setSimulatedEmailOtp(null);
+    }
+  };
+
+  const handleSendEmailOtp = async (overrideEmail?: string) => {
+    const target = (overrideEmail || email).trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target)) {
+      setTouched((prev) => ({ ...prev, email: true }));
+      setServerError('Please enter a valid email address before requesting a verification code.');
+      return;
+    }
+    setIsSendingOtp(true);
+    setOtpError(null);
+    setOtpSuccessMessage(null);
+    try {
+      const res = await authService.sendOtp({ email: target });
+      setIsOtpModalOpen(true);
+      setResendCooldown(60);
+      setOtpDigits(['', '', '', '', '', '']);
+      if (res.otp) {
+        setSimulatedEmailOtp({ code: res.otp, email: res.email || target });
+      }
+      setTimeout(() => otpInputs.current[0]?.focus(), 150);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Failed to dispatch verification code. Please try again.';
+      setServerError(msg);
+      setOtpError(msg);
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async (codeToVerify?: string) => {
+    const code = codeToVerify || otpDigits.join('');
+    if (code.length !== 6) {
+      setOtpError('Please enter all 6 digits of the OTP code.');
+      return;
+    }
+    setIsVerifyingOtp(true);
+    setOtpError(null);
+    try {
+      const target = email.trim().toLowerCase();
+      const res = await authService.verifyOtp({ email: target, otp: code });
+      setIsEmailVerified(true);
+      setVerificationToken(res.verificationToken);
+      setVerifiedEmail(res.email || target);
+      setOtpSuccessMessage('Email address verified successfully!');
+      setTimeout(() => {
+        setIsOtpModalOpen(false);
+      }, 900);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Invalid verification code. Please check your inbox and retry.';
+      setOtpError(msg);
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleQuickFillOtp = (code: string) => {
+    const digits = code.split('').slice(0, 6);
+    setOtpDigits(digits);
+    void handleVerifyOtp(code);
+  };
+
+  const handleOtpDigitChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, '').slice(-1);
+    const newDigits = [...otpDigits];
+    newDigits[index] = digit;
+    setOtpDigits(newDigits);
+    if (digit && index < 5) {
+      otpInputs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      otpInputs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pasted.length > 0) {
+      const newDigits = [...otpDigits];
+      for (let i = 0; i < 6; i++) {
+        newDigits[i] = pasted[i] || '';
+      }
+      setOtpDigits(newDigits);
+      if (pasted.length === 6) {
+        void handleVerifyOtp(pasted);
+      } else {
+        const nextIdx = Math.min(pasted.length, 5);
+        otpInputs.current[nextIdx]?.focus();
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({
       fullName: true,
       email: true,
+      phone: true,
       communityArea: true,
       password: true,
       confirmPassword: true,
       terms: true,
     });
     setServerError(null);
+
+    if (!isEmailVerified) {
+      setServerError('Please verify your email address via the 6-digit OTP code sent to your inbox.');
+      void handleSendEmailOtp();
+      return;
+    }
 
     if (!isFormValid) {
       if (!agreeTerms) {
@@ -196,23 +312,17 @@ export const RegisterPage: React.FC = () => {
     setIsSubmitting(true);
     const result = await register({
       fullName: fullName.trim(),
-      email: email.trim(),
+      email: (verifiedEmail || email).trim().toLowerCase(),
+      phone: phone.trim() || undefined,
+      verificationToken: verificationToken || undefined,
       password,
       communityArea: effectiveArea,
-      role: selectedRole,
+      role: 'CITIZEN',
     });
     setIsSubmitting(false);
 
     if (result.success && result.user) {
-      const r = result.user.role;
-      if (r === 'ADMIN') {
-        navigate('/admin');
-      } else if (r === 'OFFICER') {
-        navigate('/officer');
-      } else {
-        // CITIZEN / RESIDENT → dedicated citizen dashboard
-        navigate('/citizen');
-      }
+      navigate('/citizen');
     } else {
       setServerError(result.error || 'Failed to create account. Please try again.');
     }
@@ -249,53 +359,7 @@ export const RegisterPage: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            {/* Step 1: Select Role */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                Select Your Civic Role <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {roleOptions.filter(opt => opt.role === 'CITIZEN').map((opt) => {
-                  const Icon = opt.icon;
-                  const isSelected = selectedRole === opt.role;
-                  return (
-                    <div
-                      key={opt.role}
-                      onClick={() => setSelectedRole(opt.role)}
-                      className={`p-3.5 rounded-2xl border cursor-pointer transition-all duration-200 flex flex-col justify-between ${
-                        isSelected
-                          ? opt.activeRing
-                          : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-surface-elevated hover:border-slate-300 dark:hover:border-white/20'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className={`p-2 rounded-xl border ${opt.color}`}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        {isSelected && (
-                          <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-slate-900 dark:text-white leading-snug">
-                          {opt.title}
-                        </div>
-                        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                          {opt.subtitle}
-                        </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2">
-                          {opt.desc}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Step 2: Name & Email */}
+            {/* Step 1: Name & Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Full Name */}
               <div className="space-y-1.5">
@@ -342,13 +406,25 @@ export const RegisterPage: React.FC = () => {
 
               {/* Email */}
               <div className="space-y-1.5">
-                <label
-                  htmlFor="reg-email"
-                  className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider"
-                >
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="reg-email"
+                    className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider"
+                  >
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
+                  {isEmailVerified ? (
+                    <span className="inline-flex items-center space-x-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                      <span>Email Verified</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-amber-500 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                      Verification Required
+                    </span>
+                  )}
+                </div>
+                <div className="relative flex items-center">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <Mail className="w-4 h-4" />
                   </div>
@@ -356,43 +432,74 @@ export const RegisterPage: React.FC = () => {
                     id="reg-email"
                     type="email"
                     value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (serverError) setServerError(null);
-                    }}
+                    onChange={(e) => handleEmailChange(e.target.value)}
                     onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                     placeholder="e.g. kasun@example.lk"
-                    className={`w-full pl-10 pr-10 py-3 rounded-xl text-sm transition-all duration-200 bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border ${
+                    disabled={isEmailVerified}
+                    className={`w-full pl-10 pr-24 py-3 rounded-xl text-sm transition-all duration-200 bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border ${
                       emailError
                         ? 'border-red-500 focus:ring-2 focus:ring-red-500/20'
-                        : touched.email && isEmailValid
-                        ? 'border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                        : isEmailVerified
+                        ? 'border-emerald-500 bg-emerald-500/5 focus:ring-2 focus:ring-emerald-500/20'
                         : 'border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
                     } outline-none`}
                   />
-                  {touched.email && (
-                    <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
-                      {isEmailValid ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      ) : (
-                        <AlertCircle className="w-4 h-4 text-red-500" />
-                      )}
-                    </div>
-                  )}
+                  <div className="absolute inset-y-0 right-1.5 flex items-center">
+                    {isEmailVerified ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEmailVerified(false);
+                          setVerificationToken(null);
+                          setVerifiedEmail(null);
+                          setSimulatedEmailOtp(null);
+                        }}
+                        className="text-xs text-slate-400 hover:text-red-500 px-2.5 py-1 rounded-lg hover:bg-red-500/10 transition-colors font-medium cursor-pointer"
+                      >
+                        Change
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        id="reg-send-otp-btn"
+                        disabled={isSendingOtp || !isEmailValid}
+                        onClick={() => handleSendEmailOtp()}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold liquid-btn-crimson flex items-center space-x-1 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+                      >
+                        {isSendingOtp ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>Get OTP</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {emailError && <p className="text-xs text-red-500 font-medium mt-1">{emailError}</p>}
+                {emailError ? (
+                  <p className="text-xs text-red-500 font-medium mt-1">{emailError}</p>
+                ) : (
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    We'll send a 6-digit verification OTP code to your email. Verification is mandatory.
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Community Area / Ward */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="reg-area"
-                className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider"
-              >
-                Community Area / Municipal Ward <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Step 2b: Phone & Community Area */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Mobile Phone Number */}
+              <div className="space-y-1.5">
+              {/* Community Area / Ward */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="reg-area"
+                  className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider"
+                >
+                  Community Area / Ward <span className="text-red-500">*</span>
+                </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <MapPin className="w-4 h-4" />
@@ -410,7 +517,6 @@ export const RegisterPage: React.FC = () => {
                     ))}
                   </select>
                 </div>
-
                 {communityArea === 'Custom Area...' && (
                   <input
                     type="text"
@@ -418,14 +524,125 @@ export const RegisterPage: React.FC = () => {
                     onChange={(e) => setCustomArea(e.target.value)}
                     onBlur={() => setTouched((prev) => ({ ...prev, communityArea: true }))}
                     placeholder="Type your ward / town name"
-                    className="w-full px-4 py-3 rounded-xl text-sm bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none"
+                    className="w-full px-4 py-3 rounded-xl text-sm bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none mt-2"
                   />
                 )}
+                {areaError && <p className="text-xs text-red-500 font-medium mt-1">{areaError}</p>}
               </div>
-              {areaError && <p className="text-xs text-red-500 font-medium mt-1">{areaError}</p>}
             </div>
 
-            {/* Step 3: Password & Confirm Password */}
+            {/* Step 2: Email Address (With Email OTP Verification) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="reg-email"
+                  className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider"
+                >
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                {isEmailVerified ? (
+                  <span className="inline-flex items-center space-x-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                    <Check className="w-3 h-3 stroke-[3]" />
+                    <span>Email OTP Verified</span>
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-semibold text-amber-500 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                    OTP Verification Required
+                  </span>
+                )}
+              </div>
+              <div className="relative flex items-center">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <input
+                  id="reg-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+                  placeholder="e.g. kasun@example.lk"
+                  disabled={isEmailVerified}
+                  className={`w-full pl-10 pr-28 py-3 rounded-xl text-sm transition-all duration-200 bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border ${
+                    emailError
+                      ? 'border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      : isEmailVerified
+                      ? 'border-emerald-500 bg-emerald-500/5 focus:ring-2 focus:ring-emerald-500/20'
+                      : 'border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  } outline-none`}
+                />
+                <div className="absolute inset-y-0 right-1.5 flex items-center">
+                  {isEmailVerified ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEmailVerified(false);
+                        setVerificationToken(null);
+                        setVerifiedEmail(null);
+                        setSimulatedEmailOtp(null);
+                      }}
+                      className="text-xs text-slate-400 hover:text-red-500 px-2.5 py-1 rounded-lg hover:bg-red-500/10 transition-colors font-medium cursor-pointer"
+                    >
+                      Change
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      id="reg-send-otp-btn"
+                      disabled={isSendingOtp || !isEmailValid}
+                      onClick={() => handleSendEmailOtp()}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold liquid-btn-crimson flex items-center space-x-1 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+                    >
+                      {isSendingOtp ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <>
+                          <Mail className="w-3.5 h-3.5" />
+                          <span>Verify Email</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+              {emailError ? (
+                <p className="text-xs text-red-500 font-medium mt-1">{emailError}</p>
+              ) : (
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  A 6-digit OTP will be dispatched to this email address for verification.
+                </p>
+              )}
+            </div>
+
+            {/* Step 3: Contact Number (Optional) */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="reg-phone"
+                className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider"
+              >
+                Mobile Contact (Optional)
+              </label>
+              <div className="relative flex items-center">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400 text-xs font-bold space-x-1.5 z-10 select-none">
+                  <span className="text-base leading-none">🇱🇰</span>
+                  <span>+94</span>
+                  <span className="text-slate-300 dark:text-slate-600 font-light">|</span>
+                </div>
+                <input
+                  id="reg-phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="077 123 4567"
+                  className="w-full pl-20 pr-4 py-3 rounded-xl text-sm transition-all duration-200 bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none"
+                />
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Optional contact number for emergency civic notices.
+              </p>
+            </div>
+
+            {/* Step 4: Password & Confirm Password */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Password */}
               <div className="space-y-1.5">
@@ -582,17 +799,27 @@ export const RegisterPage: React.FC = () => {
             {/* Submit Button */}
             <button
               type="submit"
+              id="reg-submit-btn"
               disabled={isSubmitting}
-              className="w-full py-4 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-500 via-red-600 to-rose-600 hover:from-red-600 hover:to-rose-700 shadow-[0_4px_20px_rgba(239,68,68,0.4)] hover:shadow-[0_6px_28px_rgba(239,68,68,0.6)] transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
+              className={`w-full py-4 px-4 rounded-xl font-bold text-sm flex items-center justify-center space-x-2 cursor-pointer transition-all ${
+                !isEmailVerified
+                  ? 'liquid-btn-glass text-slate-600 dark:text-slate-300 border-red-500/30 dark:border-red-500/30'
+                  : 'liquid-btn-crimson'
+              }`}
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Registering {selectedRole}...</span>
+                  <span>Registering Citizen Account...</span>
+                </>
+              ) : !isEmailVerified ? (
+                <>
+                  <Mail className="w-4 h-4 text-red-500 animate-pulse" />
+                  <span>Verify Email to Complete Registration</span>
                 </>
               ) : (
                 <>
-                  <span>Create {selectedRole} Account</span>
+                  <span>Create Citizen Account</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -613,6 +840,152 @@ export const RegisterPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* OTP Verification Modal */}
+      {isOtpModalOpen && (
+        <div className="liquid-modal-backdrop overflow-y-auto p-4 sm:p-6" role="dialog" aria-modal="true">
+          <div
+            className="liquid-modal relative w-full max-w-md border border-white/20 dark:border-white/15 overflow-hidden shadow-2xl p-6 sm:p-8 space-y-6 animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500">
+                  <Mail className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-heading">Email Verification</h3>
+                  <p className="text-xs text-muted">6-Digit One-Time Password (OTP)</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="close-otp-modal-btn"
+                onClick={() => setIsOtpModalOpen(false)}
+                className="liquid-modal-close flex-shrink-0 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              We've dispatched a 6-digit verification code to{' '}
+              <span className="font-bold text-red-500 dark:text-rose-400">{email}</span>. Please check your inbox (and spam folder) and enter the code below.
+            </p>
+
+            {/* Simulated Email OTP Preview Banner */}
+            {simulatedEmailOtp && (
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/5 border border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-300 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 font-bold">
+                    <Mail className="w-4 h-4 text-emerald-500" />
+                    <span>Email OTP Dispatched</span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 font-semibold text-emerald-600 dark:text-emerald-400">
+                    Live Dispatch
+                  </span>
+                </div>
+                <div className="bg-white/60 dark:bg-black/30 p-2.5 rounded-xl font-mono text-xs flex items-center justify-between border border-emerald-500/20">
+                  <span>
+                    OTP:{' '}
+                    <strong className="text-sm text-emerald-600 dark:text-emerald-400 tracking-wider">
+                      {simulatedEmailOtp.code}
+                    </strong>
+                  </span>
+                  <button
+                    type="button"
+                    id="otp-quick-fill-btn"
+                    onClick={() => handleQuickFillOtp(simulatedEmailOtp.code)}
+                    className="px-3 py-1 rounded-lg text-[11px] font-bold liquid-btn-emerald transition-all shadow-sm cursor-pointer"
+                  >
+                    Quick-fill & Verify
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Error / Success alert */}
+            {otpError && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center space-x-2 text-xs text-red-500 font-medium">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{otpError}</span>
+              </div>
+            )}
+            {otpSuccessMessage && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center space-x-2 text-xs text-emerald-500 font-medium">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>{otpSuccessMessage}</span>
+              </div>
+            )}
+
+            {/* 6 Digit Inputs */}
+            <div className="flex justify-center items-center gap-2 sm:gap-3">
+              {otpDigits.map((digit, idx) => (
+                <input
+                  key={idx}
+                  id={`otp-input-${idx}`}
+                  ref={(el) => (otpInputs.current[idx] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                  onPaste={idx === 0 ? handleOtpPaste : undefined}
+                  className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-xl bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-200 dark:border-white/15 focus:border-red-500 focus:ring-2 focus:ring-red-500/30 outline-none transition-all shadow-inner"
+                />
+              ))}
+            </div>
+
+            {/* Resend & Actions */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <span className="text-slate-500 dark:text-slate-400">
+                {resendCooldown > 0 ? (
+                  `Resend email code in ${resendCooldown}s`
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSendEmailOtp()}
+                    disabled={isSendingOtp}
+                    className="text-red-500 hover:text-red-600 font-bold underline-offset-2 hover:underline cursor-pointer"
+                  >
+                    Resend Email Code
+                  </button>
+                )}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsOtpModalOpen(false)}
+                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors cursor-pointer"
+              >
+                Change Email
+              </button>
+            </div>
+
+            {/* Verify Button */}
+            <button
+              type="button"
+              id="confirm-otp-btn"
+              disabled={isVerifyingOtp || otpDigits.some((d) => !d)}
+              onClick={() => handleVerifyOtp()}
+              className="w-full py-3.5 px-4 rounded-xl font-bold text-sm liquid-btn-crimson flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isVerifyingOtp ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Verifying Code...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Verify & Confirm Email</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

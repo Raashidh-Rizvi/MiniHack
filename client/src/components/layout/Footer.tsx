@@ -65,6 +65,9 @@ export const Footer: React.FC = () => {
                 <Link to="/" className="hover:text-red-500 transition-colors">Home Landing</Link>
               </li>
               <li>
+                <Link to="/about" className="hover:text-red-500 transition-colors">About GramaFix</Link>
+              </li>
+              <li>
                 <Link to="/issues" className="hover:text-red-500 transition-colors">Public Issues Feed</Link>
               </li>
               <li>
@@ -122,10 +125,10 @@ export const Footer: React.FC = () => {
             <button
               type="button"
               onClick={() => setEmergencyModalOpen(true)}
-              className="mt-3 w-full py-1.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold border border-red-500/25 flex items-center justify-center space-x-1 transition-colors cursor-pointer"
+              className="mt-3 w-full py-2 px-3 rounded-xl liquid-btn-glass text-red-600 dark:text-red-400 text-xs font-bold flex items-center justify-center space-x-1.5 transition-all cursor-pointer shadow-sm"
             >
               <span>Full Emergency Directory</span>
-              <ExternalLink className="w-3 h-3 ml-1" />
+              <ExternalLink className="w-3 h-3 ml-1 text-red-500" />
             </button>
           </div>
         </div>

@@ -59,20 +59,20 @@ export const IssueDetailsModal: React.FC<IssueDetailsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fadeIn"
+      className="liquid-modal-backdrop overflow-y-auto p-3 sm:p-6 flex items-center justify-center"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 shadow-2xl p-6 sm:p-8"
+        className="liquid-modal relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 border border-white/20 dark:border-white/15"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated transition-colors"
+          className="liquid-modal-close absolute top-5 right-5"
           aria-label="Close modal"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Header Badges */}
@@ -217,7 +217,7 @@ export const IssueDetailsModal: React.FC<IssueDetailsModalProps> = ({
         )}
 
         {/* Footer actions: Support, Share, Full Page Link */}
-        <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-3">
+        <div className="pt-4 border-t border-slate-200/60 dark:border-white/10 flex items-center justify-between gap-3">
           <SupportButton
             issueId={issue.id}
             initialCount={issue.supportCount}
@@ -227,14 +227,14 @@ export const IssueDetailsModal: React.FC<IssueDetailsModalProps> = ({
           <div className="flex items-center space-x-2">
             <button
               onClick={handleShare}
-              className="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-surface-elevated transition-colors"
+              className="p-2.5 rounded-xl liquid-btn-glass text-slate-600 dark:text-slate-300"
               title="Copy share link"
             >
               <Share2 className="w-4 h-4" />
             </button>
             <Link
               to={`/issues/${issue.id}`}
-              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold liquid-btn-glass"
             >
               <span>Full Page</span>
               <ExternalLink className="w-3.5 h-3.5" />
