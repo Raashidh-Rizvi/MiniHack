@@ -197,10 +197,14 @@ export const RegisterPage: React.FC = () => {
     setIsSubmitting(false);
 
     if (result.success && result.user) {
-      if (result.user.role === 'ADMIN' || result.user.role === 'OFFICER') {
-        navigate('/issues');
+      const r = result.user.role;
+      if (r === 'ADMIN') {
+        navigate('/admin');
+      } else if (r === 'OFFICER') {
+        navigate('/officer');
       } else {
-        navigate('/report');
+        // CITIZEN / RESIDENT → dedicated citizen dashboard
+        navigate('/citizen');
       }
     } else {
       setServerError(result.error || 'Failed to create account. Please try again.');

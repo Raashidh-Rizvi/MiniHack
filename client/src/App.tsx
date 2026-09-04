@@ -16,6 +16,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminPage } from './pages/AdminPage';
 import { OfficerPage } from './pages/OfficerPage';
+import { CitizenDashboardPage } from './pages/CitizenDashboardPage';
 
 export const App: React.FC = () => {
   return (
@@ -26,8 +27,9 @@ export const App: React.FC = () => {
             <Navbar />
             <main className="flex-grow">
               <Routes>
-                {/* Member 1: Landing Experience & Reporting Journey */}
+                {/* Member 1: Citizen Dashboard & Reporting Journey */}
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/citizen" element={<CitizenDashboardPage />} />
                 <Route path="/report" element={<ReportIssuePage />} />
                 <Route path="/my-reports" element={<MyReportsPage />} />
 

@@ -16,6 +16,7 @@ import {
   LogIn,
   LogOut,
   UserPlus,
+  LayoutDashboard,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
@@ -34,12 +35,43 @@ export const Navbar: React.FC = () => {
     navigate('/');
   };
 
+  const isCitizen = role === 'CITIZEN' || role === 'RESIDENT';
+  const isOfficer = role === 'OFFICER';
+  const isAdmin = role === 'ADMIN';
+
+  const logoTarget = isAdmin ? '/admin' : isOfficer ? '/officer' : '/';
+
+  const handleRoleSwitch = (newRole: 'CITIZEN' | 'OFFICER' | 'ADMIN' | 'RESIDENT') => {
+    switchRole(newRole);
+    if (newRole === 'ADMIN') {
+      navigate('/admin');
+    } else if (newRole === 'OFFICER') {
+      navigate('/officer');
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleMobileRoleSwitch = () => {
+    if (role === 'CITIZEN' || role === 'RESIDENT') {
+      switchRole('OFFICER');
+      navigate('/officer');
+    } else if (role === 'OFFICER') {
+      switchRole('ADMIN');
+      navigate('/admin');
+    } else {
+      switchRole('CITIZEN');
+      navigate('/');
+    }
+    setMobileMenuOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white/85 dark:bg-[#0A0D14]/85 backdrop-blur-md border-b border-slate-200 dark:border-white/10 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
+          <Link to={logoTarget} className="flex items-center space-x-3 group">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/25 group-hover:scale-105 transition-transform">
               <Flame className="w-6 h-6 text-white" />
             </div>
@@ -58,79 +90,107 @@ export const Navbar: React.FC = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-            <Link
-              to="/"
-              className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                isActive('/')
-                  ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/issues"
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                isActive('/issues')
-                  ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
-              }`}
-            >
-              <Layers className="w-4 h-4 text-red-500" />
-              <span>Community Feed</span>
-            </Link>
-            <Link
-              to="/my-reports"
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                isActive('/my-reports')
-                  ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
-              }`}
-            >
-              <FileText className="w-4 h-4 text-sky-500" />
-              <span>My Reports</span>
-            </Link>
-            <Link
-              to="/report"
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                isActive('/report')
-                  ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
-              }`}
-            >
-              <PlusCircle className="w-4 h-4 text-emerald-500" />
-              <span>Report Issue</span>
-            </Link>
-            <Link
-              to="/admin"
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                isActive('/admin')
-                  ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
-              }`}
-            >
-              <Shield className="w-4 h-4 text-indigo-500" />
-              <span>Admin</span>
-            </Link>
-            {/* Officer Portal — shown highlighted when role is OFFICER */}
-            <Link
-              to="/officer"
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                isActive('/officer')
-                  ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'
-                  : role === 'OFFICER'
-                  ? 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
-              }`}
-            >
-              <Building2 className="w-4 h-4 text-teal-500" />
-              <span>Officer</span>
-              {role === 'OFFICER' && (
-                <span className="text-[9px] font-bold uppercase bg-teal-500 text-white px-1 py-0.5 rounded ml-0.5">
-                  You
-                </span>
-              )}
-            </Link>
+            {isCitizen && (
+              <>
+                <Link
+                  to="/"
+                  className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive('/')
+                      ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                  }`}
+                >
+                  Home
+                </Link>
+                <Link
+                  to="/issues"
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive('/issues')
+                      ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                  }`}
+                >
+                  <Layers className="w-4 h-4 text-red-500" />
+                  <span>Community Feed</span>
+                </Link>
+                <Link
+                  to="/my-reports"
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive('/my-reports')
+                      ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                  }`}
+                >
+                  <FileText className="w-4 h-4 text-sky-500" />
+                  <span>My Reports</span>
+                </Link>
+                <Link
+                  to="/report"
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive('/report')
+                      ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                  }`}
+                >
+                  <PlusCircle className="w-4 h-4 text-emerald-500" />
+                  <span>Report Issue</span>
+                </Link>
+              </>
+            )}
+
+            {isAdmin && (
+              <>
+                <Link
+                  to="/admin"
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive('/admin')
+                      ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                  }`}
+                >
+                  <Shield className="w-4 h-4 text-indigo-500" />
+                  <span>Admin Dashboard</span>
+                </Link>
+                <Link
+                  to="/issues"
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive('/issues')
+                      ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                  }`}
+                >
+                  <Layers className="w-4 h-4 text-indigo-500" />
+                  <span>Community Feed</span>
+                </Link>
+              </>
+            )}
+
+            {isOfficer && (
+              <>
+                <Link
+                  to="/officer"
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive('/officer')
+                      ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 text-teal-500" />
+                  <span>Officer Dashboard</span>
+                </Link>
+                <Link
+                  to="/issues"
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive('/issues')
+                      ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                  }`}
+                >
+                  <Layers className="w-4 h-4 text-teal-500" />
+                  <span>Community Feed</span>
+                </Link>
+              </>
+            )}
           </nav>
 
           {/* Right Controls: Theme Toggle, 3-Role Switcher, Auth Links */}
@@ -154,9 +214,9 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center bg-slate-100 dark:bg-surface-elevated rounded-full p-1 border border-slate-200 dark:border-white/10 text-xs">
               <button
                 type="button"
-                onClick={() => switchRole('CITIZEN')}
+                onClick={() => handleRoleSwitch('CITIZEN')}
                 className={`px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1 ${
-                  role === 'CITIZEN' || role === 'RESIDENT'
+                  isCitizen
                     ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
@@ -167,9 +227,9 @@ export const Navbar: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => switchRole('OFFICER')}
+                onClick={() => handleRoleSwitch('OFFICER')}
                 className={`px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1 ${
-                  role === 'OFFICER'
+                  isOfficer
                     ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
@@ -180,9 +240,9 @@ export const Navbar: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => switchRole('ADMIN')}
+                onClick={() => handleRoleSwitch('ADMIN')}
                 className={`px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1 ${
-                  role === 'ADMIN'
+                  isAdmin
                     ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
@@ -255,11 +315,7 @@ export const Navbar: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => {
-                if (role === 'CITIZEN' || role === 'RESIDENT') switchRole('OFFICER');
-                else if (role === 'OFFICER') switchRole('ADMIN');
-                else switchRole('CITIZEN');
-              }}
+              onClick={handleMobileRoleSwitch}
               className="px-2.5 py-1 rounded-lg text-xs bg-slate-100 dark:bg-surface-elevated border border-slate-200 dark:border-white/10 font-bold"
             >
               {role === 'OFFICER' ? '👷 Officer' : role === 'ADMIN' ? '🛡️ Admin' : '👤 Citizen'}
@@ -280,34 +336,78 @@ export const Navbar: React.FC = () => {
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#121722] px-4 pt-3 pb-5 space-y-2">
-          <Link
-            to="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
-          >
-            Home
-          </Link>
-          <Link
-            to="/issues"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
-          >
-            Community Feed
-          </Link>
-          <Link
-            to="/my-reports"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
-          >
-            My Reports
-          </Link>
-          <Link
-            to="/report"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2.5 rounded-xl text-sm font-bold text-center text-white bg-gradient-to-r from-red-500 to-red-600 shadow-[0_4px_16px_rgba(239,68,68,0.4)]"
-          >
-            Report an Issue
-          </Link>
+          {isCitizen && (
+            <>
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
+              >
+                Home
+              </Link>
+              <Link
+                to="/issues"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
+              >
+                Community Feed
+              </Link>
+              <Link
+                to="/my-reports"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
+              >
+                My Reports
+              </Link>
+              <Link
+                to="/report"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2.5 rounded-xl text-sm font-bold text-center text-white bg-gradient-to-r from-red-500 to-red-600 shadow-[0_4px_16px_rgba(239,68,68,0.4)]"
+              >
+                Report an Issue
+              </Link>
+            </>
+          )}
+
+          {isAdmin && (
+            <>
+              <Link
+                to="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 flex items-center gap-2"
+              >
+                <Shield className="w-4 h-4" />
+                Admin Dashboard
+              </Link>
+              <Link
+                to="/issues"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
+              >
+                Community Feed
+              </Link>
+            </>
+          )}
+
+          {isOfficer && (
+            <>
+              <Link
+                to="/officer"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10 flex items-center gap-2"
+              >
+                <Building2 className="w-4 h-4" />
+                Officer Dashboard
+              </Link>
+              <Link
+                to="/issues"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
+              >
+                Community Feed
+              </Link>
+            </>
+          )}
 
           <div className="pt-2 border-t border-slate-200 dark:border-white/10 grid grid-cols-2 gap-2">
             <Link
@@ -325,31 +425,6 @@ export const Navbar: React.FC = () => {
               Register
             </Link>
           </div>
-          <Link
-            to="/admin"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 flex items-center gap-2"
-          >
-            <Shield className="w-4 h-4" />
-            Admin Portal
-          </Link>
-          <Link
-            to="/officer"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`block px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 ${
-              role === 'OFFICER'
-                ? 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10'
-                : 'text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            Officer Portal
-            {role === 'OFFICER' && (
-              <span className="text-[9px] font-bold uppercase bg-teal-500 text-white px-1 py-0.5 rounded ml-auto">
-                Your Workspace
-              </span>
-            )}
-          </Link>
         </div>
       )}
     </header>

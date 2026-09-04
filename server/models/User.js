@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema(
     numericId: {
       type: Number,
       unique: true,
+      sparse: true,
       index: true,
     },
     fullName: {
