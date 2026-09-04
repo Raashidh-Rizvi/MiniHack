@@ -310,11 +310,7 @@ export const OfficerPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-3 mb-4">
             <Link
-<<<<<<< HEAD
-              to="/"
-=======
               to="/issues"
->>>>>>> af9d8b3ca650e9351cc814b8c48637026dea7428
               className="flex items-center gap-1.5 text-orange-300 hover:text-white text-sm transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
