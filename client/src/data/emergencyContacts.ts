@@ -2,6 +2,7 @@ export interface EmergencyContact {
   id: string;
   number: string;
   displayNumber: string;
+  shortLabel: string;
   title: string;
   agency: string;
   category: 'POLICE' | 'MEDICAL' | 'DISASTER' | 'UTILITY' | 'GENERAL';
@@ -19,6 +20,7 @@ export const GOVERNMENT_EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: 'police',
     number: '119',
     displayNumber: '119',
+    shortLabel: 'Police',
     title: 'Sri Lanka Police Emergency Hotline',
     agency: 'Sri Lanka Police Department',
     category: 'POLICE',
@@ -34,6 +36,7 @@ export const GOVERNMENT_EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: 'suwa-seriya',
     number: '1990',
     displayNumber: '1990',
+    shortLabel: 'Ambulance',
     title: '1990 Suwa Seriya Emergency Ambulance',
     agency: 'Ministry of Health / Suwa Seriya Foundation',
     category: 'MEDICAL',
@@ -49,6 +52,7 @@ export const GOVERNMENT_EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: 'dmc',
     number: '117',
     displayNumber: '117',
+    shortLabel: 'Disaster DMC',
     title: 'Disaster Management Centre (DMC)',
     agency: 'Ministry of Defence / National Emergency Operation Centre',
     category: 'DISASTER',
@@ -64,6 +68,7 @@ export const GOVERNMENT_EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: 'fire',
     number: '110',
     displayNumber: '110',
+    shortLabel: 'Fire & Rescue',
     title: 'Fire & Rescue Service',
     agency: 'Municipal Fire Service Departments',
     category: 'DISASTER',
@@ -79,6 +84,7 @@ export const GOVERNMENT_EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: 'ceb-electricity',
     number: '1987',
     displayNumber: '1987',
+    shortLabel: 'CEB Electricity',
     title: 'Ceylon Electricity Board (CEB) Emergency Breakdown',
     agency: 'Ceylon Electricity Board',
     category: 'UTILITY',
@@ -94,6 +100,7 @@ export const GOVERNMENT_EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: 'nwsdb-water',
     number: '1939',
     displayNumber: '1939',
+    shortLabel: 'Water Board',
     title: 'National Water Supply & Drainage Board (NWSDB)',
     agency: 'National Water Supply & Drainage Board',
     category: 'UTILITY',
@@ -109,6 +116,7 @@ export const GOVERNMENT_EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: 'leco',
     number: '1910',
     displayNumber: '1910',
+    shortLabel: 'LECO',
     title: 'LECO Electricity Emergency Helpline',
     agency: 'Lanka Electricity Company (LECO)',
     category: 'UTILITY',
@@ -124,6 +132,7 @@ export const GOVERNMENT_EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: 'gic',
     number: '1919',
     displayNumber: '1919',
+    shortLabel: 'Govt Info',
     title: 'Government Information Centre (GIC)',
     agency: 'Information and Communication Technology Agency (ICTA)',
     category: 'GENERAL',
@@ -139,6 +148,7 @@ export const GOVERNMENT_EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: 'colombo-nh-accident',
     number: '0112691111',
     displayNumber: '011-2691111',
+    shortLabel: 'Accident Hospital',
     title: 'National Hospital Accident Service (Colombo)',
     agency: 'National Hospital of Sri Lanka (NHSL)',
     category: 'MEDICAL',
@@ -199,5 +209,9 @@ export function getRelevantEmergencyContacts(category?: string, severity?: strin
     ].filter(Boolean);
   }
 
-  return contacts.slice(0, 4);
+  return [
+    contacts.find((c) => c.id === 'police')!,
+    contacts.find((c) => c.id === 'suwa-seriya')!,
+    contacts.find((c) => c.id === 'dmc')!,
+  ].filter(Boolean);
 }

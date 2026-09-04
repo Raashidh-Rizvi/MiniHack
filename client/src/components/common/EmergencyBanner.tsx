@@ -20,65 +20,65 @@ export const EmergencyBanner: React.FC<EmergencyBannerProps> = ({
 
   return (
     <div
-      className={`rounded-2xl border transition-all ${
+      className={`rounded-2xl border transition-all p-4 ${
         isCritical
-          ? 'bg-gradient-to-r from-red-500/15 via-red-500/10 to-amber-500/10 border-red-500/40 p-4 shadow-[0_0_20px_rgba(239,68,68,0.15)] animate-pulse-slow'
-          : 'bg-amber-500/10 dark:bg-amber-500/5 border-amber-500/25 p-3.5'
+          ? 'bg-gradient-to-r from-red-500/20 via-red-500/10 to-amber-500/10 border-red-500/50 shadow-[0_0_24px_rgba(239,68,68,0.2)]'
+          : 'bg-amber-500/10 border-amber-500/30'
       } ${className}`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-start space-x-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+        <div className="flex items-start space-x-3 min-w-0">
           <div
-            className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
               isCritical
                 ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
-                : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                : 'bg-amber-500 text-white'
             }`}
           >
             {isCritical ? <ShieldAlert className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
+          <div className="min-w-0">
+            <div className="flex items-center space-x-2 flex-wrap gap-y-1 mb-1">
               <span
-                className={`text-[11px] font-black uppercase tracking-wider ${
-                  isCritical ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
+                className={`text-xs font-black uppercase tracking-wider ${
+                  isCritical ? 'text-red-500 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
                 }`}
               >
-                {isCritical ? 'Immediate Hazard / Emergency Advisory' : 'Civic Safety Notice'}
+                {isCritical ? 'Critical Hazard & Emergency Advisory' : 'Civic Safety Notice'}
               </span>
-              <span className="text-[10px] px-2 py-0.2 rounded bg-red-500/10 text-red-600 dark:text-red-400 font-bold">
-                Call Govt Dispatchers
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500 text-white font-black tracking-wide">
+                Immediate Action Required
               </span>
             </div>
-            <p className="text-xs text-slate-700 dark:text-slate-200 mt-0.5 leading-snug">
+            <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed">
               {isCritical ? (
                 <>
-                  <strong className="text-red-600 dark:text-red-400">Do not rely solely on an online report!</strong> If
-                  there is live risk to human life, downed high-voltage power lines, gas leaks, or flooding, call
-                  emergency services immediately.
+                  <strong className="text-red-600 dark:text-red-400">Do not wait for online ticket triage!</strong> If this issue involves
+                  live high-voltage cables, active fires, building collapse, or injuries, dial official government dispatchers immediately:
                 </>
               ) : (
                 <>
-                  GramaFix is an asynchronous municipal repair queue. For active fires, live wires, or injuries, contact
-                  first responders.
+                  GramaFix is an asynchronous municipal repair queue. For active hazards or urgent injuries, contact first responders:
                 </>
               )}
             </p>
           </div>
         </div>
 
-        {/* Quick Hotline Calling Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:flex-shrink-0">
+        {/* Quick Dial Buttons with proper labels (Police, Ambulance, Disaster) */}
+        <div className="flex flex-wrap items-center gap-2 md:flex-shrink-0">
           {contacts.map((contact) => (
             <a
               key={contact.id}
               href={`tel:${contact.number}`}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-surface-elevated hover:bg-red-50 dark:hover:bg-red-950/40 border border-slate-200 dark:border-white/10 hover:border-red-500/40 text-slate-900 dark:text-white text-xs font-black shadow-sm transition-all"
-              title={`Call ${contact.agency} (${contact.number})`}
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-surface-elevated hover:bg-red-50 dark:hover:bg-red-950/40 border border-slate-200 dark:border-white/10 hover:border-red-500/50 text-slate-900 dark:text-white text-xs font-black shadow-sm transition-all active:scale-95"
+              title={`Direct call to ${contact.title}`}
             >
-              <PhoneCall className="w-3 h-3 text-red-500" />
+              <PhoneCall className="w-3.5 h-3.5 text-red-500" />
               <span>{contact.displayNumber}</span>
-              <span className="text-[10px] font-semibold text-slate-400">({contact.agency.split(' ')[0]})</span>
+              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                ({contact.shortLabel})
+              </span>
             </a>
           ))}
 
@@ -86,7 +86,7 @@ export const EmergencyBanner: React.FC<EmergencyBannerProps> = ({
             <button
               type="button"
               onClick={onOpenDirectory}
-              className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+              className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
             >
               <span>All Numbers</span>
               <ExternalLink className="w-3 h-3" />

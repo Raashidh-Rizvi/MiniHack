@@ -534,9 +534,9 @@ export const IssueForm: React.FC<IssueFormProps> = ({
           })}
         </div>
 
-        {/* Dynamic Government Emergency Alert for Critical / High Hazards */}
-        {(severity === 'CRITICAL' || severity === 'HIGH') && (
-          <div className="mt-3.5">
+        {/* Dynamic Government Emergency Alert - displayed when Critical is selected */}
+        {severity === 'CRITICAL' && (
+          <div className="mt-3.5 animate-fadeIn">
             <EmergencyBanner
               category={category}
               severity={severity}

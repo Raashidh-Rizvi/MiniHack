@@ -11,11 +11,9 @@ import {
   FileText,
   Clock,
   Layers,
-  PhoneCall,
 } from 'lucide-react';
 import { SriLankanLion } from '../components/common/SriLankanLion';
 import { getPriorityBadgeColor } from '../utils/priority';
-import { EmergencyModal } from '../components/common/EmergencyModal';
 
 export const ReportIssuePage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -23,7 +21,6 @@ export const ReportIssuePage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [emergencyModalOpen, setEmergencyModalOpen] = useState<boolean>(false);
 
   const handleSubmit = async (formData: IssueCreateDTO) => {
     setSubmitting(true);
@@ -161,30 +158,6 @@ export const ReportIssuePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Emergency Helpline Notice Banner */}
-      <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-red-500/10 via-rose-500/5 to-transparent border border-red-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-xl bg-red-500/20 text-red-600 dark:text-red-400 flex items-center justify-center flex-shrink-0">
-            <PhoneCall className="w-4 h-4" />
-          </div>
-          <div className="text-xs">
-            <span className="font-bold text-slate-900 dark:text-white block">
-              Urgent Public Hazard or Life Emergency?
-            </span>
-            <span className="text-slate-600 dark:text-slate-400">
-              For active fires, fallen live power lines, medical trauma, or flash floods, dial <strong>119</strong> (Police), <strong>1990</strong> (Ambulance), or <strong>117</strong> (Disaster Centre).
-            </span>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => setEmergencyModalOpen(true)}
-          className="px-3.5 py-1.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-bold whitespace-nowrap self-start sm:self-auto transition-colors cursor-pointer shadow-sm"
-        >
-          Emergency Directory
-        </button>
-      </div>
-
       {/* Main Form Container */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 shadow-xl relative">
         {submitError && (
@@ -201,11 +174,6 @@ export const ReportIssuePage: React.FC = () => {
           serverErrors={fieldErrors}
         />
       </div>
-
-      <EmergencyModal
-        isOpen={emergencyModalOpen}
-        onClose={() => setEmergencyModalOpen(false)}
-      />
     </div>
   );
 };
