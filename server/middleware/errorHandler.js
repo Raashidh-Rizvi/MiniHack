@@ -1,5 +1,6 @@
 const errorHandler = (err, req, res, next) => {
-  console.error('API Error:', err);
+  if (!err.statusCode || err.statusCode >= 500) console.error('API Error:', err.name);
+  if (err.code === 11000) return res.status(409).json({ success: false, message: 'A record with this identifier already exists. Please retry.' });
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {
