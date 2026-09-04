@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { LayoutDashboard, AlertTriangle, Clock, Activity, CheckCircle, UserPlus } from 'lucide-react';
+import { LayoutDashboard, AlertTriangle, Clock, Activity, CheckCircle, UserPlus, ShieldCheck } from 'lucide-react';
 import { Issue } from '../../types/issue';
 import { MetricsCard } from './MetricsCard';
 import { PriorityQueueTable } from './PriorityQueueTable';
 import { StatusUpdateModal } from './StatusUpdateModal';
 import { CreateOfficerModal } from './CreateOfficerModal';
 import { PriorityFilter } from '../filters/PriorityFilter';
+import { LoginAuditLog } from './LoginAuditLog';
 import { getAdminStats, getPriorityQueue, updateIssueStatus, moderateDeleteIssue, reassignOfficer, recalculatePriority, AdminStats, StatusUpdatePayload } from '../../services/adminService';
 import { getOfficerList, OfficerUser } from '../../services/officerService';
 import { errorMessage } from '../../services/api';
 const statuses = ['ALL', 'REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'DUPLICATE', 'REJECTED'];
-const categories = ['ALL', 'ROAD', 'STREETLIGHT', 'WASTE', 'WATER', 'DRAINAGE', 'TRAFFIC', 'ENVIRONMENT', 'OTHER'];
+const categories = ['ALL', 'ROAD', 'STREETLIGHT', 'WASTE', 'WATER', 'DRAINAGE', 'TRAFFIC', 'ENVIRONMENT', 'ACCIDENT', 'OTHER'];
 const nextStatus = { REPORTED: 'UNDER_REVIEW', UNDER_REVIEW: 'IN_PROGRESS', IN_PROGRESS: 'RESOLVED' } as const;
 export const AdminDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'queue' | 'audit'>('queue');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [statsError, setStatsError] = useState('');
   const [issues, setIssues] = useState<Issue[]>([]);
@@ -96,12 +98,43 @@ export const AdminDashboard: React.FC = () => {
     ['resolvedIssues', 'Resolved', CheckCircle, 'emerald', 'Completed'],
   ] as const;
   const control = 'glass-input text-sm';
+
+  const tabs = [
+    { id: 'queue' as const, label: 'Priority Queue', icon: LayoutDashboard },
+    { id: 'audit' as const, label: 'Login Audit', icon: ShieldCheck },
+  ];
+
   return <div className="space-y-6">
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       {cards.map(([key, title, icon, colorTheme, subtitle]) => <MetricsCard id={key} key={key} title={title} value={stats ? stats[key] : '—'} icon={icon} colorTheme={colorTheme} subtitle={subtitle} />)}
     </div>
     {statsError && <p role="alert" className="text-red-500 text-sm">Statistics unavailable{stats ? ' (showing previous values)' : ''}: {statsError} <button className="px-2 py-0.5 text-xs liquid-btn-glass ml-2" onClick={fetchStats}>Retry statistics</button></p>}
     <p role="status" aria-live="polite" className="text-sm">{notice}</p>
+    {/* Tab navigation */}
+    <div className="flex gap-1 p-1 rounded-xl bg-white/5 border border-white/10 w-fit">
+      {tabs.map(({ id, label, icon: Icon }) => (
+        <button
+          key={id}
+          id={`admin-tab-${id}`}
+          onClick={() => setActiveTab(id)}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+            activeTab === id
+              ? id === 'audit'
+                ? 'bg-purple-600/40 text-purple-200 border border-purple-500/40 shadow-lg'
+                : 'bg-rose-600/30 text-rose-200 border border-rose-500/30 shadow-lg'
+              : 'text-muted hover:text-heading hover:bg-white/5'
+          }`}
+        >
+          <Icon className="w-4 h-4" />
+          {label}
+        </button>
+      ))}
+    </div>
+
+    {/* Tab content */}
+    {activeTab === 'audit' ? (
+      <LoginAuditLog />
+    ) : (
     <section className="glass-panel rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-white/10">
       <div className="p-5 flex items-center justify-between gap-3">
         <h2 className="font-bold text-heading">Community Priority Queue <span className="text-sm font-normal text-muted">({issues.length})</span></h2>
@@ -142,6 +175,7 @@ export const AdminDashboard: React.FC = () => {
       <div className="p-4">{error ? <div role="alert" className="text-red-500">{error} <button className="px-2 py-0.5 text-xs liquid-btn-glass ml-2" onClick={fetchQueue}>Retry queue</button></div> :
         <PriorityQueueTable issues={issues} loading={loading} busy={!!pending} onSelectIssue={setSelected} onQuickStatusUpdate={quickAdvance} onDelete={handleDelete} />}</div>
     </section>
+    )}
     <StatusUpdateModal issue={selected} isOpen={!!selected} onClose={() => setSelected(null)} onSubmit={handleStatus}
       onReassign={handleAssign} onRecalculate={handlePriority} officers={officers} officersLoading={officersLoading}
       officersError={officersError} onRetryOfficers={fetchOfficers} pending={pending} />

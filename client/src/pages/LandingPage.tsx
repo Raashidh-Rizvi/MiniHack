@@ -13,6 +13,7 @@ import {
   MapPin,
   Clock,
   ShieldAlert,
+  Car,
 } from 'lucide-react';
 import { SriLankanLion } from '../components/common/SriLankanLion';
 import { ExecutiveDashboardPreview } from '../components/landing/ExecutiveDashboardPreview';
@@ -293,6 +294,28 @@ export const LandingPage: React.FC = () => {
               className="inline-flex items-center text-xs font-bold text-red-500 dark:text-red-400 group-hover:text-red-600 transition-colors"
             >
               <span>Explore Lighting</span>
+              <span className="ml-1 transition-transform group-hover:translate-x-1">&rarr;</span>
+            </Link>
+          </div>
+
+          {/* Sector 5: Accidents */}
+          <div className="p-6 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 hover:border-red-500/40 shadow-sm transition-all duration-300 flex flex-col justify-between h-full group">
+            <div>
+              <div className="text-red-500 mb-4 group-hover:scale-110 transition-transform duration-300">
+                <Car className="w-8 h-8" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Accidents &amp; Collisions
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                Road accident scenes, vehicle collisions, and injury hazard locations requiring urgent response.
+              </p>
+            </div>
+            <Link
+              to="/issues?category=ACCIDENT"
+              className="inline-flex items-center text-xs font-bold text-red-500 dark:text-red-400 group-hover:text-red-600 transition-colors"
+            >
+              <span>Explore Accidents</span>
               <span className="ml-1 transition-transform group-hover:translate-x-1">&rarr;</span>
             </Link>
           </div>

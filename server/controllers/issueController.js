@@ -55,14 +55,14 @@ const createIssue = handle(async (req, res) => {
         assignedOfficerName: 'Eng. Bandara',
       })).toJSON()
     : memory.createIssue(data);
-  res.status(201).json({ success: true, data: policy.publicIssue(issue) });
+  res.status(201).json({ success: true, data: policy.publicIssue(issue, req.user?.id) });
 });
 
 const getMyReports = handle(async (req, res) => {
   const data = (await store.all())
     .filter((i) => i.reportedBy === Number(req.user.id))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .map(policy.publicIssue);
+    .map((i) => policy.publicIssue(i, req.user?.id));
   res.json({ success: true, count: data.length, data });
 });
 
@@ -86,9 +86,9 @@ const supportIssue = handle(async (req, res) => {
   if (!supportedBy.includes(userId)) {
     supportedBy.push(userId);
     const updated = await store.save(issue, { supportedBy, supportCount: (issue.supportCount || 0) + 1 });
-    return res.json({ success: true, supportCount: updated.supportCount });
+    return res.json({ success: true, supportCount: updated.supportCount, userSupported: true });
   }
-  res.json({ success: true, supportCount: issue.supportCount || 0 });
+  res.json({ success: true, supportCount: issue.supportCount || 0, userSupported: true });
 });
 
 const unsupportIssue = handle(async (req, res) => {
@@ -99,9 +99,9 @@ const unsupportIssue = handle(async (req, res) => {
   if (index !== -1) {
     supportedBy.splice(index, 1);
     const updated = await store.save(issue, { supportedBy, supportCount: Math.max(0, (issue.supportCount || 1) - 1) });
-    return res.json({ success: true, supportCount: updated.supportCount });
+    return res.json({ success: true, supportCount: updated.supportCount, userSupported: false });
   }
-  res.json({ success: true, supportCount: issue.supportCount || 0 });
+  res.json({ success: true, supportCount: issue.supportCount || 0, userSupported: false });
 });
 
 const updateIssue = handle(async (req, res) => {
@@ -112,7 +112,7 @@ const updateIssue = handle(async (req, res) => {
   const changes = fields(data);
   if (!Object.keys(changes).length) throw fail(400, 'Provide editable report details.');
   Object.assign(changes, calculatePriority(changes.severity || issue.severity, changes.peopleAffected || issue.peopleAffected, null, issue.createdAt));
-  res.json({ success: true, data: policy.publicIssue(await store.save(issue, changes, data.expectedUpdatedAt)) });
+  res.json({ success: true, data: policy.publicIssue(await store.save(issue, changes, data.expectedUpdatedAt), req.user?.id) });
 });
 
 const cancelIssue = handle(async (req, res) => {
@@ -124,13 +124,17 @@ const cancelIssue = handle(async (req, res) => {
 });
 
 const getAllIssues = handle(async (req, res) => {
-  const data = policy.filterIssues(await store.all(), policy.filters(req.query)).map(policy.publicIssue);
+  const userId = req.user?.id;
+  const data = policy.filterIssues(await store.all(), policy.filters(req.query)).map((i) => policy.publicIssue(i, userId));
   if (req.query.sortBy === 'recent') data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   if (req.query.sortBy === 'support') data.sort((a, b) => b.supportCount - a.supportCount);
   res.json({ success: true, count: data.length, data });
 });
 
-const getIssueById = handle(async (req, res) => res.json({ success: true, data: policy.publicIssue(await store.get(req.params.id)) }));
+const getIssueById = handle(async (req, res) => {
+  const userId = req.user?.id;
+  res.json({ success: true, data: policy.publicIssue(await store.get(req.params.id), userId) });
+});
 
 const estimatePriority = handle(async (req, res) => {
   const data = body(req);

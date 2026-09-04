@@ -221,6 +221,7 @@ export const IssueDetailsModal: React.FC<IssueDetailsModalProps> = ({
           <SupportButton
             issueId={issue.id}
             initialCount={issue.supportCount}
+            initialIsSupported={issue.userSupported ?? false}
             onSupportToggled={(newCount) => onSupportToggled && onSupportToggled(issue.id, newCount)}
           />
 

@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Trees,
   HelpCircle,
+  Car,
   ExternalLink,
   RotateCcw,
   Zap,
@@ -38,6 +39,8 @@ const getCategoryIcon = (category: string) => {
       return <AlertTriangle className="w-3.5 h-3.5" />;
     case 'ENVIRONMENT':
       return <Trees className="w-3.5 h-3.5" />;
+    case 'ACCIDENT':
+      return <Car className="w-3.5 h-3.5" />;
     default:
       return <HelpCircle className="w-3.5 h-3.5" />;
   }

@@ -41,6 +41,7 @@ export interface Issue {
   priorityLevel: PriorityLevel;
   status: IssueStatus;
   supportCount: number;
+  userSupported?: boolean;
   reportedBy: number;
   reportedByName?: string;
   adminNotes?: string;

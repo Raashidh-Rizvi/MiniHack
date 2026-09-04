@@ -13,6 +13,7 @@ import {
   Loader2,
   Check,
   X,
+  ShieldCheck,
 } from 'lucide-react';
 import { SriLankanLion } from '../components/common/SriLankanLion';
 import { useAuth } from '../hooks/useAuth';
@@ -138,11 +139,6 @@ export const RegisterPage: React.FC = () => {
       ? 'Please enter a valid email address (e.g. name@domain.com).'
       : touched.email && !isEmailVerified
       ? 'Email address must be verified via OTP to register.'
-      : null;
-
-  const phoneError =
-    touched.phone && phone.trim() && !isPhoneValid
-      ? 'Please enter a valid contact number (optional).'
       : null;
 
   const areaError =
@@ -404,94 +400,6 @@ export const RegisterPage: React.FC = () => {
                 {fullNameError && <p className="text-xs text-red-500 font-medium mt-1">{fullNameError}</p>}
               </div>
 
-              {/* Email */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label
-                    htmlFor="reg-email"
-                    className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider"
-                  >
-                    Email Address <span className="text-red-500">*</span>
-                  </label>
-                  {isEmailVerified ? (
-                    <span className="inline-flex items-center space-x-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                      <Check className="w-3 h-3 stroke-[3]" />
-                      <span>Email Verified</span>
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-semibold text-amber-500 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-                      Verification Required
-                    </span>
-                  )}
-                </div>
-                <div className="relative flex items-center">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <input
-                    id="reg-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => handleEmailChange(e.target.value)}
-                    onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
-                    placeholder="e.g. kasun@example.lk"
-                    disabled={isEmailVerified}
-                    className={`w-full pl-10 pr-24 py-3 rounded-xl text-sm transition-all duration-200 bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border ${
-                      emailError
-                        ? 'border-red-500 focus:ring-2 focus:ring-red-500/20'
-                        : isEmailVerified
-                        ? 'border-emerald-500 bg-emerald-500/5 focus:ring-2 focus:ring-emerald-500/20'
-                        : 'border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                    } outline-none`}
-                  />
-                  <div className="absolute inset-y-0 right-1.5 flex items-center">
-                    {isEmailVerified ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsEmailVerified(false);
-                          setVerificationToken(null);
-                          setVerifiedEmail(null);
-                          setSimulatedEmailOtp(null);
-                        }}
-                        className="text-xs text-slate-400 hover:text-red-500 px-2.5 py-1 rounded-lg hover:bg-red-500/10 transition-colors font-medium cursor-pointer"
-                      >
-                        Change
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        id="reg-send-otp-btn"
-                        disabled={isSendingOtp || !isEmailValid}
-                        onClick={() => handleSendEmailOtp()}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold liquid-btn-crimson flex items-center space-x-1 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm"
-                      >
-                        {isSendingOtp ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <>
-                            <Mail className="w-3.5 h-3.5" />
-                            <span>Get OTP</span>
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {emailError ? (
-                  <p className="text-xs text-red-500 font-medium mt-1">{emailError}</p>
-                ) : (
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    We'll send a 6-digit verification OTP code to your email. Verification is mandatory.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Step 2b: Phone & Community Area */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Mobile Phone Number */}
-              <div className="space-y-1.5">
               {/* Community Area / Ward */}
               <div className="space-y-1.5">
                 <label

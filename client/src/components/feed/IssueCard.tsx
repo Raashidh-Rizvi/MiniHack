@@ -87,6 +87,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({ issue, onSelect, onSupport
             <SupportButton
               issueId={issue.id}
               initialCount={issue.supportCount}
+              initialIsSupported={issue.userSupported ?? false}
               compact
               onSupportToggled={(newCount) => onSupportToggled && onSupportToggled(issue.id, newCount)}
             />

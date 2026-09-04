@@ -13,6 +13,7 @@ import {
   Droplet,
   Trash2,
   Lightbulb,
+  Car,
   ShieldCheck,
   TrendingUp,
   Activity,
@@ -329,6 +330,12 @@ export const HomePage: React.FC = () => {
               title: 'Environmental Risks',
               desc: 'Fallen roadside trees, soil movement, and dengue mosquito breeding zones.',
               cat: 'ENVIRONMENT',
+            },
+            {
+              icon: <Car className="w-7 h-7" />,
+              title: 'Accidents & Collisions',
+              desc: 'Road accident scenes, vehicle collisions, and injury hazard locations.',
+              cat: 'ACCIDENT',
             },
           ].map((item, idx) => (
             <div

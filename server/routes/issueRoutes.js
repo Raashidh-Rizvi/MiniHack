@@ -12,11 +12,11 @@ const {
   getIssueById,
   estimatePriority,
 } = require('../controllers/issueController');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireRole, optionalAuth } = require('../middleware/auth');
 const citizen = [requireAuth, requireRole('CITIZEN')];
 
 // Citizen CRUD routes (Member 1)
-router.route('/').get(getAllIssues).post(...citizen, createIssue);
+router.route('/').get(optionalAuth, getAllIssues).post(...citizen, createIssue);
 
 // Dynamic Priority Engine Estimation (Deterministic live preview)
 router.post('/calculate-priority', estimatePriority);
@@ -26,6 +26,6 @@ router.route('/my-stats').get(...citizen, getCitizenStats);
 
 router.route('/:id/support').post(...citizen, supportIssue).delete(...citizen, unsupportIssue);
 
-router.route('/:id').get(getIssueById).put(...citizen, updateIssue).delete(...citizen, cancelIssue);
+router.route('/:id').get(optionalAuth, getIssueById).put(...citizen, updateIssue).delete(...citizen, cancelIssue);
 
 module.exports = router;

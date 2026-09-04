@@ -39,43 +39,21 @@ export const feedService = {
     return response.data.data;
   },
 
-  // Support / Upvote operations — track locally per session
-  getUserSupportedIssueIds(userId: number): number[] {
-    try {
-      const raw = sessionStorage.getItem(`gramafix_supports_${userId}`);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  },
-
-  hasUserSupported(issueId: number, userId: number): boolean {
-    return this.getUserSupportedIssueIds(userId).includes(issueId);
-  },
-
-  // CREATE / DELETE Support (Toggle upvote)
+  // CREATE / DELETE Support (Toggle upvote) — server is the source of truth
   async toggleSupport(
     issueId: number,
-    userId: number = 1
+    isCurrentlySupported: boolean
   ): Promise<{ supported: boolean; supportCount: number }> {
-    const isCurrentlySupported = this.hasUserSupported(issueId, userId);
-    const key = `gramafix_supports_${userId}`;
-
     if (isCurrentlySupported) {
-      const response = await apiClient.delete<{ success: boolean; supportCount: number }>(
+      const response = await apiClient.delete<{ success: boolean; supportCount: number; userSupported: boolean }>(
         `/issues/${issueId}/support`
       );
-      const supported = this.getUserSupportedIssueIds(userId).filter((id) => id !== issueId);
-      sessionStorage.setItem(key, JSON.stringify(supported));
       return { supported: false, supportCount: response.data.supportCount };
     } else {
-      const response = await apiClient.post<{ success: boolean; supportCount: number }>(
+      const response = await apiClient.post<{ success: boolean; supportCount: number; userSupported: boolean }>(
         `/issues/${issueId}/support`,
         {}
       );
-      const supported = this.getUserSupportedIssueIds(userId);
-      if (!supported.includes(issueId)) supported.push(issueId);
-      sessionStorage.setItem(key, JSON.stringify(supported));
       return { supported: true, supportCount: response.data.supportCount };
     }
   },

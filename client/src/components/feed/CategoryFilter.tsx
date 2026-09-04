@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Trees,
   HelpCircle,
+  Car,
 } from 'lucide-react';
 
 interface CategoryFilterProps {
@@ -27,6 +28,7 @@ const CATEGORY_ITEMS: { code: CategoryType | 'ALL'; label: string; icon: React.F
   { code: 'STREETLIGHT', label: 'Street Lighting', icon: Lightbulb },
   { code: 'TRAFFIC', label: 'Traffic & Safety', icon: AlertTriangle },
   { code: 'ENVIRONMENT', label: 'Environment', icon: Trees },
+  { code: 'ACCIDENT', label: 'Accidents', icon: Car },
   { code: 'OTHER', label: 'Other', icon: HelpCircle },
 ];
 

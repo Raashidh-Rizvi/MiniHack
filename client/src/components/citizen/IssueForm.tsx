@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Trees,
   HelpCircle,
+  Car,
   MapPin,
   Users,
   Send,
@@ -43,6 +44,7 @@ const CATEGORIES: { code: CategoryType; label: string; icon: React.FC<{ classNam
   { code: 'STREETLIGHT', label: 'Streetlights', icon: Lightbulb },
   { code: 'TRAFFIC', label: 'Traffic & Safety', icon: AlertTriangle },
   { code: 'ENVIRONMENT', label: 'Environment', icon: Trees },
+  { code: 'ACCIDENT', label: 'Accidents', icon: Car },
   { code: 'OTHER', label: 'Other Civic', icon: HelpCircle },
 ];
 

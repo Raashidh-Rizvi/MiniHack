@@ -19,8 +19,22 @@ const requireRole = (...roles) => (req, res, next) => {
   next();
 };
 
+async function optionalAuth(req, res, next) {
+  try {
+    const match = /^Bearer ([a-f0-9]{64})$/.exec(req.get('authorization') || '');
+    req.token = match?.[1];
+    if (req.token) {
+      req.user = await sessions.resolve(req.token);
+    }
+  } catch {
+    // Non-blocking — unauthenticated requests still proceed
+  }
+  next();
+}
+
 module.exports = {
   requireAuth,
   requireRole,
+  optionalAuth,
   extractUser: requireAuth,
 };

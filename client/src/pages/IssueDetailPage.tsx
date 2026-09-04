@@ -310,6 +310,7 @@ export const IssueDetailPage: React.FC = () => {
           <SupportButton
             issueId={issue.id}
             initialCount={issue.supportCount}
+            initialIsSupported={issue.userSupported ?? false}
             onSupportToggled={(newCount) => setIssue((prev) => (prev ? { ...prev, supportCount: newCount } : null))}
           />
         </div>

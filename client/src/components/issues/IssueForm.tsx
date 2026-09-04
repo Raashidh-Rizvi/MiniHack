@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Trees,
   HelpCircle,
+  Car,
   Send,
   Loader2,
 } from 'lucide-react';
@@ -32,6 +33,7 @@ const CATEGORIES: { code: CategoryType; label: string; icon: React.ReactNode; de
   { code: 'STREETLIGHT', label: 'Street Lighting', icon: <Lightbulb className="w-4 h-4" />, desc: 'Broken bulbs, dark roads' },
   { code: 'TRAFFIC', label: 'Traffic & Safety', icon: <AlertTriangle className="w-4 h-4" />, desc: 'Blind turns, hazards' },
   { code: 'ENVIRONMENT', label: 'Environment', icon: <Trees className="w-4 h-4" />, desc: 'Fallen trees, erosion' },
+  { code: 'ACCIDENT', label: 'Accidents', icon: <Car className="w-4 h-4" />, desc: 'Collisions, injury scenes' },
   { code: 'OTHER', label: 'Other Concerns', icon: <HelpCircle className="w-4 h-4" />, desc: 'General municipal issues' },
 ];
 

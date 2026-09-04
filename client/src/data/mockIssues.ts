@@ -32,6 +32,7 @@ export const MOCK_CATEGORIES: Category[] = [
   { id: 'STREETLIGHT', code: 'STREETLIGHT', name: 'Street Lighting', description: 'Faulty lamps, dark pedestrian lanes', iconName: 'Lightbulb' },
   { id: 'TRAFFIC', code: 'TRAFFIC', name: 'Traffic & Safety', description: 'Blind turns, damaged signs, speeding hazards', iconName: 'AlertTriangle' },
   { id: 'ENVIRONMENT', code: 'ENVIRONMENT', name: 'Environmental Hazards', description: 'Fallen trees, soil erosion, pest hazards', iconName: 'Trees' },
+  { id: 'ACCIDENT', code: 'ACCIDENT', name: 'Accidents & Collisions', description: 'Road accidents, vehicle collisions, injury scenes', iconName: 'Car' },
   { id: 'OTHER', code: 'OTHER', name: 'Other Civic Issues', description: 'General neighborhood concerns', iconName: 'HelpCircle' },
 ];
 

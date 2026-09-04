@@ -200,6 +200,14 @@ export function getRelevantEmergencyContacts(category?: string, severity?: strin
     ].filter(Boolean);
   }
 
+  if (category === 'ACCIDENT') {
+    return [
+      contacts.find((c) => c.id === 'suwa-seriya')!,
+      contacts.find((c) => c.id === 'police')!,
+      contacts.find((c) => c.id === 'colombo-nh-accident')!,
+    ].filter(Boolean);
+  }
+
   if (severity === 'CRITICAL') {
     return [
       contacts.find((c) => c.id === 'police')!,
