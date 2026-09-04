@@ -6,6 +6,7 @@ const {
   updateIssueStatus,
   moderateDeleteIssue,
   recalculatePriority,
+  reassignOfficer,
 } = require('../controllers/adminController');
 
 // Admin Priority Engine Routes (Member 3)
@@ -23,5 +24,8 @@ router.patch('/issues/:id/priority', recalculatePriority);
 
 // DELETE /api/admin/issues/:id  — Admin moderation deletion
 router.delete('/issues/:id', moderateDeleteIssue);
+
+// PUT /api/admin/issues/:id/assign — Reassign issue to a different officer
+router.put('/issues/:id/assign', reassignOfficer);
 
 module.exports = router;

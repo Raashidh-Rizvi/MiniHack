@@ -81,6 +81,8 @@ export const IssueDetailPage: React.FC = () => {
     UNDER_REVIEW: 1,
     IN_PROGRESS: 2,
     RESOLVED: 3,
+    DUPLICATE: -1,
+    REJECTED: -1,
   };
   const currentStep = statusOrder[issue.status] ?? 0;
 

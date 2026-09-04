@@ -67,3 +67,13 @@ export async function recalculatePriority(
   const res = await api.patch(`/admin/issues/${issueId}/priority`);
   return res.data.data;
 }
+
+/** PUT /api/admin/issues/:id/assign — Reassign issue to a different officer */
+export async function reassignOfficer(
+  issueId: number,
+  officerId: number,
+  officerName: string
+): Promise<Issue> {
+  const res = await api.put(`/admin/issues/${issueId}/assign`, { officerId, officerName });
+  return res.data.data;
+}

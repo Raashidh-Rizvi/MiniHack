@@ -15,7 +15,7 @@ const getDemoUsers = async (req, res, next) => {
     if (getIsConnected()) {
       let users = await User.find().select('-password');
       if (users.length === 0) {
-        // Seed initial demo users
+        // Seed initial demo users — use create() so pre-validate hooks run
         const demoData = memoryStore.getDemoUsers().map((u) => ({
           numericId: u.numericId || u.id,
           fullName: u.fullName,
@@ -24,7 +24,17 @@ const getDemoUsers = async (req, res, next) => {
           communityArea: u.communityArea,
           password: u.password,
         }));
-        users = await User.insertMany(demoData);
+        const created = [];
+        for (const data of demoData) {
+          try {
+            const doc = await User.create(data);
+            created.push(doc);
+          } catch (e) {
+            // Skip duplicates (e.g. user already seeded)
+            if (e.code !== 11000) throw e;
+          }
+        }
+        users = created.length > 0 ? created : await User.find().select('-password');
       }
       return res.status(200).json({
         success: true,

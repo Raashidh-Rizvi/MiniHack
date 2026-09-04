@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   ChevronUp, ChevronDown, MapPin, Users, Trash2, Eye, ArrowRight,
-  AlertTriangle, Search,
+  Search,
 } from 'lucide-react';
 import { Issue } from '../../types/issue';
 import { PriorityBadge } from '../issues/PriorityBadge';

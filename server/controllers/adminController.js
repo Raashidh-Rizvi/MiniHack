@@ -231,10 +231,60 @@ const recalculatePriority = async (req, res, next) => {
   }
 };
 
+// @desc    Reassign an issue to a different officer (Admin)
+// @route   PUT /api/admin/issues/:id/assign
+// @access  Admin
+const reassignOfficer = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { officerId, officerName } = req.body;
+
+    if (!officerId || !officerName) {
+      return res.status(400).json({ success: false, message: 'officerId and officerName are required.' });
+    }
+
+    if (getIsConnected()) {
+      const issue = await Issue.findOne({
+        $or: [
+          { numericId: isNaN(id) ? null : Number(id) },
+          { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
+        ],
+      });
+
+      if (!issue) {
+        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
+      }
+
+      issue.assignedOfficer = Number(officerId);
+      issue.assignedOfficerName = officerName;
+      await issue.save();
+
+      return res.status(200).json({
+        success: true,
+        message: `Issue reassigned to ${officerName} successfully`,
+        data: issue,
+      });
+    } else {
+      const updated = memoryStore.reassignOfficer(id, officerId, officerName);
+      if (!updated) {
+        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
+      }
+      return res.status(200).json({
+        success: true,
+        message: `Issue reassigned to ${officerName} successfully`,
+        data: updated,
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAdminStats,
   getPriorityQueue,
   updateIssueStatus,
   moderateDeleteIssue,
   recalculatePriority,
+  reassignOfficer,
 };

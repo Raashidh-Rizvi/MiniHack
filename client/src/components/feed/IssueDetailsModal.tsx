@@ -46,6 +46,8 @@ export const IssueDetailsModal: React.FC<IssueDetailsModalProps> = ({
     UNDER_REVIEW: 1,
     IN_PROGRESS: 2,
     RESOLVED: 3,
+    DUPLICATE: -1,
+    REJECTED: -1,
   };
   const currentStep = statusOrder[issue.status] ?? 0;
 
