@@ -9,7 +9,7 @@
     "client": "npm --prefix client run dev",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "npm --prefix client install && npm --prefix client run build",
-    "vercel-build": "npm --prefix client install && npm --prefix client run build"
+    "vercel-build": "npm --prefix server install && npm --prefix client install && npm --prefix client run build"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -17,7 +17,8 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.9.5",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "nodemailer": "^10.0.0"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
