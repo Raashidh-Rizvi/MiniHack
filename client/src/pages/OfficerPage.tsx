@@ -217,7 +217,7 @@ const StatCard: React.FC<StatCardProps> = ({ id, title, value, icon: Icon, color
 
 export const OfficerPage: React.FC = () => {
   const { currentUser } = useAuth();
-  const officerId = currentUser.id || 2;
+  // Phase 4: officerId no longer sent to API — the backend reads it from the JWT token.
 
   const [stats, setStats] = useState<OfficerStats>({
     totalIssues: 0, openIssues: 0, inProgressIssues: 0, resolvedIssues: 0, criticalIssues: 0,
@@ -240,20 +240,22 @@ export const OfficerPage: React.FC = () => {
   const fetchStats = useCallback(async () => {
     try {
       setStatsLoading(true);
-      const data = await getOfficerStats(officerId);
+      // Phase 4: No officerId passed — backend identifies officer via JWT token
+      const data = await getOfficerStats();
       setStats(data);
     } catch {
-      // non-fatal
+      // non-fatal — stats failure should not block the queue
     } finally {
       setStatsLoading(false);
     }
-  }, [officerId]);
+  }, []);
 
   const fetchQueue = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getOfficerQueue(officerId, {
+      // Phase 4: No officerId passed — backend identifies officer via JWT token
+      const data = await getOfficerQueue({
         search: search || undefined,
         status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
       });
@@ -263,7 +265,7 @@ export const OfficerPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [officerId, search, selectedStatus]);
+  }, [search, selectedStatus]);
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
   useEffect(() => {
@@ -274,15 +276,19 @@ export const OfficerPage: React.FC = () => {
   const handleStatusUpdate = async (issueId: number, payload: OfficerStatusPayload) => {
     try {
       setIsSubmitting(true);
-      const updated = await officerUpdateStatus(issueId, { ...payload, officerId });
+      // Phase 4: No officerId in payload — backend enforces ownership via JWT token
+      const updated = await officerUpdateStatus(issueId, payload);
       setIssues((prev) => prev.map((i) => (i.id === issueId ? updated : i)));
       setModalOpen(false);
       setSelectedIssue(null);
       setSuccessMsg(`Issue #${issueId} updated to ${payload.newStatus.replace('_', ' ')} ✓`);
       setTimeout(() => setSuccessMsg(''), 4000);
       fetchStats();
-    } catch {
-      alert('Failed to update issue status. Please try again.');
+    } catch (err: any) {
+      // Phase 4: Use setError() for proper UI display instead of browser alert()
+      const msg = err?.response?.data?.message || 'Failed to update issue status. Please try again.';
+      setError(msg);
+      setTimeout(() => setError(null), 6000);
     } finally {
       setIsSubmitting(false);
     }

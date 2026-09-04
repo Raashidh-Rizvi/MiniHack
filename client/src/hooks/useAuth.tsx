@@ -1,7 +1,30 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '../types/issue';
-import { MOCK_USERS } from '../data/mockIssues';
 import { authService, LoginCredentials, RegisterData } from '../services/authService';
+
+export const SYSTEM_USERS: User[] = [
+  {
+    id: 1,
+    fullName: 'Kasun Perera',
+    email: 'kasun.citizen@gramafix.lk',
+    role: 'CITIZEN',
+    communityArea: 'Matale Town',
+  },
+  {
+    id: 2,
+    fullName: 'Eng. Bandara',
+    email: 'officer.bandara@gramafix.lk',
+    role: 'OFFICER',
+    communityArea: 'Matale Municipal Council',
+  },
+  {
+    id: 3,
+    fullName: 'Dr. Priyantha',
+    email: 'admin.priyantha@gramafix.lk',
+    role: 'ADMIN',
+    communityArea: 'Central Administration',
+  },
+];
 
 interface AuthResult {
   success: boolean;
@@ -27,9 +50,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User>(() => {
     try {
       const saved = localStorage.getItem('gramafix_user');
-      return saved ? JSON.parse(saved) : MOCK_USERS[0];
+      return saved ? JSON.parse(saved) : SYSTEM_USERS[0];
     } catch {
-      return MOCK_USERS[0];
+      return SYSTEM_USERS[0];
     }
   });
 
@@ -99,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('gramafix_auth', 'false');
     setIsAuthenticated(false);
     // Reset to default resident for seamless browsing
-    setCurrentUser(MOCK_USERS[0]);
+    setCurrentUser(SYSTEM_USERS[0]);
   };
 
   /**
@@ -107,9 +130,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    */
   const switchRole = (newRole: UserRole) => {
     const normalizedRole = newRole === 'RESIDENT' ? 'CITIZEN' : newRole;
-    const targetUser = MOCK_USERS.find(
+    const targetUser = SYSTEM_USERS.find(
       (u) => u.role === normalizedRole || (normalizedRole === 'CITIZEN' && u.role === 'RESIDENT')
-    ) || MOCK_USERS[0];
+    ) || SYSTEM_USERS[0];
     setCurrentUser(targetUser);
     setIsAuthenticated(true);
   };

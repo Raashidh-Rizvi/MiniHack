@@ -3,12 +3,23 @@ const memoryStore = require('../models/memoryStore');
 const { getIsConnected } = require('../config/db');
 const { calculatePriority } = require('../utils/priorityCalculator');
 
+// Phase 3: Defines the only allowed status transitions for officers.
+// An officer CANNOT skip a step. Example: REPORTED → IN_PROGRESS is forbidden.
+const ALLOWED_TRANSITIONS = {
+  REPORTED:     ['UNDER_REVIEW'],
+  UNDER_REVIEW: ['IN_PROGRESS'],
+  IN_PROGRESS:  ['RESOLVED'],
+  RESOLVED:     [], // Final state — no further changes allowed
+};
+
 // @desc    Get issues assigned to this officer
-// @route   GET /api/officer/queue?officerId=X
-// @access  Officer
+// @route   GET /api/officer/queue
+// @access  Officer (JWT required)
 const getMyQueue = async (req, res, next) => {
   try {
-    const officerId = Number(req.query.officerId) || 2;
+    // Phase 2: Read officer identity from the verified JWT token, NOT from the request query.
+    // This prevents any officer from viewing another officer's queue by changing the URL.
+    const officerId = Number(req.user.id);
     const { status, priorityLevel, category, search } = req.query;
 
     if (getIsConnected()) {
@@ -35,11 +46,13 @@ const getMyQueue = async (req, res, next) => {
 };
 
 // @desc    Get officer dashboard stats
-// @route   GET /api/officer/stats?officerId=X
-// @access  Officer
+// @route   GET /api/officer/stats
+// @access  Officer (JWT required)
 const getOfficerStats = async (req, res, next) => {
   try {
-    const officerId = Number(req.query.officerId) || 2;
+    // Phase 2: Read officer identity from the verified JWT token, NOT from the request query.
+    // This ensures stats always belong to the officer who is logged in.
+    const officerId = Number(req.user.id);
 
     if (getIsConnected()) {
       const total = await Issue.countDocuments({ assignedOfficer: officerId });
@@ -62,11 +75,16 @@ const getOfficerStats = async (req, res, next) => {
 
 // @desc    Officer updates status of an assigned issue
 // @route   PUT /api/officer/issues/:id/status
-// @access  Officer
+// @access  Officer (JWT required)
 const officerUpdateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { newStatus, fieldNotes, officerId } = req.body;
+    const { newStatus, fieldNotes } = req.body;
+
+    // Phase 2: Read officer identity from the verified JWT token.
+    // The officerId from the request body is IGNORED — this prevents an officer
+    // from sending a fake officerId to update another officer's issue.
+    const officerId = Number(req.user.id);
 
     const validStatuses = ['UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED'];
     if (!newStatus || !validStatuses.includes(newStatus.toUpperCase())) {
@@ -82,13 +100,32 @@ const officerUpdateStatus = async (req, res, next) => {
           { numericId: isNaN(id) ? null : Number(id) },
           { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
         ],
+        // Phase 2: Assignment check is now MANDATORY — always scope to the logged-in officer.
+        // If this issue belongs to a different officer, findOne returns null → 403 below.
+        assignedOfficer: officerId,
       };
-      // Optionally scope to officer
-      if (officerId) query.assignedOfficer = Number(officerId);
 
       const issue = await Issue.findOne(query);
       if (!issue) {
-        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
+        // Issue either does not exist OR belongs to a different officer — both return 403
+        // to avoid leaking information about other officers' issues.
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. This issue is not assigned to you or does not exist.',
+        });
+      }
+
+      // Phase 3: Validate that the requested status follows the correct sequence.
+      // This is enforced on the SERVER so the client cannot bypass it.
+      const currentStatus = issue.status;
+      const allowedNext = ALLOWED_TRANSITIONS[currentStatus] || [];
+      if (!allowedNext.includes(newStatus.toUpperCase())) {
+        return res.status(400).json({
+          success: false,
+          message: allowedNext.length === 0
+            ? `Issue is already in its final state (${currentStatus}). No further updates are allowed.`
+            : `Invalid transition: cannot move from ${currentStatus} to ${newStatus.toUpperCase()}. Allowed next step: ${allowedNext.join(', ')}.`,
+        });
       }
 
       issue.status = newStatus.toUpperCase();
@@ -101,6 +138,29 @@ const officerUpdateStatus = async (req, res, next) => {
         data: issue,
       });
     } else {
+      // Memory-store path: verify assignment before updating
+      const existing = memoryStore.getAssignedIssues(officerId, {}).find(
+        (i) => String(i.id) === String(id) || String(i.numericId) === String(id)
+      );
+      if (!existing) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. This issue is not assigned to you or does not exist.',
+        });
+      }
+
+      // Phase 3: Validate transition for memory-store path as well.
+      const currentStatus = existing.status;
+      const allowedNext = ALLOWED_TRANSITIONS[currentStatus] || [];
+      if (!allowedNext.includes(newStatus.toUpperCase())) {
+        return res.status(400).json({
+          success: false,
+          message: allowedNext.length === 0
+            ? `Issue is already in its final state (${currentStatus}). No further updates are allowed.`
+            : `Invalid transition: cannot move from ${currentStatus} to ${newStatus.toUpperCase()}. Allowed next step: ${allowedNext.join(', ')}.`,
+        });
+      }
+
       const updated = memoryStore.updateIssueStatus(id, { newStatus, adminNotes: fieldNotes });
       if (!updated) {
         return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
