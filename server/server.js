@@ -60,7 +60,7 @@ app.get('/api/health', (req, res) => {
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 GramaFix Server listening on port ${PORT}`);
   console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
   console.log(`📝 Citizen Intake API: http://localhost:${PORT}/api/issues`);
@@ -68,4 +68,18 @@ app.listen(PORT, () => {
   console.log(`👷 Officer Portal API: http://localhost:${PORT}/api/officer/queue`);
 });
 
+// Graceful shutdown — lets nodemon cleanly release port 5000 before restart
+const shutdown = (signal) => {
+  console.log(`\n[${signal}] Closing server...`);
+  server.close(() => process.exit(0));
+};
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+// nodemon sends SIGUSR2 on restart (only on Unix; on Windows it uses process kill)
+process.once('SIGUSR2', () => {
+  server.close(() => process.kill(process.pid, 'SIGUSR2'));
+});
+
 module.exports = app;
+
