@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { requireAuth, requireRole } = require('../middleware/auth');
+router.use(requireAuth, requireRole('ADMIN'));
 const {
   getAdminStats,
   getPriorityQueue,
@@ -7,6 +9,7 @@ const {
   moderateDeleteIssue,
   recalculatePriority,
   reassignOfficer,
+  getHistory,
 } = require('../controllers/adminController');
 
 // Admin Priority Engine Routes (Member 3)
@@ -15,6 +18,7 @@ router.get('/stats', getAdminStats);
 
 // GET  /api/admin/queue        — Community Priority Queue (ranked by score descending)
 router.get('/queue', getPriorityQueue);
+router.get('/issues/:id/history', getHistory);
 
 // PUT  /api/admin/issues/:id/status   — Status lifecycle transition + optional severity adjustment
 router.put('/issues/:id/status', updateIssueStatus);

@@ -1,290 +1,61 @@
-const Issue = require('../models/Issue');
-const memoryStore = require('../models/memoryStore');
-const { getIsConnected } = require('../config/db');
+const { randomUUID } = require('node:crypto');
+const store = require('../services/issueStore');
+const policy = require('../services/issuePolicy');
+const users = require('../services/users');
 const { calculatePriority } = require('../utils/priorityCalculator');
-
-// @desc    Get admin dashboard statistics (Member 3 - READ Stats)
-// @route   GET /api/admin/stats
-// @access  Admin
-const getAdminStats = async (req, res, next) => {
-  try {
-    if (getIsConnected()) {
-      const total = await Issue.countDocuments();
-      const open = await Issue.countDocuments({ status: { $in: ['REPORTED', 'UNDER_REVIEW'] } });
-      const inProgress = await Issue.countDocuments({ status: 'IN_PROGRESS' });
-      const critical = await Issue.countDocuments({ priorityLevel: 'CRITICAL' });
-      const resolved = await Issue.countDocuments({ status: 'RESOLVED' });
-
-      return res.status(200).json({
-        success: true,
-        data: {
-          totalIssues: total,
-          openIssues: open,
-          inProgressIssues: inProgress,
-          criticalIssues: critical,
-          resolvedIssues: resolved,
-        },
-      });
-    } else {
-      const stats = memoryStore.getAdminStats();
-      return res.status(200).json({ success: true, data: stats });
-    }
-  } catch (error) {
-    next(error);
+const { fail, handle, body } = require('../utils/http');
+function stats(issues) {
+  return { totalIssues: issues.length, openIssues: issues.filter(i => ['REPORTED', 'UNDER_REVIEW'].includes(i.status)).length,
+    inProgressIssues: issues.filter(i => i.status === 'IN_PROGRESS').length, criticalIssues: issues.filter(i => i.priorityLevel === 'CRITICAL').length,
+    resolvedIssues: issues.filter(i => i.status === 'RESOLVED').length };
+}
+function event(req, type, issue, changes, note) {
+  const before = {}; const after = {};
+  for (const [key, value] of Object.entries(changes)) if (issue[key] !== value) { before[key] = issue[key] ?? null; after[key] = value; }
+  if (!Object.keys(after).length) return undefined;
+  return { id: randomUUID(), type, timestamp: new Date().toISOString(), actorId: req.user.id, actorName: req.user.fullName, actorRole: req.user.role, before, after, note };
+}
+const getAdminStats = handle(async (req, res) => res.json({ success: true, data: stats(await store.all()) }));
+const getPriorityQueue = handle(async (req, res) => {
+  const data = policy.filterIssues(await store.all(), policy.filters(req.query)).map(({ adminHistory, ...issue }) => issue);
+  res.json({ success: true, count: data.length, data });
+});
+const updateIssueStatus = handle(async (req, res) => {
+  const data = body(req); const issue = await store.get(req.params.id); store.expected(issue, data.expectedUpdatedAt);
+  const changes = {};
+  if (data.newStatus !== undefined) { changes.status = policy.enumValue(data.newStatus, policy.statuses, 'status'); policy.checkTransition(issue, changes.status); }
+  if (data.adminNotes !== undefined) changes.adminNotes = policy.note(data.adminNotes, 'Admin notes');
+  if (data.adjustedSeverity !== undefined) {
+    changes.severity = policy.enumValue(data.adjustedSeverity, policy.severities, 'severity');
+    policy.active(issue);
+    Object.assign(changes, calculatePriority(changes.severity, issue.peopleAffected, null, issue.createdAt));
   }
-};
-
-// @desc    Get priority-ranked queue for admin (Member 3 - READ Priority Queue)
-// @route   GET /api/admin/queue
-// @access  Admin
-const getPriorityQueue = async (req, res, next) => {
-  try {
-    const { status, priorityLevel, category, search } = req.query;
-
-    if (getIsConnected()) {
-      const query = {};
-      if (status && status !== 'ALL') query.status = status.toUpperCase();
-      if (priorityLevel && priorityLevel !== 'ALL') query.priorityLevel = priorityLevel.toUpperCase();
-      if (category && category !== 'ALL') query.category = category.toUpperCase();
-      if (search) {
-        query.$or = [
-          { title: { $regex: search, $options: 'i' } },
-          { location: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-        ];
-      }
-
-      const issues = await Issue.find(query).sort({ priorityScore: -1, createdAt: 1 });
-      return res.status(200).json({ success: true, count: issues.length, data: issues });
-    } else {
-      const issues = memoryStore.getPriorityQueue({ status, priorityLevel, category, search });
-      return res.status(200).json({ success: true, count: issues.length, data: issues });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Update issue status (Member 3 - UPDATE Status)
-// @route   PUT /api/admin/issues/:id/status
-// @access  Admin
-const updateIssueStatus = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { newStatus, adminNotes, adjustedSeverity } = req.body;
-
-    const validStatuses = ['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'DUPLICATE', 'REJECTED'];
-    if (!newStatus || !validStatuses.includes(newStatus.toUpperCase())) {
-      return res.status(400).json({
-        success: false,
-        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
-      });
-    }
-
-    if (getIsConnected()) {
-      const issue = await Issue.findOne({
-        $or: [
-          { numericId: isNaN(id) ? null : Number(id) },
-          { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
-        ],
-      });
-
-      if (!issue) {
-        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
-      }
-
-      issue.status = newStatus.toUpperCase();
-      if (adminNotes !== undefined) issue.adminNotes = adminNotes;
-
-      // Admin can adjust severity, triggering priority recalculation
-      if (adjustedSeverity) {
-        issue.severity = adjustedSeverity.toUpperCase();
-        const { priorityScore, priorityLevel } = calculatePriority(
-          issue.severity,
-          issue.peopleAffected,
-          null,
-          issue.createdAt
-        );
-        issue.priorityScore = priorityScore;
-        issue.priorityLevel = priorityLevel;
-      }
-
-      await issue.save();
-
-      return res.status(200).json({
-        success: true,
-        message: `Issue status updated to ${newStatus.toUpperCase()} successfully`,
-        data: issue,
-      });
-    } else {
-      const updated = memoryStore.updateIssueStatus(id, { newStatus, adminNotes, adjustedSeverity });
-      if (!updated) {
-        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: `Issue status updated to ${newStatus.toUpperCase()} successfully`,
-        data: updated,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Admin moderation - delete/remove issue (Member 3 - DELETE Moderation)
-// @route   DELETE /api/admin/issues/:id
-// @access  Admin
-const moderateDeleteIssue = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    if (getIsConnected()) {
-      const issue = await Issue.findOneAndDelete({
-        $or: [
-          { numericId: isNaN(id) ? null : Number(id) },
-          { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
-        ],
-      });
-
-      if (!issue) {
-        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: 'Issue removed from platform by administrator',
-      });
-    } else {
-      const deleted = memoryStore.deleteIssue(id);
-      if (!deleted) {
-        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: 'Issue removed from platform by administrator',
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Recalculate priority score for a specific issue
-// @route   PATCH /api/admin/issues/:id/priority
-// @access  Admin
-const recalculatePriority = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    if (getIsConnected()) {
-      const issue = await Issue.findOne({
-        $or: [
-          { numericId: isNaN(id) ? null : Number(id) },
-          { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
-        ],
-      });
-
-      if (!issue) {
-        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
-      }
-
-      const { priorityScore, priorityLevel } = calculatePriority(
-        issue.severity,
-        issue.peopleAffected,
-        null,
-        issue.createdAt
-      );
-      issue.priorityScore = priorityScore;
-      issue.priorityLevel = priorityLevel;
-      await issue.save();
-
-      return res.status(200).json({
-        success: true,
-        message: 'Priority score recalculated',
-        data: { priorityScore, priorityLevel },
-      });
-    } else {
-      const issue = memoryStore.getIssueById(id);
-      if (!issue) {
-        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
-      }
-
-      const { priorityScore, priorityLevel } = calculatePriority(
-        issue.severity,
-        issue.peopleAffected,
-        null,
-        issue.createdAt
-      );
-      memoryStore.updateIssue(id, { priorityScore, priorityLevel });
-
-      return res.status(200).json({
-        success: true,
-        message: 'Priority score recalculated',
-        data: { priorityScore, priorityLevel },
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Reassign an issue to a different officer (Admin)
-// @route   PUT /api/admin/issues/:id/assign
-// @access  Admin
-const reassignOfficer = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { officerId, officerName } = req.body;
-
-    if (!officerId || !officerName) {
-      return res.status(400).json({ success: false, message: 'officerId and officerName are required.' });
-    }
-
-    if (getIsConnected()) {
-      const issue = await Issue.findOne({
-        $or: [
-          { numericId: isNaN(id) ? null : Number(id) },
-          { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
-        ],
-      });
-
-      if (!issue) {
-        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
-      }
-
-      issue.assignedOfficer = Number(officerId);
-      issue.assignedOfficerName = officerName;
-      await issue.save();
-
-      return res.status(200).json({
-        success: true,
-        message: `Issue reassigned to ${officerName} successfully`,
-        data: issue,
-      });
-    } else {
-      const updated = memoryStore.reassignOfficer(id, officerId, officerName);
-      if (!updated) {
-        return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
-      }
-      return res.status(200).json({
-        success: true,
-        message: `Issue reassigned to ${officerName} successfully`,
-        data: updated,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-module.exports = {
-  getAdminStats,
-  getPriorityQueue,
-  updateIssueStatus,
-  moderateDeleteIssue,
-  recalculatePriority,
-  reassignOfficer,
-};
+  if (!Object.keys(changes).length) throw fail(400, 'Provide a status, note, or severity change.');
+  const backwards = (issue.status === 'UNDER_REVIEW' && changes.status === 'REPORTED') || (issue.status === 'IN_PROGRESS' && changes.status === 'UNDER_REVIEW');
+  if ((backwards || ['DUPLICATE', 'REJECTED'].includes(changes.status) || (changes.severity && changes.severity !== issue.severity)) && !changes.adminNotes) throw fail(400, 'A reason is required for this change.');
+  const history = event(req, 'UPDATE', issue, changes, changes.adminNotes);
+  const saved = history ? await store.save(issue, changes, data.expectedUpdatedAt, history) : issue;
+  res.json({ success: true, data: saved, message: 'Report updated.' });
+});
+const reassignOfficer = handle(async (req, res) => {
+  const data = body(req); const issue = await store.get(req.params.id); policy.active(issue); store.expected(issue, data.expectedUpdatedAt);
+  if (!['number', 'string'].includes(typeof data.officerId) || !/^[1-9]\d*$/.test(String(data.officerId)) || !Number.isSafeInteger(Number(data.officerId))) throw fail(400, 'A valid officer ID is required.');
+  const officer = await users.byId(data.officerId);
+  if (!officer || officer.role !== 'OFFICER') throw fail(400, 'Select an existing officer.');
+  const changes = { assignedOfficer: Number(data.officerId), assignedOfficerName: officer.fullName };
+  const history = event(req, 'ASSIGNMENT', issue, changes);
+  res.json({ success: true, data: history ? await store.save(issue, changes, data.expectedUpdatedAt, history) : issue });
+});
+const recalculatePriority = handle(async (req, res) => {
+  const data = req.body === undefined ? {} : body(req); const issue = await store.get(req.params.id); policy.active(issue); store.expected(issue, data.expectedUpdatedAt);
+  const changes = calculatePriority(issue.severity, issue.peopleAffected, null, issue.createdAt);
+  const history = event(req, 'PRIORITY', issue, changes);
+  if (history) await store.save(issue, changes, data.expectedUpdatedAt, history);
+  res.json({ success: true, data: changes });
+});
+const moderateDeleteIssue = handle(async (req, res) => {
+  const issue = await store.get(req.params.id); await store.remove(issue, req.body?.expectedUpdatedAt);
+  res.json({ success: true, message: 'Issue removed.' });
+});
+const getHistory = handle(async (req, res) => res.json({ success: true, data: (await store.get(req.params.id)).adminHistory || [] }));
+module.exports = { getAdminStats, getPriorityQueue, updateIssueStatus, reassignOfficer, recalculatePriority, moderateDeleteIssue, getHistory, stats };
