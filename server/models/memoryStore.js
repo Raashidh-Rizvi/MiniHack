@@ -5,6 +5,19 @@
 
 const { calculatePriority } = require('../utils/priorityCalculator');
 
+// Category → Officer routing map (officerId)
+// Officers handle categories based on their department
+const CATEGORY_OFFICER_MAP = {
+  ROAD: { id: 2, name: 'Eng. Bandara' },
+  DRAINAGE: { id: 2, name: 'Eng. Bandara' },
+  WATER: { id: 2, name: 'Eng. Bandara' },
+  WASTE: { id: 2, name: 'Eng. Bandara' },
+  STREETLIGHT: { id: 2, name: 'Eng. Bandara' },
+  TRAFFIC: { id: 2, name: 'Eng. Bandara' },
+  ENVIRONMENT: { id: 2, name: 'Eng. Bandara' },
+  OTHER: { id: 2, name: 'Eng. Bandara' },
+};
+
 let users = [
   {
     id: 1,
@@ -63,6 +76,8 @@ let issues = [
     reportedBy: 1,
     reportedByName: 'Kasun Perera',
     adminNotes: '',
+    assignedOfficer: 2,
+    assignedOfficerName: 'Eng. Bandara',
     createdAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
   },
@@ -81,6 +96,8 @@ let issues = [
     reportedBy: 1,
     reportedByName: 'Kasun Perera',
     adminNotes: 'Assigned to Central Province RDA inspection unit.',
+    assignedOfficer: 2,
+    assignedOfficerName: 'Eng. Bandara',
     createdAt: new Date(Date.now() - 18 * 3600 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 10 * 3600 * 1000).toISOString(),
   },
@@ -99,6 +116,8 @@ let issues = [
     reportedBy: 2,
     reportedByName: 'Eng. Bandara',
     adminNotes: 'Technician dispatched for lamp replacement.',
+    assignedOfficer: 2,
+    assignedOfficerName: 'Eng. Bandara',
     createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
   },
@@ -117,6 +136,8 @@ let issues = [
     reportedBy: 1,
     reportedByName: 'Kasun Perera',
     adminNotes: 'Cleared by Municipal Waste Management crew on Sept 3.',
+    assignedOfficer: 2,
+    assignedOfficerName: 'Eng. Bandara',
     createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
   }
@@ -149,11 +170,13 @@ module.exports = {
   getMyReports: (userId = 1) => issues.filter((i) => i.reportedBy === Number(userId)),
   createIssue: (data) => {
     const { priorityScore, priorityLevel } = calculatePriority(data.severity, data.peopleAffected);
+    const catKey = (data.category || 'OTHER').toUpperCase();
+    const officerInfo = CATEGORY_OFFICER_MAP[catKey] || CATEGORY_OFFICER_MAP['OTHER'];
     const newIssue = {
       id: nextIssueId++,
       title: data.title.trim(),
       description: data.description.trim(),
-      category: data.category.toUpperCase(),
+      category: catKey,
       location: data.location.trim(),
       severity: data.severity.toUpperCase(),
       peopleAffected: Number(data.peopleAffected) || 1,
@@ -164,6 +187,8 @@ module.exports = {
       reportedBy: Number(data.reportedBy) || 1,
       reportedByName: data.reportedByName || 'Kasun Perera',
       adminNotes: '',
+      assignedOfficer: officerInfo.id,
+      assignedOfficerName: officerInfo.name,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -215,6 +240,48 @@ module.exports = {
     const resolved = issues.filter((i) => i.status === 'RESOLVED').length;
     return { totalIssues: total, openIssues: open, inProgressIssues: inProgress, criticalIssues: critical, resolvedIssues: resolved };
   },
+
+  // Officer-specific helpers
+  getAssignedIssues: (officerId, filters = {}) => {
+    let filtered = issues.filter((i) => i.assignedOfficer === Number(officerId));
+    const { status, priorityLevel, category, search } = filters;
+    if (status && status !== 'ALL') filtered = filtered.filter((i) => i.status === status.toUpperCase());
+    if (priorityLevel && priorityLevel !== 'ALL') filtered = filtered.filter((i) => i.priorityLevel === priorityLevel.toUpperCase());
+    if (category && category !== 'ALL') filtered = filtered.filter((i) => i.category === category.toUpperCase());
+    if (search) {
+      const term = search.toLowerCase();
+      filtered = filtered.filter(
+        (i) =>
+          i.title.toLowerCase().includes(term) ||
+          i.location.toLowerCase().includes(term) ||
+          i.description.toLowerCase().includes(term)
+      );
+    }
+    filtered.sort((a, b) => b.priorityScore - a.priorityScore || new Date(a.createdAt) - new Date(b.createdAt));
+    return filtered;
+  },
+
+  getOfficerStats: (officerId) => {
+    const mine = issues.filter((i) => i.assignedOfficer === Number(officerId));
+    return {
+      totalIssues: mine.length,
+      openIssues: mine.filter((i) => ['REPORTED', 'UNDER_REVIEW'].includes(i.status)).length,
+      inProgressIssues: mine.filter((i) => i.status === 'IN_PROGRESS').length,
+      resolvedIssues: mine.filter((i) => i.status === 'RESOLVED').length,
+      criticalIssues: mine.filter((i) => i.priorityLevel === 'CRITICAL').length,
+    };
+  },
+
+  reassignOfficer: (id, officerId, officerName) => {
+    const issueIndex = issues.findIndex((i) => i.id === Number(id) || i.id === id);
+    if (issueIndex === -1) return null;
+    issues[issueIndex].assignedOfficer = Number(officerId);
+    issues[issueIndex].assignedOfficerName = officerName;
+    issues[issueIndex].updatedAt = new Date().toISOString();
+    return issues[issueIndex];
+  },
+
+  getOfficers: () => users.filter((u) => u.role === 'OFFICER'),
 
   getPriorityQueue: ({ status, priorityLevel, category, search } = {}) => {
     let filtered = [...issues];

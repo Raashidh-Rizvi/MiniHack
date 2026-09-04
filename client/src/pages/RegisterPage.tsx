@@ -228,7 +228,7 @@ export const RegisterPage: React.FC = () => {
         </div>
 
         {/* Form Container */}
-        <div className="glass-panel p-6 sm:p-10 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-surface/95 backdrop-blur-xl">
+        <div className="glass-panel p-6 sm:p-10 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl bg-white/95 dark:bg-[#121722]/95 backdrop-blur-xl">
           {/* Server Error Alert */}
           {serverError && (
             <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-start space-x-3 text-red-600 dark:text-red-400 text-xs animate-shake">

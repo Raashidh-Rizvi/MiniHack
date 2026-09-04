@@ -10,6 +10,7 @@ const errorHandler = require('./middleware/errorHandler');
 const issueRoutes = require('./routes/issueRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const officerRoutes = require('./routes/officerRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,6 +44,7 @@ app.use(morgan('dev'));
 app.use('/api/issues', issueRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/officer', officerRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -63,6 +65,7 @@ app.listen(PORT, () => {
   console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
   console.log(`📝 Citizen Intake API: http://localhost:${PORT}/api/issues`);
   console.log(`🔐 Admin Priority Engine API: http://localhost:${PORT}/api/admin/queue`);
+  console.log(`👷 Officer Portal API: http://localhost:${PORT}/api/officer/queue`);
 });
 
 module.exports = app;

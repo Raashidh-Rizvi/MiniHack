@@ -35,7 +35,7 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/85 dark:bg-canvas/85 backdrop-blur-md border-b border-slate-200 dark:border-white/8 transition-colors duration-200">
+    <header className="sticky top-0 z-50 bg-white/85 dark:bg-[#0A0D14]/85 backdrop-blur-md border-b border-slate-200 dark:border-white/10 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
@@ -260,7 +260,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 dark:border-white/8 bg-white dark:bg-surface px-4 pt-3 pb-5 space-y-2">
+        <div className="md:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#121722] px-4 pt-3 pb-5 space-y-2">
           <Link
             to="/"
             onClick={() => setMobileMenuOpen(false)}

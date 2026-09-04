@@ -7,7 +7,7 @@ export const BottomNav: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-canvas/90 backdrop-blur-lg border-t border-slate-200 dark:border-white/10 px-3 py-1.5 transition-colors">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#0A0D14]/90 backdrop-blur-lg border-t border-slate-200 dark:border-white/10 px-3 py-1.5 transition-colors">
       <div className="flex items-center justify-around">
         <Link
           to="/"
@@ -23,7 +23,7 @@ export const BottomNav: React.FC = () => {
           to="/report"
           className="flex flex-col items-center -mt-5 relative group"
         >
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-red-500 to-rose-600 text-white flex items-center justify-center shadow-lg shadow-red-500/40 group-hover:scale-105 transition-transform border-2 border-white dark:border-canvas">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-red-500 to-rose-600 text-white flex items-center justify-center shadow-lg shadow-red-500/40 group-hover:scale-105 transition-transform border-2 border-white dark:border-[#0A0D14]">
             <PlusCircle className="w-6 h-6" />
           </div>
           <span className="text-[10px] text-red-500 font-bold mt-1">Report</span>

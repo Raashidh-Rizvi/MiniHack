@@ -80,6 +80,14 @@ const issueSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    assignedOfficer: {
+      type: Number,
+      default: null,
+    },
+    assignedOfficerName: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

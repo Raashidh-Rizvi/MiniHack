@@ -3,6 +3,18 @@ const memoryStore = require('../models/memoryStore');
 const { getIsConnected } = require('../config/db');
 const { calculatePriority } = require('../utils/priorityCalculator');
 
+// Category → Officer routing map (mirrors memoryStore for DB path)
+const CATEGORY_OFFICER_MAP = {
+  ROAD: { id: 2, name: 'Eng. Bandara' },
+  DRAINAGE: { id: 2, name: 'Eng. Bandara' },
+  WATER: { id: 2, name: 'Eng. Bandara' },
+  WASTE: { id: 2, name: 'Eng. Bandara' },
+  STREETLIGHT: { id: 2, name: 'Eng. Bandara' },
+  TRAFFIC: { id: 2, name: 'Eng. Bandara' },
+  ENVIRONMENT: { id: 2, name: 'Eng. Bandara' },
+  OTHER: { id: 2, name: 'Eng. Bandara' },
+};
+
 // @desc    Create a new issue report (Member 1 - CREATE)
 // @route   POST /api/issues
 // @access  Public (Citizen)
@@ -19,13 +31,15 @@ const createIssue = async (req, res, next) => {
       reportedByName = 'Kasun Perera',
     } = req.body;
 
+    const catKey = (category || 'OTHER').toUpperCase();
+    const officerInfo = CATEGORY_OFFICER_MAP[catKey] || CATEGORY_OFFICER_MAP['OTHER'];
     const { priorityScore, priorityLevel } = calculatePriority(severity, peopleAffected);
 
     if (getIsConnected()) {
       const issue = await Issue.create({
         title,
         description,
-        category: category.toUpperCase(),
+        category: catKey,
         location,
         severity: severity.toUpperCase(),
         peopleAffected: Number(peopleAffected),
@@ -35,6 +49,8 @@ const createIssue = async (req, res, next) => {
         supportCount: 0,
         reportedBy: Number(reportedBy),
         reportedByName,
+        assignedOfficer: officerInfo.id,
+        assignedOfficerName: officerInfo.name,
       });
 
       return res.status(201).json({

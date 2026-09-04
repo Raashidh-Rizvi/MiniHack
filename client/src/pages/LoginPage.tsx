@@ -142,7 +142,7 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Quick Role Evaluator Selector */}
-        <div className="mb-6 p-4 rounded-2xl bg-white/70 dark:bg-surface/70 backdrop-blur-md border border-slate-200 dark:border-white/10 shadow-sm">
+        <div className="mb-6 p-4 rounded-2xl bg-white/70 dark:bg-[#121722]/70 backdrop-blur-md border border-slate-200 dark:border-white/10 shadow-sm">
           <div className="flex items-center justify-between mb-2.5">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -179,7 +179,7 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Main Form Card */}
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl bg-white/90 dark:bg-surface/90 backdrop-blur-xl">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl bg-white/90 dark:bg-[#121722]/90 backdrop-blur-xl">
           {/* Server Error Notification */}
           {serverError && (
             <div className="mb-6 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-start space-x-3 text-red-600 dark:text-red-400 text-xs animate-shake">

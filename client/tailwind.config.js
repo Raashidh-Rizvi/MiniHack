@@ -55,6 +55,9 @@ export default {
         '2xl': '16px',
         '3xl': '24px',
       },
+      opacity: {
+        8: '0.08',
+      },
     },
   },
   plugins: [],

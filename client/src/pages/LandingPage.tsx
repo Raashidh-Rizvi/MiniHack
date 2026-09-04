@@ -93,7 +93,7 @@ export const LandingPage: React.FC = () => {
           {/* Right Column: Perspective Analytics Dashboard Preview Card */}
           <div className="lg:col-span-6 relative">
             {/* Perspective Card Container */}
-            <div className="relative rounded-3xl bg-slate-900 dark:bg-surface/90 border border-slate-700/60 dark:border-white/10 shadow-[0_24px_50px_-12px_rgba(239,68,68,0.25)] p-5 sm:p-7 backdrop-blur-xl text-white">
+            <div className="relative rounded-3xl bg-slate-900 dark:bg-[#121722]/90 border border-slate-700/60 dark:border-white/10 shadow-[0_24px_50px_-12px_rgba(239,68,68,0.25)] p-5 sm:p-7 backdrop-blur-xl text-white">
               {/* Dashboard Mockup Top Bar */}
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
                 <div className="flex items-center space-x-2">

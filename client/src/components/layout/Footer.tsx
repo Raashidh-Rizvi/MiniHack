@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-white dark:bg-canvas border-t border-slate-200 dark:border-white/8 mt-20 pt-12 pb-24 md:pb-12 text-slate-500 dark:text-slate-400 text-sm transition-colors duration-200">
+    <footer className="bg-white dark:bg-canvas border-t border-slate-200 dark:border-white/10 mt-20 pt-12 pb-24 md:pb-12 text-slate-500 dark:text-slate-400 text-sm transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-3">
@@ -81,7 +81,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-slate-200 dark:border-white/8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-500 gap-4">
+        <div className="pt-8 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-500 gap-4">
           <p>© 2026 GramaFix Sri Lanka. All community rights reserved.</p>
           <p className="flex items-center space-x-1.5">
             <span>Built with civic care for resilient Sri Lankan neighborhoods</span>

@@ -1,5 +1,4 @@
 import React from 'react';
-import { PriorityLevel } from '../../types/issue';
 
 interface PriorityFilterProps {
   selectedPriority: string;
