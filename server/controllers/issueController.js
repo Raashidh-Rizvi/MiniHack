@@ -107,6 +107,25 @@ const getMyReports = async (req, res, next) => {
     next(error);
   }
 };
+// Helper to extract requesting user context from headers or query
+const getRequestingUser = (req) => {
+  let userId = req.headers['x-user-id'] || req.query.userId || req.body.userId;
+  let role = req.headers['x-user-role'];
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const match = token.match(/gramafix_jwt_(\d+)/);
+    if (match && !userId) {
+      userId = match[1];
+    }
+  }
+
+  return {
+    id: userId ? Number(userId) : null,
+    role: (role || 'CITIZEN').toUpperCase(),
+  };
+};
 
 // @desc    Update citizen's own report (Member 1 - UPDATE)
 // @route   PUT /api/issues/:id
@@ -115,6 +134,7 @@ const updateIssue = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { description, location, peopleAffected, severity, title } = req.body;
+    const requestingUser = getRequestingUser(req);
 
     if (getIsConnected()) {
       let issue = await Issue.findOne({
@@ -128,11 +148,21 @@ const updateIssue = async (req, res, next) => {
         });
       }
 
-      // Check if already resolved
-      if (issue.status === 'RESOLVED') {
+      // Ownership enforcement: Citizens cannot edit another citizen's report
+      if (requestingUser.role !== 'ADMIN') {
+        if (requestingUser.id && Number(issue.reportedBy) !== Number(requestingUser.id)) {
+          return res.status(403).json({
+            success: false,
+            message: "Forbidden: You cannot edit another citizen's report.",
+          });
+        }
+      }
+
+      // Status eligibility check: Citizens may only edit REPORTED or UNDER_REVIEW reports
+      if (issue.status !== 'REPORTED' && issue.status !== 'UNDER_REVIEW') {
         return res.status(400).json({
           success: false,
-          message: 'Resolved reports cannot be edited.',
+          message: `Only reports with status 'REPORTED' or 'UNDER_REVIEW' can be edited. Current status is ${issue.status}.`,
         });
       }
 
@@ -160,14 +190,33 @@ const updateIssue = async (req, res, next) => {
         data: issue,
       });
     } else {
-      const updated = memoryStore.updateIssue(id, req.body);
-      if (!updated) {
+      const issue = memoryStore.getIssueById(id);
+      if (!issue) {
         return res.status(404).json({
           success: false,
           message: `Issue not found with id ${id}`,
         });
       }
 
+      // Ownership enforcement
+      if (requestingUser.role !== 'ADMIN') {
+        if (requestingUser.id && Number(issue.reportedBy) !== Number(requestingUser.id)) {
+          return res.status(403).json({
+            success: false,
+            message: "Forbidden: You cannot edit another citizen's report.",
+          });
+        }
+      }
+
+      // Status eligibility check
+      if (issue.status !== 'REPORTED' && issue.status !== 'UNDER_REVIEW') {
+        return res.status(400).json({
+          success: false,
+          message: `Only reports with status 'REPORTED' or 'UNDER_REVIEW' can be edited. Current status is ${issue.status}.`,
+        });
+      }
+
+      const updated = memoryStore.updateIssue(id, req.body);
       return res.status(200).json({
         success: true,
         message: 'Issue report updated successfully',
@@ -185,9 +234,10 @@ const updateIssue = async (req, res, next) => {
 const cancelIssue = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const requestingUser = getRequestingUser(req);
 
     if (getIsConnected()) {
-      const issue = await Issue.findOneAndDelete({
+      const issue = await Issue.findOne({
         $or: [{ numericId: isNaN(id) ? null : Number(id) }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
       });
 
@@ -198,18 +248,58 @@ const cancelIssue = async (req, res, next) => {
         });
       }
 
+      // Ownership enforcement: Citizens cannot cancel another citizen's report
+      if (requestingUser.role !== 'ADMIN') {
+        if (requestingUser.id && Number(issue.reportedBy) !== Number(requestingUser.id)) {
+          return res.status(403).json({
+            success: false,
+            message: "Forbidden: You cannot cancel another citizen's report.",
+          });
+        }
+      }
+
+      // Status eligibility check: Citizens may only cancel REPORTED or UNDER_REVIEW reports
+      if (issue.status !== 'REPORTED' && issue.status !== 'UNDER_REVIEW') {
+        return res.status(400).json({
+          success: false,
+          message: `Only reports with status 'REPORTED' or 'UNDER_REVIEW' can be cancelled. Current status is ${issue.status}.`,
+        });
+      }
+
+      await Issue.deleteOne({ _id: issue._id });
+
       return res.status(200).json({
         success: true,
         message: 'Issue report has been cancelled successfully',
       });
     } else {
-      const deleted = memoryStore.deleteIssue(id);
-      if (!deleted) {
+      const issue = memoryStore.getIssueById(id);
+      if (!issue) {
         return res.status(404).json({
           success: false,
           message: `Issue not found with id ${id}`,
         });
       }
+
+      // Ownership enforcement
+      if (requestingUser.role !== 'ADMIN') {
+        if (requestingUser.id && Number(issue.reportedBy) !== Number(requestingUser.id)) {
+          return res.status(403).json({
+            success: false,
+            message: "Forbidden: You cannot cancel another citizen's report.",
+          });
+        }
+      }
+
+      // Status eligibility check
+      if (issue.status !== 'REPORTED' && issue.status !== 'UNDER_REVIEW') {
+        return res.status(400).json({
+          success: false,
+          message: `Only reports with status 'REPORTED' or 'UNDER_REVIEW' can be cancelled. Current status is ${issue.status}.`,
+        });
+      }
+
+      memoryStore.deleteIssue(id);
 
       return res.status(200).json({
         success: true,
@@ -320,6 +410,42 @@ const getIssueById = async (req, res, next) => {
   }
 };
 
+// @desc    Get citizen's own report statistics (Member 1 - Dashboard stats)
+// @route   GET /api/issues/my-stats
+// @access  Public (Citizen)
+const getCitizenStats = async (req, res, next) => {
+  try {
+    const userId = Number(req.query.userId) || 1;
+
+    if (getIsConnected()) {
+      const [total, open, inProgress, resolved] = await Promise.all([
+        Issue.countDocuments({ reportedBy: userId }),
+        Issue.countDocuments({ reportedBy: userId, status: 'REPORTED' }),
+        Issue.countDocuments({ reportedBy: userId, status: { $in: ['UNDER_REVIEW', 'IN_PROGRESS'] } }),
+        Issue.countDocuments({ reportedBy: userId, status: 'RESOLVED' }),
+      ]);
+
+      return res.status(200).json({
+        success: true,
+        data: { total, open, inProgress, resolved },
+      });
+    } else {
+      const issues = memoryStore.getMyReports(userId);
+      return res.status(200).json({
+        success: true,
+        data: {
+          total: issues.length,
+          open: issues.filter((i) => i.status === 'REPORTED').length,
+          inProgress: issues.filter((i) => i.status === 'UNDER_REVIEW' || i.status === 'IN_PROGRESS').length,
+          resolved: issues.filter((i) => i.status === 'RESOLVED').length,
+        },
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createIssue,
   getMyReports,
@@ -327,4 +453,5 @@ module.exports = {
   cancelIssue,
   getAllIssues,
   getIssueById,
+  getCitizenStats,
 };

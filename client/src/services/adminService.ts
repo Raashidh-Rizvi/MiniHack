@@ -9,6 +9,20 @@ const api = axios.create({
   timeout: 10000,
 });
 
+api.interceptors.request.use((config) => {
+  try {
+    const rawUser = localStorage.getItem('gramafix_user');
+    if (rawUser) {
+      const user = JSON.parse(rawUser);
+      if (user?.id) {
+        config.headers['x-user-id'] = String(user.id);
+        config.headers['x-user-role'] = user.role || 'ADMIN';
+      }
+    }
+  } catch {}
+  return config;
+});
+
 export interface AdminStats {
   totalIssues: number;
   openIssues: number;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, FileText, Layers, Shield, Building2 } from 'lucide-react';
+import { PlusCircle, FileText, Layers, Shield, Building2, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const BottomNav: React.FC = () => {
@@ -18,13 +18,13 @@ export const BottomNav: React.FC = () => {
         {isCitizen && (
           <>
             <Link
-              to="/"
-              className={`flex flex-col items-center py-1 px-3 rounded-xl transition-all ${
-                isActive('/') ? 'text-red-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              to="/citizen"
+              className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all ${
+                isActive('/citizen') ? 'text-red-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Home className="w-5 h-5" />
-              <span className="text-[10px] mt-0.5">Home</span>
+              <LayoutDashboard className="w-5 h-5" />
+              <span className="text-[10px] mt-0.5">Dashboard</span>
             </Link>
 
             <Link

@@ -12,6 +12,10 @@ import {
   CheckCircle2,
   ChevronRight,
   TrendingUp,
+  AlertTriangle,
+  MapPin,
+  Clock,
+  ShieldAlert,
 } from 'lucide-react';
 import { calculatePriorityScore, getPriorityBadgeColor } from '../utils/priority';
 import { Severity } from '../types/issue';
@@ -185,6 +189,64 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <span className="text-red-400 font-bold">Priority #1</span>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SRI LANKAN PROBLEM STATEMENT SECTION (SE3090 Requirement 2)
+          ========================================================================= */}
+      <section id="problem-context" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="rounded-3xl bg-gradient-to-b from-red-500/5 via-slate-50 to-white dark:from-red-500/10 dark:via-surface-elevated/40 dark:to-surface border border-red-500/20 p-8 sm:p-12 shadow-sm">
+          <div className="max-w-3xl mb-8">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 mb-3">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>The Sri Lankan Civic Challenge (Local Context)</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              Why Sri Lankan Communities Face Critical Repair Delays
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+              Across Sri Lanka's 14,022 Grama Niladhari divisions, neighborhood infrastructure issues—from monsoon drain blockages to dangerous road culverts—routinely languish for weeks due to three fundamental breakdowns:
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-5 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center mb-3">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Monsoon Flash Floods & Blocked Drains
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                During tropical monsoons, unmaintained roadside canals overflow into homes, creating dengue breeding hotspots and road washouts. Without rapid reporting, repairs occur only after disaster strikes.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10">
+              <div className="w-10 h-10 rounded-xl bg-red-500/15 text-red-500 flex items-center justify-center mb-3">
+                <Clock className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Paper Petitions & Zero Visibility
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Citizens must visit Pradeshiya Sabhas or GN offices with manual paper letters that get buried. Residents have no digital receipt, tracking status, or accountability for resolving the issue.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-500 flex items-center justify-center mb-3">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Subjective, Biased Triage
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Maintenance units lack mathematical data on how many families or school routes are affected. GramaFix replaces arbitrary decisions with a deterministic Community Priority Score.
+              </p>
             </div>
           </div>
         </div>

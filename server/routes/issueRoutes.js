@@ -7,6 +7,7 @@ const {
   cancelIssue,
   getAllIssues,
   getIssueById,
+  getCitizenStats,
 } = require('../controllers/issueController');
 const { validateIssueCreate, validateIssueUpdate } = require('../middleware/validator');
 
@@ -14,6 +15,7 @@ const { validateIssueCreate, validateIssueUpdate } = require('../middleware/vali
 router.route('/').get(getAllIssues).post(validateIssueCreate, createIssue);
 
 router.route('/my-reports').get(getMyReports);
+router.route('/my-stats').get(getCitizenStats);
 
 router.route('/:id').get(getIssueById).put(validateIssueUpdate, updateIssue).delete(cancelIssue);
 

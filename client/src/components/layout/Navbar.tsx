@@ -39,7 +39,7 @@ export const Navbar: React.FC = () => {
   const isOfficer = role === 'OFFICER';
   const isAdmin = role === 'ADMIN';
 
-  const logoTarget = isAdmin ? '/admin' : isOfficer ? '/officer' : '/';
+  const logoTarget = isAdmin ? '/admin' : isOfficer ? '/officer' : (isCitizen && isAuthenticated ? '/citizen' : '/');
 
   const handleRoleSwitch = (newRole: 'CITIZEN' | 'OFFICER' | 'ADMIN' | 'RESIDENT') => {
     switchRole(newRole);
@@ -48,7 +48,7 @@ export const Navbar: React.FC = () => {
     } else if (newRole === 'OFFICER') {
       navigate('/officer');
     } else {
-      navigate('/');
+      navigate('/citizen');
     }
   };
 
@@ -61,7 +61,7 @@ export const Navbar: React.FC = () => {
       navigate('/admin');
     } else {
       switchRole('CITIZEN');
-      navigate('/');
+      navigate('/citizen');
     }
     setMobileMenuOpen(false);
   };
@@ -101,6 +101,17 @@ export const Navbar: React.FC = () => {
                   }`}
                 >
                   Home
+                </Link>
+                <Link
+                  to="/citizen"
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isActive('/citizen')
+                      ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4 text-rose-500" />
+                  <span>Citizen Dashboard</span>
                 </Link>
                 <Link
                   to="/issues"
@@ -344,6 +355,14 @@ export const Navbar: React.FC = () => {
                 className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
               >
                 Home
+              </Link>
+              <Link
+                to="/citizen"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated flex items-center gap-2"
+              >
+                <LayoutDashboard className="w-4 h-4 text-rose-500" />
+                Citizen Dashboard
               </Link>
               <Link
                 to="/issues"

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './hooks/useAuth';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './hooks/useTheme';
 import { Navbar } from './components/layout/Navbar';
 import { BottomNav } from './components/layout/BottomNav';
@@ -18,6 +18,54 @@ import { AdminPage } from './pages/AdminPage';
 import { OfficerPage } from './pages/OfficerPage';
 import { CitizenDashboardPage } from './pages/CitizenDashboardPage';
 
+// Root route handler that automatically directs Admin and Officer to their dashboards
+const RootRoute: React.FC = () => {
+  const { role } = useAuth();
+  if (role === 'ADMIN') {
+    return <Navigate to="/admin" replace />;
+  }
+  if (role === 'OFFICER') {
+    return <Navigate to="/officer" replace />;
+  }
+  return <LandingPage />;
+};
+
+// Route only for citizens (redirects admin & officer to their dashboards)
+const CitizenRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const { role } = useAuth();
+  if (role === 'ADMIN') {
+    return <Navigate to="/admin" replace />;
+  }
+  if (role === 'OFFICER') {
+    return <Navigate to="/officer" replace />;
+  }
+  return children;
+};
+
+// Route only for admin
+const AdminRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const { role } = useAuth();
+  if (role === 'OFFICER') {
+    return <Navigate to="/officer" replace />;
+  }
+  if (role === 'CITIZEN' || role === 'RESIDENT') {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
+// Route only for officer
+const OfficerRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const { role } = useAuth();
+  if (role === 'ADMIN') {
+    return <Navigate to="/admin" replace />;
+  }
+  if (role === 'CITIZEN' || role === 'RESIDENT') {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
 export const App: React.FC = () => {
   return (
     <ThemeProvider>
@@ -27,11 +75,32 @@ export const App: React.FC = () => {
             <Navbar />
             <main className="flex-grow">
               <Routes>
-                {/* Member 1: Citizen Dashboard & Reporting Journey */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/citizen" element={<CitizenDashboardPage />} />
-                <Route path="/report" element={<ReportIssuePage />} />
-                <Route path="/my-reports" element={<MyReportsPage />} />
+                {/* Landing & Citizen Routes */}
+                <Route path="/" element={<RootRoute />} />
+                <Route
+                  path="/citizen"
+                  element={
+                    <CitizenRoute>
+                      <CitizenDashboardPage />
+                    </CitizenRoute>
+                  }
+                />
+                <Route
+                  path="/report"
+                  element={
+                    <CitizenRoute>
+                      <ReportIssuePage />
+                    </CitizenRoute>
+                  }
+                />
+                <Route
+                  path="/my-reports"
+                  element={
+                    <CitizenRoute>
+                      <MyReportsPage />
+                    </CitizenRoute>
+                  }
+                />
 
                 {/* Member 2: Public Issues Discovery & Upvoting Feed */}
                 <Route path="/issues" element={<IssuesPage />} />
@@ -42,10 +111,24 @@ export const App: React.FC = () => {
                 <Route path="/register" element={<RegisterPage />} />
 
                 {/* Member 3: Admin Triage & Priority Engine */}
-                <Route path="/admin" element={<AdminPage />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <AdminPage />
+                    </AdminRoute>
+                  }
+                />
 
                 {/* Officer Portal — Issue Management for Municipal Officers */}
-                <Route path="/officer" element={<OfficerPage />} />
+                <Route
+                  path="/officer"
+                  element={
+                    <OfficerRoute>
+                      <OfficerPage />
+                    </OfficerRoute>
+                  }
+                />
 
                 {/* Catch-all redirect */}
                 <Route path="*" element={<Navigate to="/" replace />} />

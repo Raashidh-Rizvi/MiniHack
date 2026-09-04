@@ -9,6 +9,27 @@ export const apiClient = axios.create({
   timeout: 8000,
 });
 
+// Request interceptor to attach authentication context
+apiClient.interceptors.request.use((config) => {
+  try {
+    const rawUser = localStorage.getItem('gramafix_user');
+    if (rawUser) {
+      const user = JSON.parse(rawUser);
+      if (user?.id) {
+        config.headers['x-user-id'] = String(user.id);
+        config.headers['x-user-role'] = user.role || 'CITIZEN';
+      }
+    }
+    const token = localStorage.getItem('gramafix_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+  } catch {
+    // Non-blocking
+  }
+  return config;
+});
+
 // Response interceptor for clear error messaging
 apiClient.interceptors.response.use(
   (response: any) => response,

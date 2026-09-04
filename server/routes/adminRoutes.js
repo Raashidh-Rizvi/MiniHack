@@ -9,6 +9,11 @@ const {
   reassignOfficer,
 } = require('../controllers/adminController');
 
+const { extractUser, requireRole } = require('../middleware/auth');
+
+// Protect all admin endpoints from citizen access
+router.use(extractUser, requireRole('ADMIN'));
+
 // Admin Priority Engine Routes (Member 3)
 // GET  /api/admin/stats        — Dashboard KPI metrics
 router.get('/stats', getAdminStats);

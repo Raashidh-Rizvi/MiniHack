@@ -7,6 +7,11 @@ const {
   getOfficerList,
 } = require('../controllers/officerController');
 
+const { extractUser, requireRole } = require('../middleware/auth');
+
+// Protect all officer endpoints from citizen access
+router.use(extractUser, requireRole('OFFICER', 'ADMIN'));
+
 // GET  /api/officer/stats?officerId=X     — Officer dashboard stats
 router.get('/stats', getOfficerStats);
 
