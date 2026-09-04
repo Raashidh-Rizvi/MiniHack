@@ -112,6 +112,9 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
                 Reported <SortIcon field="createdAt" />
               </div>
             </th>
+            <th className="text-left px-4 py-3 font-semibold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider hidden xl:table-cell">
+              Assigned To
+            </th>
             <th className="text-right px-4 py-3 font-semibold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
               Actions
             </th>
@@ -169,6 +172,18 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
                 {/* Created at */}
                 <td className="px-4 py-3 text-xs text-slate-400 hidden lg:table-cell">
                   {formatRelativeTime(issue.createdAt)}
+                </td>
+
+                {/* Assigned Officer */}
+                <td className="px-4 py-3 hidden xl:table-cell">
+                  {issue.assignedOfficerName ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-teal-100 dark:bg-teal-500/15 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-500/25">
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0" />
+                      {issue.assignedOfficerName}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">Unassigned</span>
+                  )}
                 </td>
 
                 {/* Actions */}

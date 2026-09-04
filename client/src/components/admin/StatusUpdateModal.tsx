@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, FileText } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, FileText, UserCog, Building2 } from 'lucide-react';
 import { Issue, IssueStatus, Severity } from '../../types/issue';
 import { StatusBadge } from '../issues/StatusBadge';
 import { PriorityBadge } from '../issues/PriorityBadge';
 import { StatusTimeline } from '../issues/StatusTimeline';
+import { OfficerUser } from '../../services/officerService';
 
 interface StatusUpdateDTO {
   newStatus: IssueStatus;
@@ -16,6 +17,8 @@ interface StatusUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (issueId: number, update: StatusUpdateDTO) => void;
+  onReassign?: (issueId: number, officerId: number, officerName: string) => void;
+  officers?: OfficerUser[];
   isSubmitting?: boolean;
 }
 
@@ -44,12 +47,17 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  onReassign,
+  officers = [],
   isSubmitting = false,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<IssueStatus | string>('');
   const [adminNotes, setAdminNotes] = useState('');
   const [adjustSeverity, setAdjustSeverity] = useState(false);
   const [selectedSeverity, setSelectedSeverity] = useState<Severity>('MEDIUM');
+  const [showReassign, setShowReassign] = useState(false);
+  const [selectedOfficerId, setSelectedOfficerId] = useState<number | ''>('');
+  const [isReassigning, setIsReassigning] = useState(false);
 
   useEffect(() => {
     if (issue) {
@@ -57,6 +65,8 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
       setAdminNotes(issue.adminNotes || '');
       setAdjustSeverity(false);
       setSelectedSeverity(issue.severity);
+      setShowReassign(false);
+      setSelectedOfficerId('');
     }
   }, [issue]);
 
@@ -73,6 +83,19 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
       adminNotes: adminNotes.trim() || undefined,
       adjustedSeverity: adjustSeverity ? selectedSeverity : undefined,
     });
+  };
+
+  const handleReassign = async () => {
+    if (!selectedOfficerId || !onReassign) return;
+    const officer = officers.find((o) => o.id === Number(selectedOfficerId) || o.numericId === Number(selectedOfficerId));
+    if (!officer) return;
+    setIsReassigning(true);
+    try {
+      await onReassign(issue.id, Number(selectedOfficerId), officer.fullName);
+      setShowReassign(false);
+    } finally {
+      setIsReassigning(false);
+    }
   };
 
   return (
@@ -111,6 +134,15 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Priority Score</p>
               <PriorityBadge level={issue.priorityLevel} score={issue.priorityScore} />
             </div>
+            {issue.assignedOfficerName && (
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Assigned Officer</p>
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-teal-100 dark:bg-teal-500/15 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-500/25">
+                  <Building2 className="w-3 h-3" />
+                  {issue.assignedOfficerName}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Status timeline preview */}
@@ -186,6 +218,51 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
               </div>
             )}
           </div>
+
+          {/* Officer Reassignment (Admin only) */}
+          {onReassign && officers.length > 0 && (
+            <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-slate-800">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="reassign-officer-toggle"
+                  checked={showReassign}
+                  onChange={(e) => setShowReassign(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500 focus:ring-offset-0"
+                />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <UserCog className="w-4 h-4 text-teal-500" />
+                  Reassign to a Different Officer
+                </span>
+              </label>
+              {showReassign && (
+                <div className="pl-6 flex gap-2 items-center">
+                  <select
+                    id="officer-reassign-select"
+                    value={selectedOfficerId}
+                    onChange={(e) => setSelectedOfficerId(Number(e.target.value))}
+                    className="flex-1 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-colors"
+                  >
+                    <option value="">Select officer…</option>
+                    {officers.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.fullName} — {o.communityArea}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    id="confirm-reassign"
+                    onClick={handleReassign}
+                    disabled={!selectedOfficerId || isReassigning}
+                    className="px-3 py-2 rounded-lg text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isReassigning ? 'Saving…' : 'Reassign'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Admin notes */}
           <div>

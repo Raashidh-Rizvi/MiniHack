@@ -15,6 +15,7 @@ import { MyReportsPage } from './pages/MyReportsPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminPage } from './pages/AdminPage';
+import { OfficerPage } from './pages/OfficerPage';
 
 export const App: React.FC = () => {
   return (
@@ -40,6 +41,9 @@ export const App: React.FC = () => {
 
                 {/* Member 3: Admin Triage & Priority Engine */}
                 <Route path="/admin" element={<AdminPage />} />
+
+                {/* Officer Portal — Issue Management for Municipal Officers */}
+                <Route path="/officer" element={<OfficerPage />} />
 
                 {/* Catch-all redirect */}
                 <Route path="*" element={<Navigate to="/" replace />} />
