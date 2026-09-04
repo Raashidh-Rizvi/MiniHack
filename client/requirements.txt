@@ -1,0 +1,17 @@
+react
+react-dom
+react-router-dom
+axios
+lucide-react
+clsx
+tailwind-merge
+@tanstack/react-query
+react-hot-toast
+
+# Dev Dependencies (Build Tools)
+tailwindcss
+postcss
+autoprefixer
+typescript
+vite
+@vitejs/plugin-react
