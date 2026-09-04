@@ -9,7 +9,6 @@ const api = axios.create({
   timeout: 10000,
 });
 
-<<<<<<< HEAD
 api.interceptors.request.use((config) => {
   try {
     const rawUser = localStorage.getItem('gramafix_user');
@@ -21,15 +20,12 @@ api.interceptors.request.use((config) => {
       }
     }
   } catch {}
-=======
-// Phase 4: Attach the JWT token from localStorage to every API request automatically.
-// The backend auth middleware reads this token to identify the logged-in officer.
-api.interceptors.request.use((config) => {
+
   const token = localStorage.getItem('gramafix_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
->>>>>>> e0cfa8fcfb45a14c20d01b64153856027af586d0
+
   return config;
 });
 
