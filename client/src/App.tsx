@@ -14,6 +14,7 @@ import { ReportIssuePage } from './pages/ReportIssuePage';
 import { MyReportsPage } from './pages/MyReportsPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { AdminPage } from './pages/AdminPage';
 
 export const App: React.FC = () => {
   return (
@@ -36,6 +37,9 @@ export const App: React.FC = () => {
                 {/* Authentication & Role Portals */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+
+                {/* Member 3: Admin Triage & Priority Engine */}
+                <Route path="/admin" element={<AdminPage />} />
 
                 {/* Catch-all redirect */}
                 <Route path="*" element={<Navigate to="/" replace />} />
