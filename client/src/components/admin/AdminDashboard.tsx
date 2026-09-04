@@ -14,9 +14,11 @@ import {
   getPriorityQueue,
   updateIssueStatus,
   moderateDeleteIssue,
+  reassignOfficer,
   AdminStats,
   StatusUpdatePayload,
 } from '../../services/adminService';
+import { getOfficerList, OfficerUser } from '../../services/officerService';
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<AdminStats>({
@@ -40,6 +42,9 @@ export const AdminDashboard: React.FC = () => {
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Officers list for reassignment
+  const [officers, setOfficers] = useState<OfficerUser[]>([]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -72,6 +77,8 @@ export const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchStats();
+    // Load officer list for reassignment
+    getOfficerList().then(setOfficers).catch(() => {});
   }, [fetchStats]);
 
   useEffect(() => {
@@ -106,6 +113,19 @@ export const AdminDashboard: React.FC = () => {
       fetchStats();
     } catch {
       alert('Failed to remove issue. Please try again.');
+    }
+  };
+
+  const handleReassignOfficer = async (issueId: number, officerId: number, officerName: string) => {
+    try {
+      const updated = await reassignOfficer(issueId, officerId, officerName);
+      setIssues((prev) => prev.map((i) => (i.id === issueId ? updated : i)));
+      // Update selectedIssue so the modal reflects the change
+      if (selectedIssue?.id === issueId) {
+        setSelectedIssue(updated);
+      }
+    } catch {
+      alert('Failed to reassign officer. Please try again.');
     }
   };
 
@@ -247,6 +267,8 @@ export const AdminDashboard: React.FC = () => {
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setSelectedIssue(null); }}
         onSubmit={handleStatusUpdate}
+        onReassign={handleReassignOfficer}
+        officers={officers}
         isSubmitting={isSubmitting}
       />
     </div>

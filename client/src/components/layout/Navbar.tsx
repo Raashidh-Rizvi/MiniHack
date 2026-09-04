@@ -112,6 +112,25 @@ export const Navbar: React.FC = () => {
               <Shield className="w-4 h-4 text-indigo-500" />
               <span>Admin</span>
             </Link>
+            {/* Officer Portal — shown highlighted when role is OFFICER */}
+            <Link
+              to="/officer"
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                isActive('/officer')
+                  ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'
+                  : role === 'OFFICER'
+                  ? 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/20'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
+              }`}
+            >
+              <Building2 className="w-4 h-4 text-teal-500" />
+              <span>Officer</span>
+              {role === 'OFFICER' && (
+                <span className="text-[9px] font-bold uppercase bg-teal-500 text-white px-1 py-0.5 rounded ml-0.5">
+                  You
+                </span>
+              )}
+            </Link>
           </nav>
 
           {/* Right Controls: Theme Toggle, 3-Role Switcher, Auth Links */}
@@ -313,6 +332,23 @@ export const Navbar: React.FC = () => {
           >
             <Shield className="w-4 h-4" />
             Admin Portal
+          </Link>
+          <Link
+            to="/officer"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`block px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 ${
+              role === 'OFFICER'
+                ? 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10'
+                : 'text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            Officer Portal
+            {role === 'OFFICER' && (
+              <span className="text-[9px] font-bold uppercase bg-teal-500 text-white px-1 py-0.5 rounded ml-auto">
+                Your Workspace
+              </span>
+            )}
           </Link>
         </div>
       )}
