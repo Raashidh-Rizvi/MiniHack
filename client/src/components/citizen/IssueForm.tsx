@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CategoryType, Severity, IssueCreateDTO } from '../../types/issue';
 import { calculatePriorityScore, getPriorityBadgeColor } from '../../utils/priority';
 import {
@@ -14,6 +14,8 @@ import {
   Users,
   Send,
   AlertCircle,
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 
 interface IssueFormProps {
@@ -21,6 +23,7 @@ interface IssueFormProps {
   onSubmit: (data: IssueCreateDTO) => Promise<void>;
   submitButtonText?: string;
   isSubmitting?: boolean;
+  serverErrors?: Record<string, string>;
 }
 
 const CATEGORIES: { code: CategoryType; label: string; icon: React.FC<{ className?: string }> }[] = [
@@ -58,6 +61,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({
   onSubmit,
   submitButtonText = 'Submit Community Report',
   isSubmitting = false,
+  serverErrors = {},
 }) => {
   const [title, setTitle] = useState(initialValues?.title || '');
   const [description, setDescription] = useState(initialValues?.description || '');
@@ -66,7 +70,15 @@ export const IssueForm: React.FC<IssueFormProps> = ({
   const [severity, setSeverity] = useState<Severity>(initialValues?.severity || 'HIGH');
   const [peopleAffected, setPeopleAffected] = useState<number>(initialValues?.peopleAffected || 50);
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Merge server errors into validation errors when passed
+  useEffect(() => {
+    if (serverErrors && Object.keys(serverErrors).length > 0) {
+      setValidationErrors((prev) => ({ ...prev, ...serverErrors }));
+    }
+  }, [serverErrors]);
 
   // Dynamic Priority Score live estimation
   const calculatedPriority = useMemo(() => {
@@ -75,35 +87,84 @@ export const IssueForm: React.FC<IssueFormProps> = ({
 
   const priorityBadge = getPriorityBadgeColor(calculatedPriority.level);
 
-  const validate = (): boolean => {
+  // Field validation rules
+  const getFieldErrors = (): Record<string, string> => {
     const errs: Record<string, string> = {};
-    if (!title.trim()) {
-      errs.title = 'Title is required (min 5 characters).';
-    } else if (title.trim().length < 5) {
-      errs.title = 'Please provide a descriptive title (at least 5 characters).';
+
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      errs.title = 'Title is required.';
+    } else if (trimmedTitle.length < 5) {
+      errs.title = 'Title must be at least 5 characters long.';
+    } else if (trimmedTitle.length > 100) {
+      errs.title = 'Title cannot exceed 100 characters.';
     }
 
-    if (!description.trim()) {
-      errs.description = 'Please describe the community problem.';
-    } else if (description.trim().length < 15) {
-      errs.description = 'Description should be at least 15 characters for authorities.';
+    const trimmedLocation = location.trim();
+    if (!trimmedLocation) {
+      errs.location = 'Neighborhood or street location is required.';
+    } else if (trimmedLocation.length < 3) {
+      errs.location = 'Please specify a valid neighborhood location or landmark (at least 3 characters).';
+    } else if (trimmedLocation.length > 120) {
+      errs.location = 'Location cannot exceed 120 characters.';
     }
 
-    if (!location.trim()) {
-      errs.location = 'Please specify the neighborhood or street location.';
+    const trimmedDesc = description.trim();
+    if (!trimmedDesc) {
+      errs.description = 'Detailed description is required.';
+    } else if (trimmedDesc.length < 10) {
+      errs.description = 'Description must be at least 10 characters long to provide sufficient context.';
+    } else if (trimmedDesc.length > 1000) {
+      errs.description = 'Description cannot exceed 1000 characters.';
     }
 
-    if (!peopleAffected || peopleAffected < 1) {
-      errs.peopleAffected = 'Affected population estimate must be at least 1 person.';
+    if (!peopleAffected || isNaN(Number(peopleAffected)) || Number(peopleAffected) < 1) {
+      errs.peopleAffected = 'Estimated people affected must be a positive number of at least 1.';
     }
 
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    return errs;
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const errs = getFieldErrors();
+    setValidationErrors((prev) => ({
+      ...prev,
+      [field]: errs[field] || '',
+    }));
+  };
+
+  const handleChangeField = (field: string, val: string | number) => {
+    if (field === 'title') setTitle(String(val));
+    if (field === 'location') setLocation(String(val));
+    if (field === 'description') setDescription(String(val));
+    if (field === 'peopleAffected') setPeopleAffected(Number(val));
+
+    // Clear error for this field as user types
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    setTouched({
+      title: true,
+      location: true,
+      description: true,
+      peopleAffected: true,
+    });
+
+    const errs = getFieldErrors();
+    setValidationErrors(errs);
+
+    if (Object.keys(errs).length > 0) {
+      return;
+    }
 
     await onSubmit({
       title: title.trim(),
@@ -115,8 +176,13 @@ export const IssueForm: React.FC<IssueFormProps> = ({
     });
   };
 
+  // Field validity flags
+  const isTitleValid = title.trim().length >= 5 && title.trim().length <= 100;
+  const isLocationValid = location.trim().length >= 3 && location.trim().length <= 120;
+  const isDescriptionValid = description.trim().length >= 10 && description.trim().length <= 1000;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {/* Live Priority Score Preview Widget */}
       <div className="p-4 rounded-2xl bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent border border-red-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
@@ -160,7 +226,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({
                 key={cat.code}
                 type="button"
                 onClick={() => setCategory(cat.code)}
-                className={`p-3 rounded-2xl border text-left transition-all flex flex-col items-start justify-between ${
+                className={`p-3 rounded-2xl border text-left transition-all flex flex-col items-start justify-between cursor-pointer ${
                   isSelected
                     ? 'border-red-500 bg-red-500/10 text-red-600 dark:text-red-400 shadow-[0_0_16px_rgba(239,68,68,0.2)]'
                     : 'border-slate-200 dark:border-white/10 bg-white dark:bg-surface text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/20'
@@ -175,45 +241,94 @@ export const IssueForm: React.FC<IssueFormProps> = ({
       </div>
 
       {/* 2. Title */}
-      <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-          2. Issue Title / Problem Summary <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g., Blocked Drainage Culvert Near Matale Hindu College"
-          className={`w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-surface-elevated border text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
-            errors.title
-              ? 'border-red-500 focus:ring-red-500/40'
-              : 'border-slate-200 dark:border-white/10 focus:ring-red-500/40 focus:border-red-500'
-          }`}
-        />
-        {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <label htmlFor="issue-title" className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            2. Issue Title / Problem Summary <span className="text-red-500">*</span>
+          </label>
+          <span className={`text-[11px] ${title.length > 100 ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
+            {title.length} / 100
+          </span>
+        </div>
+        <div className="relative">
+          <input
+            id="issue-title"
+            type="text"
+            value={title}
+            onChange={(e) => handleChangeField('title', e.target.value)}
+            onBlur={() => handleBlur('title')}
+            maxLength={100}
+            placeholder="e.g., Blocked Drainage Culvert Near Matale Hindu College"
+            className={`w-full px-4 py-3 pr-10 rounded-2xl bg-slate-50 dark:bg-surface-elevated border text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
+              touched.title && validationErrors.title
+                ? 'border-red-500 focus:ring-red-500/30'
+                : touched.title && isTitleValid
+                ? 'border-emerald-500 focus:ring-emerald-500/30'
+                : 'border-slate-200 dark:border-white/10 focus:ring-red-500/30 focus:border-red-500'
+            }`}
+          />
+          {touched.title && (
+            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+              {validationErrors.title ? (
+                <AlertCircle className="w-4 h-4 text-red-500" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              )}
+            </div>
+          )}
+        </div>
+        {touched.title && validationErrors.title && (
+          <p className="text-xs text-red-500 font-medium flex items-center space-x-1 mt-1">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{validationErrors.title}</span>
+          </p>
+        )}
       </div>
 
       {/* 3. Location & Area Selector */}
-      <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
-          <span>3. Neighborhood / Street Location <span className="text-red-500">*</span></span>
-          <span className="text-[10px] text-slate-400 lowercase">Sri Lankan Town or Ward</span>
-        </label>
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <label htmlFor="issue-location" className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center justify-between">
+            <span>3. Neighborhood / Street Location <span className="text-red-500">*</span></span>
+          </label>
+          <span className={`text-[11px] ${location.length > 120 ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
+            {location.length} / 120
+          </span>
+        </div>
         <div className="relative">
           <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500" />
           <input
+            id="issue-location"
             type="text"
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            onChange={(e) => handleChangeField('location', e.target.value)}
+            onBlur={() => handleBlur('location')}
+            maxLength={120}
             placeholder="e.g., Trincomalee Street, Ward 4, Matale"
-            className={`w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-surface-elevated border text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
-              errors.location
-                ? 'border-red-500 focus:ring-red-500/40'
-                : 'border-slate-200 dark:border-white/10 focus:ring-red-500/40 focus:border-red-500'
+            className={`w-full pl-11 pr-10 py-3 rounded-2xl bg-slate-50 dark:bg-surface-elevated border text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
+              touched.location && validationErrors.location
+                ? 'border-red-500 focus:ring-red-500/30'
+                : touched.location && isLocationValid
+                ? 'border-emerald-500 focus:ring-emerald-500/30'
+                : 'border-slate-200 dark:border-white/10 focus:ring-red-500/30 focus:border-red-500'
             }`}
           />
+          {touched.location && (
+            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+              {validationErrors.location ? (
+                <AlertCircle className="w-4 h-4 text-red-500" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              )}
+            </div>
+          )}
         </div>
-        {errors.location && <p className="text-xs text-red-500 mt-1">{errors.location}</p>}
+        {touched.location && validationErrors.location && (
+          <p className="text-xs text-red-500 font-medium flex items-center space-x-1 mt-1">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{validationErrors.location}</span>
+          </p>
+        )}
 
         {/* Quick location chips */}
         <div className="mt-2 flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] text-slate-400">
@@ -222,8 +337,17 @@ export const IssueForm: React.FC<IssueFormProps> = ({
             <button
               key={area}
               type="button"
-              onClick={() => setLocation(area)}
-              className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/5 hover:border-red-500/40 whitespace-nowrap text-slate-600 dark:text-slate-300"
+              onClick={() => {
+                setLocation(area);
+                if (validationErrors.location) {
+                  setValidationErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.location;
+                    return next;
+                  });
+                }
+              }}
+              className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-surface-elevated border border-slate-200 dark:border-white/10 hover:border-red-500/40 whitespace-nowrap text-slate-600 dark:text-slate-300 cursor-pointer transition-colors"
             >
               {area.split(',')[0]}
             </button>
@@ -244,7 +368,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({
                 key={s.code}
                 type="button"
                 onClick={() => setSeverity(s.code)}
-                className={`p-3 rounded-2xl border text-left transition-all ${
+                className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                   isSelected
                     ? 'border-red-500 bg-red-500/10 shadow-[0_0_16px_rgba(239,68,68,0.2)]'
                     : 'border-slate-200 dark:border-white/10 bg-white dark:bg-surface hover:border-slate-300 dark:hover:border-white/20'
@@ -266,7 +390,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({
       {/* 5. People Affected Slider */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
+          <label htmlFor="issue-people" className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
             <Users className="w-4 h-4 text-amber-500" />
             <span>5. Estimated People Affected in Neighborhood</span>
           </label>
@@ -275,39 +399,63 @@ export const IssueForm: React.FC<IssueFormProps> = ({
           </span>
         </div>
         <input
+          id="issue-people"
           type="range"
-          min={5}
+          min={1}
           max={500}
-          step={5}
+          step={1}
           value={peopleAffected}
-          onChange={(e) => setPeopleAffected(Number(e.target.value))}
+          onChange={(e) => handleChangeField('peopleAffected', Number(e.target.value))}
           className="w-full accent-red-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-800 rounded-lg"
         />
         <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-          <span>5 (Single Street)</span>
+          <span>1–5 (Street Corner)</span>
           <span>50 (Block)</span>
           <span>150 (Ward)</span>
           <span>300+ (Entire Neighborhood)</span>
         </div>
+        {touched.peopleAffected && validationErrors.peopleAffected && (
+          <p className="text-xs text-red-500 font-medium flex items-center space-x-1 mt-1">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{validationErrors.peopleAffected}</span>
+          </p>
+        )}
       </div>
 
       {/* 6. Detailed Description */}
-      <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-          6. Detailed Description & Context <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          rows={4}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe the issue in detail. For example: what happened, when it started, risks to pedestrians or school children, and landmark indicators..."
-          className={`w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-surface-elevated border text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
-            errors.description
-              ? 'border-red-500 focus:ring-red-500/40'
-              : 'border-slate-200 dark:border-white/10 focus:ring-red-500/40 focus:border-red-500'
-          }`}
-        />
-        {errors.description && <p className="text-xs text-red-500 mt-1">{errors.description}</p>}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <label htmlFor="issue-description" className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            6. Detailed Description & Context <span className="text-red-500">*</span>
+          </label>
+          <span className={`text-[11px] ${description.length > 1000 ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
+            {description.length} / 1000
+          </span>
+        </div>
+        <div className="relative">
+          <textarea
+            id="issue-description"
+            rows={4}
+            value={description}
+            onChange={(e) => handleChangeField('description', e.target.value)}
+            onBlur={() => handleBlur('description')}
+            maxLength={1000}
+            placeholder="Describe the issue in detail. For example: what happened, when it started, risks to pedestrians or school children, and landmark indicators..."
+            className={`w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-surface-elevated border text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all resize-y ${
+              touched.description && validationErrors.description
+                ? 'border-red-500 focus:ring-red-500/30'
+                : touched.description && isDescriptionValid
+                ? 'border-emerald-500 focus:ring-emerald-500/30'
+                : 'border-slate-200 dark:border-white/10 focus:ring-red-500/30 focus:border-red-500'
+            }`}
+          />
+        </div>
+        {touched.description && validationErrors.description && (
+          <p className="text-xs text-red-500 font-medium flex items-center space-x-1 mt-1">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{validationErrors.description}</span>
+          </p>
+        )}
       </div>
 
       {/* Submit Button */}
@@ -318,7 +466,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({
       >
         {isSubmitting ? (
           <>
-            <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
             <span>Registering Community Report...</span>
           </>
         ) : (

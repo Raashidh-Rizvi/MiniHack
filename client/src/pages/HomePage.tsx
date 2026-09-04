@@ -20,21 +20,21 @@ import {
   Flame,
   ArrowUpRight,
 } from 'lucide-react';
-import { citizenService } from '../services/citizenService';
+import { feedService } from '../services/feedService';
 import { Issue } from '../types/issue';
 
 export const HomePage: React.FC = () => {
-  const [reports, setReports] = useState<Issue[]>([]);
+  const [allIssues, setAllIssues] = useState<Issue[]>([]);
 
   useEffect(() => {
-    citizenService
-      .getMyReports(1)
-      .then((data: Issue[]) => setReports(data))
-      .catch(() => setReports([]));
+    feedService
+      .getIssues()
+      .then((data: Issue[]) => setAllIssues(data))
+      .catch(() => setAllIssues([]));
   }, []);
 
-  const criticalCount = reports.filter((r) => r.priorityLevel === 'CRITICAL').length + 2;
-  const resolvedCount = reports.filter((r) => r.status === 'RESOLVED').length + 5;
+  const criticalCount = allIssues.filter((r) => r.priorityLevel === 'CRITICAL').length;
+  const resolvedCount = allIssues.filter((r) => r.status === 'RESOLVED').length;
 
   return (
     <div className="space-y-20 py-6 sm:py-10">

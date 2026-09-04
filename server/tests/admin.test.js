@@ -52,6 +52,27 @@ test('sessions are issued, expiring, role-bound and revocable; legacy password u
   assert.equal((await request('POST','/auth/logout',transient,{})).status,200);
   assert.equal((await request('GET','/auth/me',transient)).status,401);
 });
+test('merged citizen statistics, field errors and support use authenticated identity', async () => {
+  assert.equal((await request('GET', '/issues/my-stats')).status, 401);
+  assert.equal((await request('GET', '/issues/my-stats', officer)).status, 403);
+  const reports = await request('GET', '/issues/my-reports', citizen);
+  const stats = await request('GET', '/issues/my-stats?userId=999', citizen);
+  assert.equal(stats.body.data.total, reports.body.data.length);
+  const invalid = await request('POST', '/issues', citizen, { ...report, title: 'x' });
+  assert.equal(invalid.status, 400);
+  assert.ok(invalid.body.errors.some(e => e.field === 'title'));
+  const issue = await create();
+  const path = '/issues/' + issue.id + '/support';
+  assert.equal((await request('POST', path, null, { userId: 1 })).status, 401);
+  assert.equal((await request('POST', path, officer, {})).status, 403);
+  assert.equal((await request('POST', path, citizen, { userId: 999 })).body.supportCount, 1);
+  assert.equal((await request('POST', path, citizen, {})).body.supportCount, 1);
+  assert.equal((await request('GET', '/issues/' + issue.id)).body.data.supportedBy, undefined);
+  assert.equal((await request('DELETE', path, citizen)).body.supportCount, 0);
+  assert.equal((await request('DELETE', path, citizen)).body.supportCount, 0);
+  assert.equal((await request('DELETE', '/issues/' + issue.id, citizen)).status, 200);
+});
+
 test('public registration cannot grant privileged roles', async () => {
   for (const role of ['ADMIN','OFFICER','SYSTEM_ADMIN']) assert.equal((await request('POST','/auth/register',null,{fullName:'Test User',email:role+'@example.test',password:'test-password',role})).status,403);
   const created = await request('POST','/auth/register',null,{fullName:'Test Citizen',email:'new@example.test',password:'test-password',role:'CITIZEN'});

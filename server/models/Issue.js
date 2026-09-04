@@ -64,6 +64,7 @@ const issueSchema = new mongoose.Schema(
       default: 'REPORTED',
       uppercase: true,
     },
+    supportedBy: { type: [Number], default: [] },
     supportCount: {
       type: Number,
       default: 0,

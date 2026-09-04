@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Building2, AlertTriangle, CheckCircle, Clock, Activity,
   Search, RefreshCw, ArrowLeft, MapPin, Users,
-  ChevronRight, FileText, Shield, X,
+  ChevronRight, FileText, X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Issue, IssueStatus } from '../types/issue';
@@ -73,11 +73,11 @@ const OfficerUpdateModal: React.FC<OfficerModalProps> = ({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         {/* Header */}
-        <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20">
+        <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/20">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Building2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">Officer Action</span>
+              <Building2 className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              <span className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">Officer Action</span>
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">Update Issue Status</h2>
             <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400 line-clamp-1">{issue.title}</p>
@@ -125,8 +125,8 @@ const OfficerUpdateModal: React.FC<OfficerModalProps> = ({
                     onClick={() => setSelectedStatus(status)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
                       selectedStatus === status
-                        ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/30'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-teal-300 dark:hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-500/10'
+                        ? 'bg-orange-600 border-orange-600 text-white shadow-md shadow-orange-500/30'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-orange-300 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10'
                     }`}
                   >
                     {STATUS_LABELS[status] || status}
@@ -157,7 +157,7 @@ const OfficerUpdateModal: React.FC<OfficerModalProps> = ({
               placeholder="Add field observations, actions taken, estimated resolution time…"
               rows={3}
               maxLength={500}
-              className="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 resize-none transition-colors"
+              className="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 resize-none transition-colors"
             />
             <div className="text-right text-xs text-slate-400 mt-1">{fieldNotes.length}/500</div>
           </div>
@@ -175,7 +175,7 @@ const OfficerUpdateModal: React.FC<OfficerModalProps> = ({
               id="submit-officer-update"
               type="submit"
               disabled={!selectedStatus || isSubmitting || available.length === 0}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold shadow-sm shadow-teal-500/30 transition-all duration-200"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold shadow-sm shadow-orange-500/30 transition-all duration-200"
             >
               {isSubmitting ? 'Updating…' : 'Submit Update'}
             </button>
@@ -217,7 +217,7 @@ const StatCard: React.FC<StatCardProps> = ({ id, title, value, icon: Icon, color
 
 export const OfficerPage: React.FC = () => {
   const { currentUser } = useAuth();
-  const officerId = currentUser.id || 2;
+  // Phase 4: officerId no longer sent to API — the backend reads it from the session token.
 
   const [stats, setStats] = useState<OfficerStats>({
     totalIssues: 0, openIssues: 0, inProgressIssues: 0, resolvedIssues: 0, criticalIssues: 0,
@@ -240,20 +240,22 @@ export const OfficerPage: React.FC = () => {
   const fetchStats = useCallback(async () => {
     try {
       setStatsLoading(true);
-      const data = await getOfficerStats(officerId);
+      // Phase 4: No officerId passed — backend identifies officer via session token
+      const data = await getOfficerStats();
       setStats(data);
     } catch {
-      // non-fatal
+      // non-fatal — stats failure should not block the queue
     } finally {
       setStatsLoading(false);
     }
-  }, [officerId]);
+  }, []);
 
   const fetchQueue = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getOfficerQueue(officerId, {
+      // Phase 4: No officerId passed — backend identifies officer via session token
+      const data = await getOfficerQueue({
         search: search || undefined,
         status: selectedStatus !== 'ALL' ? selectedStatus : undefined,
       });
@@ -263,7 +265,7 @@ export const OfficerPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [officerId, search, selectedStatus]);
+  }, [search, selectedStatus]);
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
   useEffect(() => {
@@ -274,15 +276,19 @@ export const OfficerPage: React.FC = () => {
   const handleStatusUpdate = async (issueId: number, payload: OfficerStatusPayload) => {
     try {
       setIsSubmitting(true);
-      const updated = await officerUpdateStatus(issueId, { ...payload, officerId });
-      setIssues((prev) => prev.map((i) => (i.id === issueId ? updated : i)));
+      // Phase 4: No officerId in payload — backend enforces ownership via session token
+      const updated = await officerUpdateStatus(issueId, payload);
+      setIssues((prev) => prev.map((i) => (i.id === issueId ? updated : i)).filter(i => selectedStatus === 'ALL' || i.status === selectedStatus));
       setModalOpen(false);
       setSelectedIssue(null);
       setSuccessMsg(`Issue #${issueId} updated to ${payload.newStatus.replace('_', ' ')} ✓`);
       setTimeout(() => setSuccessMsg(''), 4000);
       fetchStats();
-    } catch {
-      alert('Failed to update issue status. Please try again.');
+    } catch (err: any) {
+      // Phase 4: Use setError() for proper UI display instead of browser alert()
+      const msg = err?.response?.data?.message || 'Failed to update issue status. Please try again.';
+      setError(msg);
+      setTimeout(() => setError(null), 6000);
     } finally {
       setIsSubmitting(false);
     }
@@ -300,28 +306,28 @@ export const OfficerPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-canvas">
       {/* Page Header */}
-      <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 text-white">
+      <div className="bg-gradient-to-r from-orange-950 via-amber-950 to-slate-900 text-white border-b border-orange-900/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-3 mb-4">
             <Link
-              to="/"
+              to="/issues"
               className="flex items-center gap-1.5 text-teal-300 hover:text-white text-sm transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to site
+              Community Feed
             </Link>
           </div>
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 p-3 rounded-xl bg-teal-500/20 border border-teal-500/30">
-              <Building2 className="w-7 h-7 text-teal-300" />
+            <div className="flex-shrink-0 p-3 rounded-xl bg-orange-500/20 border border-orange-500/30">
+              <Building2 className="w-7 h-7 text-orange-400" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Officer Dashboard</h1>
-              <p className="mt-1 text-teal-200 text-sm max-w-2xl">
+              <p className="mt-1 text-orange-200/90 text-sm max-w-2xl">
                 Welcome, <span className="font-semibold text-white">{currentUser.fullName}</span>. 
                 Manage and update the status of civic issues assigned to you.
               </p>
-              <p className="mt-0.5 text-teal-400 text-xs">{currentUser.communityArea}</p>
+              <p className="mt-0.5 text-orange-400/90 text-xs">{currentUser.communityArea}</p>
             </div>
           </div>
         </div>
@@ -338,7 +344,7 @@ export const OfficerPage: React.FC = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <StatCard id="officer-stat-total" title="Total Assigned" value={statsLoading ? '—' : stats.totalIssues} icon={Building2} color="bg-teal-100 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400" subtitle="All assigned to you" />
+          <StatCard id="officer-stat-total" title="Total Assigned" value={statsLoading ? '—' : stats.totalIssues} icon={Building2} color="bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400" subtitle="All assigned to you" />
           <StatCard id="officer-stat-open" title="Open" value={statsLoading ? '—' : stats.openIssues} icon={Clock} color="bg-sky-100 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400" subtitle="Needs attention" />
           <StatCard id="officer-stat-critical" title="Critical" value={statsLoading ? '—' : stats.criticalIssues} icon={AlertTriangle} color="bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400" subtitle="Highest priority" />
           <StatCard id="officer-stat-inprogress" title="In Progress" value={statsLoading ? '—' : stats.inProgressIssues} icon={Activity} color="bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400" subtitle="Being addressed" />
@@ -351,16 +357,16 @@ export const OfficerPage: React.FC = () => {
           <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-teal-500" />
+                <Building2 className="w-5 h-5 text-orange-500" />
                 <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">My Assigned Issues</h2>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-medium">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-medium">
                   {issues.length} issues
                 </span>
               </div>
               <button
                 id="officer-refresh-queue"
                 onClick={() => { fetchQueue(); fetchStats(); }}
-                className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Refresh
@@ -379,7 +385,7 @@ export const OfficerPage: React.FC = () => {
                 placeholder="Search by title, location…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-colors"
+                className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-colors"
               />
             </div>
             {/* Status filter chips */}
@@ -447,7 +453,7 @@ export const OfficerPage: React.FC = () => {
                       return (
                         <tr
                           key={issue.id}
-                          className="group bg-white dark:bg-slate-800/40 hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-colors duration-150"
+                          className="group bg-white dark:bg-slate-800/40 hover:bg-orange-50/30 dark:hover:bg-orange-950/20 transition-colors duration-150"
                         >
                           <td className="px-4 py-3">
                             <span className={`text-sm font-mono ${rankColors[issue.priorityLevel] || 'text-slate-400'}`}>{index + 1}</span>
@@ -485,7 +491,7 @@ export const OfficerPage: React.FC = () => {
                                 <button
                                   id={`officer-update-${issue.id}`}
                                   onClick={() => { setSelectedIssue(issue); setModalOpen(true); }}
-                                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm shadow-teal-500/20"
+                                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-500 hover:to-red-500 transition-colors shadow-sm shadow-orange-500/20"
                                 >
                                   Update <ChevronRight className="w-3 h-3" />
                                 </button>

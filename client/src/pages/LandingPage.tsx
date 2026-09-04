@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   Flame,
@@ -11,18 +11,14 @@ import {
   Lightbulb,
   CheckCircle2,
   ChevronRight,
-  TrendingUp,
+  AlertTriangle,
+  MapPin,
+  Clock,
+  ShieldAlert,
 } from 'lucide-react';
-import { calculatePriorityScore, getPriorityBadgeColor } from '../utils/priority';
-import { Severity } from '../types/issue';
+import { ExecutiveDashboardPreview } from '../components/landing/ExecutiveDashboardPreview';
 
 export const LandingPage: React.FC = () => {
-  // Interactive Hero Calculator State
-  const [calcSeverity, setCalcSeverity] = useState<Severity>('HIGH');
-  const [calcPeople, setCalcPeople] = useState<number>(120);
-
-  const previewScore = calculatePriorityScore(calcSeverity, calcPeople, 12);
-  const previewBadge = getPriorityBadgeColor(previewScore.level);
 
   return (
     <div className="min-h-screen overflow-hidden">
@@ -92,99 +88,64 @@ export const LandingPage: React.FC = () => {
 
           {/* Right Column: Perspective Analytics Dashboard Preview Card */}
           <div className="lg:col-span-6 relative">
-            {/* Perspective Card Container */}
-            <div className="relative rounded-3xl bg-slate-900 dark:bg-[#121722]/90 border border-slate-700/60 dark:border-white/10 shadow-[0_24px_50px_-12px_rgba(239,68,68,0.25)] p-5 sm:p-7 backdrop-blur-xl text-white">
-              {/* Dashboard Mockup Top Bar */}
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  <span className="text-xs font-mono text-slate-400 ml-2">GramaFix Executive Dashboard</span>
-                </div>
-                <div className="flex items-center space-x-1 text-[11px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
-                  <span>Live Queue</span>
-                </div>
+            <ExecutiveDashboardPreview />
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SRI LANKAN PROBLEM STATEMENT SECTION (SE3090 Requirement 2)
+          ========================================================================= */}
+      <section id="problem-context" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="rounded-3xl bg-gradient-to-b from-red-500/5 via-slate-50 to-white dark:from-red-500/10 dark:via-surface-elevated/40 dark:to-surface border border-red-500/20 p-8 sm:p-12 shadow-sm">
+          <div className="max-w-3xl mb-8">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 mb-3">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>The Sri Lankan Civic Challenge (Local Context)</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              Why Sri Lankan Communities Face Critical Repair Delays
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+              Across Sri Lanka's 14,022 Grama Niladhari divisions, neighborhood infrastructure issues—from monsoon drain blockages to dangerous road culverts—routinely languish for weeks due to three fundamental breakdowns:
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-5 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center mb-3">
+                <AlertTriangle className="w-5 h-5" />
               </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Monsoon Flash Floods & Blocked Drains
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                During tropical monsoons, unmaintained roadside canals overflow into homes, creating dengue breeding hotspots and road washouts. Without rapid reporting, repairs occur only after disaster strikes.
+              </p>
+            </div>
 
-              {/* Mini Sparkline Chart simulation */}
-              <div className="grid grid-cols-3 gap-3 mb-5">
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                  <div className="text-[10px] text-slate-400">Total Reports</div>
-                  <div className="text-xl font-bold text-white mt-0.5 tabular-nums">412</div>
-                  <div className="text-[10px] text-emerald-400 flex items-center mt-1">
-                    <TrendingUp className="w-3 h-3 mr-0.5" /> +18% this week
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                  <div className="text-[10px] text-slate-400">Avg Priority Score</div>
-                  <div className="text-xl font-bold text-red-400 mt-0.5 tabular-nums">78.4</div>
-                  <div className="text-[10px] text-red-400/80 mt-1">High Severity</div>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                  <div className="text-[10px] text-slate-400">Resolved Rate</div>
-                  <div className="text-xl font-bold text-white mt-0.5 tabular-nums">92%</div>
-                  <div className="text-[10px] text-sky-400 mt-1">Under 48 hours</div>
-                </div>
+            <div className="p-5 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10">
+              <div className="w-10 h-10 rounded-xl bg-red-500/15 text-red-500 flex items-center justify-center mb-3">
+                <Clock className="w-5 h-5" />
               </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Paper Petitions & Zero Visibility
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Citizens must visit Pradeshiya Sabhas or GN offices with manual paper letters that get buried. Residents have no digital receipt, tracking status, or accountability for resolving the issue.
+              </p>
+            </div>
 
-              {/* Interactive priority simulation inside preview */}
-              <div className="p-4 rounded-2xl bg-black/40 border border-red-500/20 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-300">Live Impact Simulation</span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${previewBadge.bg} ${previewBadge.text} ${previewBadge.border}`}>
-                    Score: {previewScore.score}/100 ({previewScore.level})
-                  </span>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Severity: {calcSeverity}</span>
-                    <div className="flex space-x-1">
-                      {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const).map((sev) => (
-                        <button
-                          key={sev}
-                          type="button"
-                          onClick={() => setCalcSeverity(sev)}
-                          className={`px-1.5 py-0.5 rounded text-[10px] ${
-                            calcSeverity === sev ? 'bg-red-500 text-white' : 'bg-white/10 text-slate-400'
-                          }`}
-                        >
-                          {sev[0]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Affected Population:</span>
-                    <span className="text-white font-bold">{calcPeople} people</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={10}
-                    max={400}
-                    step={10}
-                    value={calcPeople}
-                    onChange={(e) => setCalcPeople(Number(e.target.value))}
-                    className="w-full accent-red-500 h-1.5 bg-white/20 rounded-lg cursor-pointer"
-                  />
-                </div>
+            <div className="p-5 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-500 flex items-center justify-center mb-3">
+                <MapPin className="w-5 h-5" />
               </div>
-
-              {/* Sample Ranked Issue Row */}
-              <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
-                  <span className="text-slate-200 font-medium truncate max-w-[200px]">
-                    Blocked Culvert, Matale Hindu College
-                  </span>
-                </div>
-                <span className="text-red-400 font-bold">Priority #1</span>
-              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                Subjective, Biased Triage
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Maintenance units lack mathematical data on how many families or school routes are affected. GramaFix replaces arbitrary decisions with a deterministic Community Priority Score.
+              </p>
             </div>
           </div>
         </div>

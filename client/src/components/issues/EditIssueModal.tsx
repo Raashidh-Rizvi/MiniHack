@@ -38,12 +38,32 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description.trim() || description.length < 10) {
-      setError('Description must be at least 10 characters.');
+    if (!title.trim() || title.trim().length < 5) {
+      setError('Title must be at least 5 characters long.');
       return;
     }
-    if (!location.trim() || location.length < 3) {
-      setError('Please provide a valid location.');
+    if (title.trim().length > 100) {
+      setError('Title cannot exceed 100 characters.');
+      return;
+    }
+    if (!location.trim() || location.trim().length < 3) {
+      setError('Location / landmark must be at least 3 characters long.');
+      return;
+    }
+    if (location.trim().length > 120) {
+      setError('Location cannot exceed 120 characters.');
+      return;
+    }
+    if (!peopleAffected || Number(peopleAffected) < 1) {
+      setError('Estimated people affected must be at least 1.');
+      return;
+    }
+    if (!description.trim() || description.trim().length < 10) {
+      setError('Description must be at least 10 characters long.');
+      return;
+    }
+    if (description.trim().length > 1000) {
+      setError('Description cannot exceed 1000 characters.');
       return;
     }
 

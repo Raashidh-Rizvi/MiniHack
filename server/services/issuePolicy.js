@@ -34,6 +34,6 @@ function filterIssues(issues, filter) {
     ? [i.title, i.description, i.location].some((text) => text.toLowerCase().includes(value.toLowerCase()))
     : i[key] === value)).sort((a, b) => b.priorityScore - a.priorityScore || new Date(a.createdAt) - new Date(b.createdAt) || String(a.id).localeCompare(String(b.id), undefined, { numeric: true }));
 }
-function publicIssue(issue) { const { adminNotes, adminHistory, ...safe } = issue; return safe; }
+function publicIssue(issue) { const { adminNotes, adminHistory, supportedBy, ...safe } = issue; return safe; }
 function officerIssue(issue) { return publicIssue(issue); }
 module.exports = { statuses, severities, categories, terminal, enumValue, note, active, checkTransition, filters, filterIssues, publicIssue, officerIssue };
