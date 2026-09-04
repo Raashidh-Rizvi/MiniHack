@@ -10,7 +10,7 @@ const { getIsConnected } = require('../config/db');
  */
 const extractUser = async (req, res, next) => {
   try {
-    let userId = req.headers['x-user-id'] || req.query.userId;
+    let userId = req.headers['x-user-id'] || req.query.userId || req.query.officerId;
     let role = req.headers['x-user-role'];
 
     // Check Bearer token format: gramafix_jwt_<id>_<timestamp>
@@ -26,10 +26,10 @@ const extractUser = async (req, res, next) => {
     if (userId) {
       const numericId = Number(userId);
       if (getIsConnected()) {
-        const user = await User.findOne({ id: numericId });
+        const user = await User.findOne({ $or: [{ numericId }, { id: numericId }] });
         if (user) {
           req.user = {
-            id: user.id,
+            id: user.numericId || user.id,
             role: user.role,
             fullName: user.fullName,
             email: user.email,
@@ -40,7 +40,7 @@ const extractUser = async (req, res, next) => {
         const user = memoryStore.findUserById(numericId);
         if (user) {
           req.user = {
-            id: user.id,
+            id: user.id || user.numericId,
             role: user.role,
             fullName: user.fullName,
             email: user.email,
@@ -51,8 +51,9 @@ const extractUser = async (req, res, next) => {
     }
 
     // Fallback using provided role header or default
+    const fallbackId = role === 'OFFICER' ? 2 : (role === 'ADMIN' ? 3 : 1);
     req.user = {
-      id: userId ? Number(userId) : null,
+      id: userId ? Number(userId) : fallbackId,
       role: (role || 'CITIZEN').toUpperCase(),
     };
     next();
