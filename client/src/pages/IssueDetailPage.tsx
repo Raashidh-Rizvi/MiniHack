@@ -263,10 +263,10 @@ export const IssueDetailPage: React.FC = () => {
 
         {/* Admin Notes */}
         {issue.adminNotes && (
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-8 flex items-start space-x-3">
-            <ShieldCheck className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 mb-8 flex items-start space-x-3">
+            <ShieldCheck className="w-5 h-5 text-purple-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h5 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1">
+              <h5 className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-rose-400 mb-1">
                 Official Municipal Council Log
               </h5>
               <p className="text-sm text-slate-700 dark:text-slate-300">{issue.adminNotes}</p>

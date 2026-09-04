@@ -137,7 +137,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
             {issue.assignedOfficerName && (
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Assigned Officer</p>
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-teal-100 dark:bg-teal-500/15 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-500/25">
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/25">
                   <Building2 className="w-3 h-3" />
                   {issue.assignedOfficerName}
                 </span>
@@ -168,8 +168,8 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                     onClick={() => setSelectedStatus(status)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
                       selectedStatus === status
-                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-500/30'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10'
+                        ? 'bg-gradient-to-r from-purple-700 to-rose-700 border-purple-700 text-white shadow-md shadow-purple-600/30'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20'
                     }`}
                   >
                     {STATUS_LABELS[status]}
@@ -192,7 +192,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                 id="adjust-severity-toggle"
                 checked={adjustSeverity}
                 onChange={(e) => setAdjustSeverity(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
               />
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Adjust Severity &amp; Recalculate Priority
@@ -208,8 +208,8 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                     onClick={() => setSelectedSeverity(sev)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200 ${
                       selectedSeverity === sev
-                        ? 'bg-indigo-600 border-indigo-600 text-white'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500'
+                        ? 'bg-gradient-to-r from-purple-700 to-rose-700 border-purple-700 text-white'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-purple-300 dark:hover:border-purple-500'
                     }`}
                   >
                     {sev}
@@ -228,10 +228,10 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                   id="reassign-officer-toggle"
                   checked={showReassign}
                   onChange={(e) => setShowReassign(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500 focus:ring-offset-0"
+                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
                 />
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                  <UserCog className="w-4 h-4 text-teal-500" />
+                  <UserCog className="w-4 h-4 text-orange-500" />
                   Reassign to a Different Officer
                 </span>
               </label>
@@ -241,7 +241,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                     id="officer-reassign-select"
                     value={selectedOfficerId}
                     onChange={(e) => setSelectedOfficerId(Number(e.target.value))}
-                    className="flex-1 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-colors"
+                    className="flex-1 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-colors"
                   >
                     <option value="">Select officer…</option>
                     {officers.map((o) => (
@@ -255,7 +255,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                     id="confirm-reassign"
                     onClick={handleReassign}
                     disabled={!selectedOfficerId || isReassigning}
-                    className="px-3 py-2 rounded-lg text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {isReassigning ? 'Saving…' : 'Reassign'}
                   </button>
@@ -280,7 +280,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
               placeholder="Add internal notes, observations, or action taken…"
               rows={3}
               maxLength={500}
-              className="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 resize-none transition-colors"
+              className="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 resize-none transition-colors"
             />
             <div className="text-right text-xs text-slate-400 mt-1">{adminNotes.length}/500</div>
           </div>
@@ -298,7 +298,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
               id="submit-status-update"
               type="submit"
               disabled={!selectedStatus || isSubmitting || availableTransitions.length === 0}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold shadow-sm shadow-indigo-500/30 transition-all duration-200"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-700 via-fuchsia-700 to-rose-700 hover:from-purple-600 hover:via-fuchsia-600 hover:to-rose-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold shadow-sm shadow-purple-600/30 transition-all duration-200"
             >
               {isSubmitting ? 'Updating…' : 'Update Status'}
             </button>

@@ -6,12 +6,18 @@ interface MetricsCardProps {
   title: string;
   value: number | string;
   icon: LucideIcon;
-  colorTheme: 'indigo' | 'red' | 'amber' | 'emerald' | 'sky';
+  colorTheme: 'purplishRed' | 'indigo' | 'red' | 'amber' | 'emerald' | 'sky';
   subtitle?: string;
   trend?: string;
 }
 
 const THEME_CLASSES = {
+  purplishRed: {
+    icon: 'text-purple-600 dark:text-rose-400',
+    bg: 'bg-purple-500/10 dark:bg-purple-900/20',
+    border: 'border-purple-500/20 dark:border-purple-900/30',
+    value: 'text-purple-700 dark:text-rose-300',
+  },
   indigo: {
     icon: 'text-indigo-500',
     bg: 'bg-indigo-500/10 dark:bg-indigo-500/15',

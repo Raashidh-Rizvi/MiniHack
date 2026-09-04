@@ -50,8 +50,8 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ChevronUp className="w-3.5 h-3.5 opacity-30" />;
     return sortDir === 'desc'
-      ? <ChevronDown className="w-3.5 h-3.5 text-indigo-500" />
-      : <ChevronUp className="w-3.5 h-3.5 text-indigo-500" />;
+      ? <ChevronDown className="w-3.5 h-3.5 text-purple-600 dark:text-rose-400" />
+      : <ChevronUp className="w-3.5 h-3.5 text-purple-600 dark:text-rose-400" />;
   };
 
   if (loading) {
@@ -177,8 +177,8 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
                 {/* Assigned Officer */}
                 <td className="px-4 py-3 hidden xl:table-cell">
                   {issue.assignedOfficerName ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-teal-100 dark:bg-teal-500/15 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-500/25">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0" />
+                    <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/25">
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
                       {issue.assignedOfficerName}
                     </span>
                   ) : (
@@ -193,7 +193,7 @@ export const PriorityQueueTable: React.FC<PriorityQueueTableProps> = ({
                       id={`view-issue-${issue.id}`}
                       onClick={() => onSelectIssue(issue)}
                       title="View & Update Issue"
-                      className="p-1.5 rounded-md text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
+                      className="p-1.5 rounded-md text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
                     >
                       <Eye className="w-4 h-4" />
                     </button>

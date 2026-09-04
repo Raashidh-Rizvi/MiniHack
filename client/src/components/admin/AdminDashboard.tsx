@@ -152,7 +152,7 @@ export const AdminDashboard: React.FC = () => {
           title="Total Issues"
           value={statsLoading ? '—' : stats.totalIssues}
           icon={LayoutDashboard}
-          colorTheme="indigo"
+          colorTheme="purplishRed"
           subtitle="All reported issues"
         />
         <MetricsCard
@@ -195,18 +195,18 @@ export const AdminDashboard: React.FC = () => {
         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-indigo-500" />
+              <Shield className="w-5 h-5 text-purple-600 dark:text-rose-400" />
               <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
                 Community Priority Queue
               </h2>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-medium">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-rose-300 border border-purple-500/20 font-medium">
                 {issues.length} issues
               </span>
             </div>
             <button
               id="refresh-queue"
               onClick={() => { fetchQueue(); fetchStats(); }}
-              className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-rose-400 transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Refresh
@@ -225,7 +225,7 @@ export const AdminDashboard: React.FC = () => {
               placeholder="Search by title, location…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-colors"
+              className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-colors"
             />
           </div>
 

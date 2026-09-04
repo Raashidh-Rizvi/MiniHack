@@ -199,8 +199,8 @@ export const IssueDetailsModal: React.FC<IssueDetailsModalProps> = ({
 
         {/* Admin Notes (if present) */}
         {issue.adminNotes && (
-          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs mb-6">
-            <span className="font-bold text-amber-600 dark:text-amber-400">Admin Authority Note: </span>
+          <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs mb-6">
+            <span className="font-bold text-purple-600 dark:text-rose-400">Admin Authority Note: </span>
             <span className="text-slate-700 dark:text-slate-300">{issue.adminNotes}</span>
           </div>
         )}
