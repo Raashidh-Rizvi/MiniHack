@@ -6,13 +6,13 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "predev": "powershell -Command \"$p = Get-NetTCPConnection -LocalPort 5000 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | Where-Object { $_ -ne 0 } | Sort-Object -Unique; if ($p) { Stop-Process -Id $p -Force -ErrorAction SilentlyContinue }\"",
     "dev": "nodemon server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "morgan": "^1.10.0"
   },
