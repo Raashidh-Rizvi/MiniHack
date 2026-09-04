@@ -4,8 +4,8 @@ const userSchema = new mongoose.Schema(
   {
     numericId: {
       type: Number,
-      required: true,
       unique: true,
+      index: true,
     },
     fullName: {
       type: String,
@@ -42,5 +42,18 @@ const userSchema = new mongoose.Schema(
     },
   }
 );
+
+// Automatically generate numericId if not explicitly supplied
+userSchema.pre('validate', async function (next) {
+  if (!this.numericId) {
+    try {
+      const lastUser = await this.constructor.findOne().sort({ numericId: -1 });
+      this.numericId = lastUser && lastUser.numericId ? lastUser.numericId + 1 : 1;
+    } catch (e) {
+      this.numericId = Date.now();
+    }
+  }
+  next();
+});
 
 module.exports = mongoose.model('User', userSchema);

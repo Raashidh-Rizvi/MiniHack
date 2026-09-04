@@ -12,6 +12,8 @@ import { IssuesPage } from './pages/IssuesPage';
 import { IssueDetailPage } from './pages/IssueDetailPage';
 import { ReportIssuePage } from './pages/ReportIssuePage';
 import { MyReportsPage } from './pages/MyReportsPage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 
 export const App: React.FC = () => {
   return (
@@ -30,6 +32,10 @@ export const App: React.FC = () => {
                 {/* Member 2: Public Issues Discovery & Upvoting Feed */}
                 <Route path="/issues" element={<IssuesPage />} />
                 <Route path="/issues/:id" element={<IssueDetailPage />} />
+
+                {/* Authentication & Role Portals */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
                 {/* Catch-all redirect */}
                 <Route path="*" element={<Navigate to="/" replace />} />

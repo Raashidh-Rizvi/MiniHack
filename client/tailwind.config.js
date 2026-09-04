@@ -15,6 +15,10 @@ export default {
           elevated: 'var(--bg-surface-elevated)',
           glass: 'var(--bg-surface-glass)',
         },
+        heading: 'var(--text-heading)',
+        body: 'var(--text-body)',
+        muted: 'var(--text-muted)',
+        dim: 'var(--text-dim)',
         crimson: {
           50: '#FEF2F2',
           100: '#FEE2E2',
@@ -28,6 +32,11 @@ export default {
           900: '#7F1D1D',
           glow: 'rgba(239, 68, 68, 0.45)',
         },
+      },
+      borderColor: {
+        subtle: 'var(--border-subtle)',
+        card: 'var(--border-card)',
+        accent: 'var(--border-accent)',
       },
       boxShadow: {
         'crimson-glow': '0 0 24px rgba(239, 68, 68, 0.40)',

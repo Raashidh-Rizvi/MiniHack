@@ -5,15 +5,22 @@ export const MOCK_USERS: User[] = [
     id: 1,
     fullName: 'Kasun Perera',
     email: 'kasun.citizen@gramafix.lk',
-    role: 'RESIDENT',
+    role: 'CITIZEN',
     communityArea: 'Matale Town',
   },
   {
     id: 2,
     fullName: 'Eng. Bandara',
-    email: 'admin.bandara@gramafix.lk',
-    role: 'ADMIN',
+    email: 'officer.bandara@gramafix.lk',
+    role: 'OFFICER',
     communityArea: 'Matale Municipal Council',
+  },
+  {
+    id: 3,
+    fullName: 'Dr. Priyantha',
+    email: 'admin.priyantha@gramafix.lk',
+    role: 'ADMIN',
+    communityArea: 'Central Administration',
   },
 ];
 

@@ -1,87 +1,336 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { UserCheck, Shield, MapPin, CheckCircle, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Shield,
+  UserCheck,
+  Building2,
+  AlertCircle,
+  CheckCircle2,
+  Flame,
+  Sparkles,
+  Loader2,
+} from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { MOCK_USERS } from '../data/mockIssues';
+import { UserRole } from '../types/issue';
+
+interface FieldTouched {
+  email?: boolean;
+  password?: boolean;
+}
 
 export const LoginPage: React.FC = () => {
-  const { currentUser, setUser } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSelectUser = (user: typeof MOCK_USERS[0]) => {
-    setUser(user);
-    if (user.role === 'ADMIN') {
-      navigate('/issues');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [touched, setTouched] = useState<FieldTouched>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [activePresetRole, setActivePresetRole] = useState<UserRole | null>(null);
+
+  // Email format regex
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isPasswordValid = password.length >= 6;
+
+  // Validation errors
+  const emailError =
+    touched.email && !email.trim()
+      ? 'Email address is required.'
+      : touched.email && !isEmailValid
+      ? 'Please enter a valid email address (e.g. name@domain.com).'
+      : null;
+
+  const passwordError =
+    touched.password && !password
+      ? 'Password is required.'
+      : touched.password && !isPasswordValid
+      ? 'Password must be at least 6 characters.'
+      : null;
+
+  const isFormValid = isEmailValid && isPasswordValid;
+
+  // Evaluator presets for 1-click test
+  const demoPresets = [
+    {
+      role: 'CITIZEN' as UserRole,
+      label: 'Citizen',
+      sublabel: 'Kasun Perera',
+      email: 'kasun.citizen@gramafix.lk',
+      password: 'password123',
+      icon: UserCheck,
+      color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500',
+      activeColor: 'border-emerald-500 bg-emerald-500/15 shadow-[0_0_15px_rgba(16,185,129,0.25)]',
+    },
+    {
+      role: 'OFFICER' as UserRole,
+      label: 'Officer',
+      sublabel: 'Eng. Bandara',
+      email: 'officer.bandara@gramafix.lk',
+      password: 'officer123',
+      icon: Building2,
+      color: 'text-amber-500 bg-amber-500/10 border-amber-500/30 hover:border-amber-500',
+      activeColor: 'border-amber-500 bg-amber-500/15 shadow-[0_0_15px_rgba(245,158,11,0.25)]',
+    },
+    {
+      role: 'ADMIN' as UserRole,
+      label: 'System Admin',
+      sublabel: 'Dr. Priyantha',
+      email: 'admin.priyantha@gramafix.lk',
+      password: 'admin123',
+      icon: Shield,
+      color: 'text-red-500 bg-red-500/10 border-red-500/30 hover:border-red-500',
+      activeColor: 'border-red-500 bg-red-500/15 shadow-[0_0_15px_rgba(239,68,68,0.25)]',
+    },
+  ];
+
+  const handleApplyPreset = (preset: (typeof demoPresets)[0]) => {
+    setEmail(preset.email);
+    setPassword(preset.password);
+    setActivePresetRole(preset.role);
+    setServerError(null);
+    setTouched({ email: true, password: true });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTouched({ email: true, password: true });
+    setServerError(null);
+
+    if (!isFormValid) return;
+
+    setIsSubmitting(true);
+    const result = await login({ email: email.trim(), password });
+    setIsSubmitting(false);
+
+    if (result.success && result.user) {
+      if (result.user.role === 'ADMIN' || result.user.role === 'OFFICER') {
+        navigate('/issues');
+      } else {
+        navigate('/my-reports');
+      }
     } else {
-      navigate('/my-reports');
+      setServerError(result.error || 'Invalid credentials. Please verify and try again.');
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-12 space-y-8">
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-crimson-500/10 border border-crimson-500/20 text-crimson-500 text-xs font-semibold">
-          <span>Demo Evaluator Portal</span>
+    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Ambient background glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-gradient-to-tr from-red-600/15 via-rose-500/10 to-amber-500/5 blur-[100px] pointer-events-none rounded-full" />
+
+      <div className="w-full max-w-lg relative z-10">
+        {/* Brand Card Header */}
+        <div className="text-center mb-8 space-y-3">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold backdrop-blur-md">
+            <Flame className="w-3.5 h-3.5 text-red-500" />
+            <span>Sri Lanka National Civic Intake</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            Sign In to <span className="text-red-500">GramaFix</span>
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
+            Access citizen reporting, regional municipal queue, or administrative governance.
+          </p>
         </div>
-        <h1 className="text-3xl font-extrabold text-heading">Switch Active Persona</h1>
-        <p className="text-sm text-muted">
-          Select a role to test citizen intake or administrative triage in real-time.
-        </p>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {MOCK_USERS.map((user) => {
-          const isSelected = currentUser.id === user.id;
-          return (
-            <div
-              key={user.id}
-              onClick={() => handleSelectUser(user)}
-              className={`p-6 rounded-3xl cursor-pointer border transition-all duration-300 relative group flex flex-col justify-between ${
-                isSelected
-                  ? 'bg-surface border-crimson-500 shadow-[0_8px_30px_rgba(239,68,68,0.2)] scale-[1.02]'
-                  : 'bg-surface border-subtle hover:border-crimson-500/40 shadow-card hover:shadow-card-hover'
-              }`}
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                      user.role === 'ADMIN'
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'bg-crimson-500/20 text-crimson-500'
-                    }`}
-                  >
-                    {user.role === 'ADMIN' ? <Shield className="w-6 h-6" /> : <UserCheck className="w-6 h-6" />}
+        {/* Quick Role Evaluator Selector */}
+        <div className="mb-6 p-4 rounded-2xl bg-white/70 dark:bg-surface/70 backdrop-blur-md border border-slate-200 dark:border-white/10 shadow-sm">
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>1-Click Hackathon Evaluator Presets</span>
+            </span>
+            <span className="text-[10px] text-slate-400">Click to autofill</span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            {demoPresets.map((preset) => {
+              const Icon = preset.icon;
+              const isSelected = activePresetRole === preset.role;
+              return (
+                <button
+                  key={preset.role}
+                  type="button"
+                  onClick={() => handleApplyPreset(preset)}
+                  className={`p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between ${
+                    isSelected ? preset.activeColor : preset.color
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <Icon className="w-4 h-4" />
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
                   </div>
+                  <div className="mt-2">
+                    <div className="text-xs font-bold leading-tight">{preset.label}</div>
+                    <div className="text-[10px] opacity-75 truncate">{preset.sublabel}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-                  {isSelected && (
-                    <span className="flex items-center space-x-1 text-xs font-bold text-crimson-500 bg-crimson-500/10 px-2.5 py-1 rounded-full border border-crimson-500/30">
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      <span>Active</span>
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-bold text-heading">{user.fullName}</h3>
-                  <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-surface-elevated text-muted border border-subtle mt-1">
-                    {user.role === 'ADMIN' ? 'Municipal Officer' : 'Local Resident'}
-                  </span>
-                  <p className="text-xs text-muted flex items-center space-x-1 mt-2">
-                    <MapPin className="w-3.5 h-3.5 text-crimson-500" />
-                    <span>{user.communityArea}</span>
-                  </p>
-                  <p className="text-[11px] text-muted font-mono mt-1">{user.email}</p>
-                </div>
-              </div>
-
-              <div className="pt-6 mt-4 border-t border-subtle flex items-center justify-between text-xs font-semibold text-crimson-500 group-hover:text-crimson-600">
-                <span>Switch to this persona</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
+        {/* Main Form Card */}
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl bg-white/90 dark:bg-surface/90 backdrop-blur-xl">
+          {/* Server Error Notification */}
+          {serverError && (
+            <div className="mb-6 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-start space-x-3 text-red-600 dark:text-red-400 text-xs animate-shake">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-500" />
+              <div className="flex-1 font-medium leading-relaxed">{serverError}</div>
             </div>
-          );
-        })}
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            {/* Email Field */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="login-email"
+                className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider"
+              >
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <input
+                  id="login-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (serverError) setServerError(null);
+                  }}
+                  onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+                  placeholder="e.g. kasun.citizen@gramafix.lk"
+                  className={`w-full pl-10 pr-10 py-3 rounded-xl text-sm transition-all duration-200 bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border ${
+                    emailError
+                      ? 'border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      : touched.email && isEmailValid
+                      ? 'border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                      : 'border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  } outline-none`}
+                  autoComplete="email"
+                />
+                {touched.email && (
+                  <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+                    {isEmailValid ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                    )}
+                  </div>
+                )}
+              </div>
+              {emailError && <p className="text-xs text-red-500 font-medium mt-1">{emailError}</p>}
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="login-password"
+                  className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider"
+                >
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => alert('For hackathon demonstration, use password123, officer123, or admin123.')}
+                  className="text-xs text-red-500 hover:text-red-600 transition-colors font-semibold"
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (serverError) setServerError(null);
+                  }}
+                  onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+                  placeholder="Enter your account password"
+                  className={`w-full pl-10 pr-10 py-3 rounded-xl text-sm transition-all duration-200 bg-slate-50 dark:bg-surface-elevated text-slate-900 dark:text-white border ${
+                    passwordError
+                      ? 'border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      : touched.password && isPasswordValid
+                      ? 'border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+                      : 'border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                  } outline-none`}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {passwordError && <p className="text-xs text-red-500 font-medium mt-1">{passwordError}</p>}
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center space-x-2.5 cursor-pointer text-xs text-slate-600 dark:text-slate-400">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 dark:border-white/20 text-red-500 focus:ring-red-500/30 bg-slate-100 dark:bg-surface-elevated"
+                />
+                <span>Remember this device</span>
+              </label>
+            </div>
+
+            {/* Submit CTA Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3.5 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-500 via-red-600 to-rose-600 hover:from-red-600 hover:to-rose-700 shadow-[0_4px_20px_rgba(239,68,68,0.4)] hover:shadow-[0_6px_28px_rgba(239,68,68,0.6)] transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10 text-center">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Don't have an account yet?{' '}
+              <Link
+                to="/register"
+                className="font-bold text-red-500 hover:text-red-600 underline-offset-4 hover:underline transition-colors"
+              >
+                Register New Account
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

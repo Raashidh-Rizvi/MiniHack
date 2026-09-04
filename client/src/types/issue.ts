@@ -14,7 +14,7 @@ export type IssueStatus = 'REPORTED' | 'UNDER_REVIEW' | 'IN_PROGRESS' | 'RESOLVE
 
 export type PriorityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
-export type UserRole = 'RESIDENT' | 'ADMIN';
+export type UserRole = 'CITIZEN' | 'OFFICER' | 'ADMIN' | 'RESIDENT';
 
 export interface User {
   id: number;

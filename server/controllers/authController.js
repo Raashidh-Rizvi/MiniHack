@@ -82,7 +82,7 @@ const loginUser = async (req, res, next) => {
       }
 
       // Check password (supports default or match)
-      if (user.password && user.password !== password && user.password !== 'password123') {
+      if (user.password && user.password !== password) {
         return res.status(401).json({
           success: false,
           message: 'Invalid email or password.',
