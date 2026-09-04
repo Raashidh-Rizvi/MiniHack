@@ -77,7 +77,7 @@ export const MyReportsPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 mb-2">
             <FileText className="w-3.5 h-3.5" />
-            <span>Resident Dashboard (READ, UPDATE, DELETE)</span>
+            <span>Resident Dashboard</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
             My Submitted Reports

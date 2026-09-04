@@ -137,8 +137,6 @@ export const RegisterPage: React.FC = () => {
       ? 'Email address is required.'
       : touched.email && !isEmailValid
       ? 'Please enter a valid email address (e.g. name@domain.com).'
-      : touched.email && !isEmailVerified
-      ? 'Email address must be verified via OTP to register.'
       : null;
 
   const areaError =
@@ -279,6 +277,18 @@ export const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError(null);
+
+    if (!isEmailVerified) {
+      // Mark email touched so format errors show, but don't mark everything else
+      // — only the OTP modal needs to open, not a wall of red fields
+      setTouched((prev) => ({ ...prev, email: true }));
+      setServerError('Please verify your email address via the 6-digit OTP code sent to your inbox.');
+      void handleSendEmailOtp();
+      return;
+    }
+
+    // Email is verified — now mark all fields touched to reveal any remaining errors
     setTouched({
       fullName: true,
       email: true,
@@ -288,13 +298,6 @@ export const RegisterPage: React.FC = () => {
       confirmPassword: true,
       terms: true,
     });
-    setServerError(null);
-
-    if (!isEmailVerified) {
-      setServerError('Please verify your email address via the 6-digit OTP code sent to your inbox.');
-      void handleSendEmailOtp();
-      return;
-    }
 
     if (!isFormValid) {
       if (!agreeTerms) {
@@ -782,38 +785,7 @@ export const RegisterPage: React.FC = () => {
               <span className="font-bold text-red-500 dark:text-rose-400">{email}</span>. Please check your inbox (and spam folder) and enter the code below.
             </p>
 
-            {/* Simulated Email OTP Preview Banner */}
-            {simulatedEmailOtp && (
-              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/5 border border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-300 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 font-bold">
-                    <Mail className="w-4 h-4 text-emerald-500" />
-                    <span>Email OTP Dispatched</span>
-                  </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 font-semibold text-emerald-600 dark:text-emerald-400">
-                    Live Dispatch
-                  </span>
-                </div>
-                <div className="bg-white/60 dark:bg-black/30 p-2.5 rounded-xl font-mono text-xs flex items-center justify-between border border-emerald-500/20">
-                  <span>
-                    OTP:{' '}
-                    <strong className="text-sm text-emerald-600 dark:text-emerald-400 tracking-wider">
-                      {simulatedEmailOtp.code}
-                    </strong>
-                  </span>
-                  <button
-                    type="button"
-                    id="otp-quick-fill-btn"
-                    onClick={() => handleQuickFillOtp(simulatedEmailOtp.code)}
-                    className="px-3 py-1 rounded-lg text-[11px] font-bold liquid-btn-emerald transition-all shadow-sm cursor-pointer"
-                  >
-                    Quick-fill & Verify
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Error / Success alert */}
+            {/* Error / Success alerts */}
             {otpError && (
               <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center space-x-2 text-xs text-red-500 font-medium">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -826,6 +798,7 @@ export const RegisterPage: React.FC = () => {
                 <span>{otpSuccessMessage}</span>
               </div>
             )}
+
 
             {/* 6 Digit Inputs */}
             <div className="flex justify-center items-center gap-2 sm:gap-3">
