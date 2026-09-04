@@ -1,5 +1,18 @@
 import { Severity, PriorityLevel } from '../types/issue';
 
+export interface PriorityBreakdown {
+  severityScore: number;
+  impactScore: number;
+  urgencyScore: number;
+  ageScore: number;
+  raw?: {
+    severity: number;
+    peopleAffected: number;
+    urgency: number;
+    age: number;
+  };
+}
+
 /**
  * Calculates deterministic Community Priority Score
  * Formula: (Severity * 0.40) + (Impact * 0.30) + (Urgency * 0.20) + (Age * 0.10)
@@ -7,8 +20,9 @@ import { Severity, PriorityLevel } from '../types/issue';
 export function calculatePriorityScore(
   severity: Severity,
   peopleAffected: number,
-  hoursOld: number = 0
-): { score: number; level: PriorityLevel } {
+  hoursOld: number = 0,
+  urgency?: Severity
+): { score: number; level: PriorityLevel; breakdown: PriorityBreakdown } {
   // 1. Severity weight (40%)
   const severityWeights: Record<Severity, number> = {
     LOW: 25,
@@ -19,23 +33,30 @@ export function calculatePriorityScore(
   const severityScore = severityWeights[severity] || 50;
 
   // 2. People Affected / Impact weight (30%)
+  const count = Number(peopleAffected) || 1;
   let impactScore = 20;
-  if (peopleAffected > 300) impactScore = 100;
-  else if (peopleAffected >= 151) impactScore = 85;
-  else if (peopleAffected >= 51) impactScore = 70;
-  else if (peopleAffected >= 11) impactScore = 45;
+  if (count > 300) impactScore = 100;
+  else if (count >= 151) impactScore = 85;
+  else if (count >= 51) impactScore = 70;
+  else if (count >= 11) impactScore = 45;
 
-  // 3. Urgency weight (20%) - aligned with severity
+  // 3. Urgency weight (20%) - aligned with severity if not explicitly provided
   const urgencyWeights: Record<Severity, number> = {
     LOW: 25,
     MEDIUM: 50,
     HIGH: 75,
     CRITICAL: 100,
   };
-  const urgencyScore = urgencyWeights[severity] || 50;
+  const effectiveUrgency = urgency || severity;
+  const urgencyScore = urgencyWeights[effectiveUrgency] || severityScore;
 
   // 4. Age weight (10%) - increases with report age (max 100 at 72+ hours)
   const ageScore = hoursOld > 72 ? 90 : hoursOld > 48 ? 70 : hoursOld > 24 ? 50 : hoursOld > 6 ? 30 : 15;
+
+  const sevComponent = Math.round(severityScore * 0.4);
+  const impactComponent = Math.round(impactScore * 0.3);
+  const urgComponent = Math.round(urgencyScore * 0.2);
+  const ageComponent = Math.round(ageScore * 0.1);
 
   // Combined score (0 - 100)
   const total = Math.round(
@@ -43,13 +64,43 @@ export function calculatePriorityScore(
   );
   const score = Math.max(0, Math.min(100, total));
 
-  // Priority Level mapping
-  let level: PriorityLevel = 'LOW';
+  // Priority Level mapping: LOW (< 35), MEDIUM (35-64), HIGH (65-84), CRITICAL (>= 85)
+  let level: PriorityLevel = 'MEDIUM';
   if (score >= 85) level = 'CRITICAL';
   else if (score >= 65) level = 'HIGH';
   else if (score >= 35) level = 'MEDIUM';
+  else level = 'LOW';
 
-  return { score, level };
+  return {
+    score,
+    level,
+    breakdown: {
+      severityScore: sevComponent,
+      impactScore: impactComponent,
+      urgencyScore: urgComponent,
+      ageScore: ageComponent,
+      raw: {
+        severity: severityScore,
+        peopleAffected: impactScore,
+        urgency: urgencyScore,
+        age: ageScore,
+      },
+    },
+  };
+}
+
+export function getPriorityScoreColor(level: PriorityLevel): string {
+  switch (level) {
+    case 'CRITICAL':
+      return 'text-red-500';
+    case 'HIGH':
+      return 'text-orange-500';
+    case 'MEDIUM':
+      return 'text-amber-500';
+    case 'LOW':
+    default:
+      return 'text-emerald-500';
+  }
 }
 
 export function getPriorityBadgeColor(level: PriorityLevel): {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle, Loader2 } from 'lucide-react';
 import { Issue, IssueUpdateDTO, Severity } from '../../types/issue';
+import { LocationPickerMap } from '../map/LocationPickerMap';
 
 interface EditIssueModalProps {
   issue: Issue | null;
@@ -18,6 +19,8 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [severity, setSeverity] = useState<Severity>('MEDIUM');
   const [peopleAffected, setPeopleAffected] = useState<number>(10);
   const [loading, setLoading] = useState(false);
@@ -28,6 +31,8 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
       setTitle(issue.title);
       setDescription(issue.description);
       setLocation(issue.location);
+      setLatitude(issue.latitude ?? null);
+      setLongitude(issue.longitude ?? null);
       setSeverity(issue.severity);
       setPeopleAffected(issue.peopleAffected);
       setError(null);
@@ -74,6 +79,8 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
         title: title.trim(),
         description: description.trim(),
         location: location.trim(),
+        latitude,
+        longitude,
         severity,
         peopleAffected: Number(peopleAffected),
       });
@@ -125,16 +132,27 @@ export const EditIssueModal: React.FC<EditIssueModalProps> = ({
             />
           </div>
 
-          {/* Location */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold uppercase tracking-wider text-heading">
-              Location / Landmark
+          {/* Location & OpenStreetMap Leaflet Picker */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-heading block">
+              Location / Address & Map Pin
             </label>
+            <LocationPickerMap
+              initialLocation={location}
+              initialLat={latitude}
+              initialLng={longitude}
+              onLocationSelect={(address: string, lat: number, lng: number) => {
+                setLocation(address);
+                setLatitude(lat);
+                setLongitude(lng);
+              }}
+            />
             <input
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="w-full glass-input"
+              placeholder="e.g., Near Hindu College, Trincomalee Street, Matale"
               required
             />
           </div>

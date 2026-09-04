@@ -13,8 +13,11 @@ import {
   CheckCircle,
   PlusCircle,
   TrendingUp,
+  Map,
+  List,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { IssuesExplorerMap } from '../components/map/IssuesExplorerMap';
 
 export const IssuesPage: React.FC = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
@@ -24,6 +27,7 @@ export const IssuesPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<IssueStatus | 'ALL'>('ALL');
   const [sortBy, setSortBy] = useState<'priority' | 'support' | 'recent'>('priority');
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // Load issues from service
   const loadIssues = async () => {
@@ -227,15 +231,58 @@ export const IssuesPage: React.FC = () => {
             );
           })}
         </div>
+
+        {/* View Mode Toggle (List View vs Interactive Map View) */}
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-white/5">
+          <div className="text-xs font-bold text-slate-500 dark:text-slate-400">
+            {issues.length} {issues.length === 1 ? 'Report' : 'Reports'} Found
+          </div>
+
+          <div className="inline-flex p-1 bg-slate-100 dark:bg-surface-elevated rounded-2xl border border-slate-200 dark:border-white/10 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-white dark:bg-surface text-slate-900 dark:text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <List className="w-3.5 h-3.5" />
+              <span>List View</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('map')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${
+                viewMode === 'map'
+                  ? 'bg-red-500 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-red-500 dark:hover:text-red-400'
+              }`}
+            >
+              <Map className="w-3.5 h-3.5" />
+              <span>Map View (OpenStreetMap)</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Issues Grid / List */}
-      <IssueList
-        issues={issues}
-        loading={loading}
-        onSelectIssue={(issue) => setSelectedIssue(issue)}
-        onSupportToggled={handleSupportToggled}
-      />
+      {/* Issues Display: Interactive OpenStreetMap vs Card Grid List */}
+      {viewMode === 'map' ? (
+        <IssuesExplorerMap
+          issues={issues}
+          onSelectIssue={(issue) => setSelectedIssue(issue)}
+          selectedIssueId={selectedIssue?.id}
+        />
+      ) : (
+        <IssueList
+          issues={issues}
+          loading={loading}
+          onSelectIssue={(issue) => setSelectedIssue(issue)}
+          onSupportToggled={handleSupportToggled}
+        />
+      )}
 
       {/* Details Modal */}
       <IssueDetailsModal

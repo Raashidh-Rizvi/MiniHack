@@ -11,10 +11,10 @@ import {
   Building2,
   AlertCircle,
   CheckCircle2,
-  Flame,
   Sparkles,
   Loader2,
 } from 'lucide-react';
+import { SriLankanLion } from '../components/common/SriLankanLion';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../types/issue';
 
@@ -130,7 +130,7 @@ export const LoginPage: React.FC = () => {
         {/* Brand Card Header */}
         <div className="text-center mb-8 space-y-3">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold backdrop-blur-md">
-            <Flame className="w-3.5 h-3.5 text-red-500" />
+            <SriLankanLion size={16} color="#EF4444" accentColor="#991B1B" />
             <span>Sri Lanka National Civic Intake</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">

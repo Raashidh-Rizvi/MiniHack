@@ -15,6 +15,7 @@ import {
   Share2,
   ShieldCheck,
 } from 'lucide-react';
+import { IssueLocationMiniMap } from '../components/map/IssueLocationMiniMap';
 
 const LIFECYCLE_STEPS: { status: IssueStatus; label: string; desc: string }[] = [
   { status: 'REPORTED', label: 'Reported', desc: 'Submitted by neighborhood resident' },
@@ -170,6 +171,16 @@ export const IssueDetailPage: React.FC = () => {
           <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
             {issue.description}
           </p>
+        </div>
+
+        {/* OpenStreetMap Leaflet Location Map */}
+        <div className="mb-8">
+          <IssueLocationMiniMap
+            location={issue.location}
+            latitude={issue.latitude}
+            longitude={issue.longitude}
+            title={issue.title}
+          />
         </div>
 
         {/* Priority Engine Metric Calculation Box */}

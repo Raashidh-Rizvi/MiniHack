@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+const historyEventSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true },
+    type: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    actorId: { type: mongoose.Schema.Types.Mixed },
+    actorName: { type: String },
+    actorRole: { type: String },
+    before: { type: mongoose.Schema.Types.Mixed },
+    after: { type: mongoose.Schema.Types.Mixed },
+    note: { type: String },
+  },
+  { _id: false }
+);
+
 const issueSchema = new mongoose.Schema(
   {
     numericId: {
@@ -32,6 +47,14 @@ const issueSchema = new mongoose.Schema(
       required: [true, 'Location is required'],
       trim: true,
       maxlength: [120, 'Location cannot exceed 120 characters'],
+    },
+    latitude: {
+      type: Number,
+      default: null,
+    },
+    longitude: {
+      type: Number,
+      default: null,
     },
     severity: {
       type: String,
@@ -82,11 +105,10 @@ const issueSchema = new mongoose.Schema(
       default: '',
     },
     fieldNotes: { type: String, default: '', maxlength: 500 },
-    adminHistory: { type: [{
-      _id: false, id: String, type: String, timestamp: Date,
-      actorId: mongoose.Schema.Types.Mixed, actorName: String, actorRole: String,
-      before: mongoose.Schema.Types.Mixed, after: mongoose.Schema.Types.Mixed, note: String,
-    }], default: [] },
+    adminHistory: {
+      type: [historyEventSchema],
+      default: [],
+    },
     assignedOfficer: {
       type: Number,
       default: null,

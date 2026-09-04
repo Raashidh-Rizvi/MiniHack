@@ -1,3 +1,4 @@
+@import 'leaflet/dist/leaflet.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -202,3 +203,73 @@
 .animate-radar {
   animation: radar-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
+
+/* ==========================================================================
+   LEAFLET CUSTOM STYLES (OpenStreetMap)
+   ========================================================================== */
+.leaflet-container {
+  font-family: inherit;
+  z-index: 0 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 10 !important;
+}
+
+/* Dark mode tile filter for seamless dark theme */
+.dark .leaflet-tile-pane {
+  filter: brightness(0.78) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+/* Custom Leaflet Popup */
+.leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: #181f2e !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 16px 32px -4px rgba(0, 0, 0, 0.6) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  background: #ffffff !important;
+}
+
+.dark .leaflet-popup-tip {
+  background: #181f2e !important;
+}
+
+.leaflet-popup-close-button {
+  top: 8px !important;
+  right: 8px !important;
+  color: #94a3b8 !important;
+  padding: 4px !important;
+  width: 24px !important;
+  height: 24px !important;
+  font: 16px/18px Tahoma, Verdana, sans-serif !important;
+}
+
+.dark .leaflet-popup-close-button {
+  color: #cbd5e1 !important;
+}
+
+/* Custom Marker Styling */
+.custom-leaflet-marker {
+  background: transparent;
+  border: none;
+}
+

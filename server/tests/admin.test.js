@@ -179,3 +179,12 @@ test('all transition-policy combinations and Mongoose moderation enums', async (
   }
   for (const status of ['DUPLICATE','REJECTED']) await new Issue({...report,numericId:999,status}).validate();
 });
+test('public priority calculation endpoint dynamically returns score, level and breakdown', async () => {
+  const res = await request('POST', '/issues/calculate-priority', null, { severity: 'HIGH', peopleAffected: 50 });
+  assert.equal(res.status, 200);
+  assert.deepEqual(res.body.data.priorityScore, 60);
+  assert.equal(res.body.data.priorityLevel, 'MEDIUM');
+  assert.ok(res.body.data.breakdown);
+  assert.equal(res.body.data.breakdown.severityScore, 30);
+});
+

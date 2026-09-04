@@ -1,6 +1,7 @@
 import React from 'react';
-import { Heart, ShieldCheck, MapPin, Flame } from 'lucide-react';
+import { Heart, ShieldCheck, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BrandLogo } from '../common/BrandLogo';
 
 export const Footer: React.FC = () => {
   return (
@@ -8,14 +9,7 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-red-500 to-rose-600 flex items-center justify-center text-white shadow-md shadow-red-500/30">
-                <Flame className="w-4 h-4" />
-              </div>
-              <span className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
-                Grama<span className="text-red-500">Fix</span>
-              </span>
-            </div>
+            <BrandLogo badgeSize="w-8 h-8" iconSize={20} showSubtitle={false} showBadge={false} />
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Community Issue Coordination & Prioritization Platform for Sri Lankan Neighborhoods. Connecting residents, ward officials, and authorities transparently.
             </p>

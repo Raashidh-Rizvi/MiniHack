@@ -1,6 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { CategoryType, Severity, IssueCreateDTO } from '../../types/issue';
-import { calculatePriorityScore, getPriorityBadgeColor } from '../../utils/priority';
+import React, { useState, useEffect } from 'react';
+import { CategoryType, Severity, IssueCreateDTO, Issue, PriorityLevel } from '../../types/issue';
+import { calculatePriorityScore, getPriorityBadgeColor, getPriorityScoreColor, PriorityBreakdown } from '../../utils/priority';
+import { LocationPickerMap } from '../map/LocationPickerMap';
+import { feedService } from '../../services/feedService';
+import { citizenService } from '../../services/citizenService';
 import {
   Compass,
   Waves,
@@ -16,6 +19,9 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface IssueFormProps {
@@ -67,11 +73,22 @@ export const IssueForm: React.FC<IssueFormProps> = ({
   const [description, setDescription] = useState(initialValues?.description || '');
   const [category, setCategory] = useState<CategoryType>(initialValues?.category || 'ROAD');
   const [location, setLocation] = useState(initialValues?.location || '');
+  const [latitude, setLatitude] = useState<number | null>(initialValues?.latitude || null);
+  const [longitude, setLongitude] = useState<number | null>(initialValues?.longitude || null);
   const [severity, setSeverity] = useState<Severity>(initialValues?.severity || 'HIGH');
   const [peopleAffected, setPeopleAffected] = useState<number>(initialValues?.peopleAffected || 50);
+  const [nearbyIssues, setNearbyIssues] = useState<Issue[]>([]);
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Load existing issues to show on the map so user can see nearby reported problems
+  useEffect(() => {
+    feedService
+      .getIssues()
+      .then((data) => setNearbyIssues(data || []))
+      .catch((e) => console.warn('Could not load nearby issues for map:', e));
+  }, []);
 
   // Merge server errors into validation errors when passed
   useEffect(() => {
@@ -80,12 +97,45 @@ export const IssueForm: React.FC<IssueFormProps> = ({
     }
   }, [serverErrors]);
 
-  // Dynamic Priority Score live estimation
-  const calculatedPriority = useMemo(() => {
-    return calculatePriorityScore(severity, peopleAffected, 0);
+  // Dynamic Priority Score live estimation connected to the Priority Engine
+  const [enginePriority, setEnginePriority] = useState<{
+    score: number;
+    level: PriorityLevel;
+    breakdown: PriorityBreakdown;
+  }>(() => calculatePriorityScore(severity, peopleAffected, 0));
+  const [isEngineComputing, setIsEngineComputing] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false);
+
+  useEffect(() => {
+    // Immediate synchronous local estimate so UI responds instantaneously with zero latency
+    const local = calculatePriorityScore(severity, peopleAffected, 0);
+    setEnginePriority(local);
+
+    let active = true;
+    setIsEngineComputing(true);
+
+    const timer = setTimeout(() => {
+      citizenService
+        .estimatePriority({ severity, peopleAffected })
+        .then((remote) => {
+          if (active) {
+            setEnginePriority(remote);
+            setIsEngineComputing(false);
+          }
+        })
+        .catch(() => {
+          if (active) setIsEngineComputing(false);
+        });
+    }, 120);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [severity, peopleAffected]);
 
-  const priorityBadge = getPriorityBadgeColor(calculatedPriority.level);
+  const priorityBadge = getPriorityBadgeColor(enginePriority.level);
+  const priorityScoreColor = getPriorityScoreColor(enginePriority.level);
 
   // Field validation rules
   const getFieldErrors = (): Record<string, string> => {
@@ -171,6 +221,8 @@ export const IssueForm: React.FC<IssueFormProps> = ({
       description: description.trim(),
       category,
       location: location.trim(),
+      latitude,
+      longitude,
       severity,
       peopleAffected: Number(peopleAffected),
     });
@@ -183,35 +235,6 @@ export const IssueForm: React.FC<IssueFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-      {/* Live Priority Score Preview Widget */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent border border-red-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center flex-shrink-0">
-            <AlertCircle className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
-              Live Priority Score Calculation
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              Deterministic Community Impact: Severity (40%) + Population (30%) + Urgency (20%)
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2 sm:self-center">
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-bold border ${priorityBadge.bg} ${priorityBadge.text} ${priorityBadge.border} ${priorityBadge.glow}`}
-          >
-            {calculatedPriority.level} Priority
-          </span>
-          <span className="text-xl font-black text-red-500 tabular-nums">
-            {calculatedPriority.score}
-            <span className="text-xs text-slate-400 font-normal"> / 100</span>
-          </span>
-        </div>
-      </div>
-
       {/* 1. Category Selection */}
       <div>
         <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
@@ -285,53 +308,80 @@ export const IssueForm: React.FC<IssueFormProps> = ({
         )}
       </div>
 
-      {/* 3. Location & Area Selector */}
-      <div className="space-y-1">
+      {/* 3. Location & Area Selector with OpenStreetMap Leaflet */}
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label htmlFor="issue-location" className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center justify-between">
-            <span>3. Neighborhood / Street Location <span className="text-red-500">*</span></span>
+          <label htmlFor="issue-location" className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            3. Pinpoint Problem Location & Address <span className="text-red-500">*</span>
           </label>
           <span className={`text-[11px] ${location.length > 120 ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
             {location.length} / 120
           </span>
         </div>
-        <div className="relative">
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500" />
-          <input
-            id="issue-location"
-            type="text"
-            value={location}
-            onChange={(e) => handleChangeField('location', e.target.value)}
-            onBlur={() => handleBlur('location')}
-            maxLength={120}
-            placeholder="e.g., Trincomalee Street, Ward 4, Matale"
-            className={`w-full pl-11 pr-10 py-3 rounded-2xl bg-slate-50 dark:bg-surface-elevated border text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
-              touched.location && validationErrors.location
-                ? 'border-red-500 focus:ring-red-500/30'
-                : touched.location && isLocationValid
-                ? 'border-emerald-500 focus:ring-emerald-500/30'
-                : 'border-slate-200 dark:border-white/10 focus:ring-red-500/30 focus:border-red-500'
-            }`}
-          />
-          {touched.location && (
-            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
-              {validationErrors.location ? (
-                <AlertCircle className="w-4 h-4 text-red-500" />
-              ) : (
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              )}
-            </div>
+
+        {/* Embedded Interactive OpenStreetMap Leaflet Map */}
+        <LocationPickerMap
+          initialLocation={location}
+          initialLat={latitude}
+          initialLng={longitude}
+          nearbyIssues={nearbyIssues}
+          onLocationSelect={(address, lat, lng) => {
+            setLocation(address);
+            setLatitude(lat);
+            setLongitude(lng);
+            if (validationErrors.location) {
+              setValidationErrors((prev) => {
+                const next = { ...prev };
+                delete next.location;
+                return next;
+              });
+            }
+          }}
+        />
+
+        {/* Address & Street Text Input Field */}
+        <div className="space-y-1">
+          <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center justify-between">
+            <span>Street Address / Landmark (Auto-filled from map or edit manually):</span>
+          </div>
+          <div className="relative">
+            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500" />
+            <input
+              id="issue-location"
+              type="text"
+              value={location}
+              onChange={(e) => handleChangeField('location', e.target.value)}
+              onBlur={() => handleBlur('location')}
+              maxLength={120}
+              placeholder="e.g., Trincomalee Street, Ward 4, Matale"
+              className={`w-full pl-11 pr-10 py-3 rounded-2xl bg-slate-50 dark:bg-surface-elevated border text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
+                touched.location && validationErrors.location
+                  ? 'border-red-500 focus:ring-red-500/30'
+                  : touched.location && isLocationValid
+                  ? 'border-emerald-500 focus:ring-emerald-500/30'
+                  : 'border-slate-200 dark:border-white/10 focus:ring-red-500/30 focus:border-red-500'
+              }`}
+            />
+            {touched.location && (
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+                {validationErrors.location ? (
+                  <AlertCircle className="w-4 h-4 text-red-500" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                )}
+              </div>
+            )}
+          </div>
+          {touched.location && validationErrors.location && (
+            <p className="text-xs text-red-500 font-medium flex items-center space-x-1 mt-1">
+              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{validationErrors.location}</span>
+            </p>
           )}
         </div>
-        {touched.location && validationErrors.location && (
-          <p className="text-xs text-red-500 font-medium flex items-center space-x-1 mt-1">
-            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{validationErrors.location}</span>
-          </p>
-        )}
 
         {/* Quick location chips */}
-        <div className="mt-2 flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] text-slate-400">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] text-slate-400">
           <span className="whitespace-nowrap font-medium">Quick suggestions:</span>
           {SRI_LANKAN_COMMUNITY_AREAS.slice(0, 4).map((area) => (
             <button
@@ -419,6 +469,100 @@ export const IssueForm: React.FC<IssueFormProps> = ({
             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
             <span>{validationErrors.peopleAffected}</span>
           </p>
+        )}
+      </div>
+
+      {/* Live Priority Score Preview Widget (Calculated based on Severity #4 & People Affected #5) */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent border border-red-500/20 transition-all shadow-sm space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-5 h-5 animate-pulse" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-red-600 dark:text-red-400">
+                  Deterministic Priority Engine
+                </span>
+                {isEngineComputing ? (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-500 animate-pulse">
+                    Computing...
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    Live Active
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                Formula: Severity (40%) + Population (30%) + Urgency (20%) + Baseline Age (10%)
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2.5 flex-shrink-0 sm:self-center">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap transition-all duration-300 ${priorityBadge.bg} ${priorityBadge.text} ${priorityBadge.border} ${priorityBadge.glow}`}
+            >
+              {enginePriority.level} Priority
+            </span>
+            <div className="flex items-baseline whitespace-nowrap">
+              <span className={`text-2xl font-black tabular-nums transition-colors duration-300 ${priorityScoreColor}`}>
+                {enginePriority.score}
+              </span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium ml-1">/ 100</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowBreakdown((prev) => !prev)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated transition-colors cursor-pointer"
+              title={showBreakdown ? 'Hide engine formula breakdown' : 'Show engine formula breakdown'}
+              aria-expanded={showBreakdown}
+            >
+              {showBreakdown ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Dynamic Engine Factor Breakdown Drawer */}
+        {showBreakdown && (
+          <div className="pt-3 border-t border-red-500/15 animate-fadeIn">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+              <div className="p-2.5 rounded-xl bg-white/70 dark:bg-surface border border-slate-200/80 dark:border-white/10">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Severity (40%)</div>
+                <div className="text-sm font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">
+                  +{enginePriority.breakdown.severityScore} pts
+                </div>
+                <div className="text-[10px] text-slate-400">Weight: {severity} ({enginePriority.breakdown.raw?.severity ?? 50})</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/70 dark:bg-surface border border-slate-200/80 dark:border-white/10">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Population (30%)</div>
+                <div className="text-sm font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">
+                  +{enginePriority.breakdown.impactScore} pts
+                </div>
+                <div className="text-[10px] text-slate-400">{peopleAffected} residents</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/70 dark:bg-surface border border-slate-200/80 dark:border-white/10">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Urgency (20%)</div>
+                <div className="text-sm font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">
+                  +{enginePriority.breakdown.urgencyScore} pts
+                </div>
+                <div className="text-[10px] text-slate-400">Aligned with severity</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/70 dark:bg-surface border border-slate-200/80 dark:border-white/10">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Baseline Age (10%)</div>
+                <div className="text-sm font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">
+                  +{enginePriority.breakdown.ageScore} pts
+                </div>
+                <div className="text-[10px] text-slate-400">Initial intake baseline</div>
+              </div>
+            </div>
+            <div className="mt-2 text-right">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                Sum: {enginePriority.breakdown.severityScore} + {enginePriority.breakdown.impactScore} + {enginePriority.breakdown.urgencyScore} + {enginePriority.breakdown.ageScore} = <strong className={priorityScoreColor}>{enginePriority.score} pts ({enginePriority.level})</strong>
+              </span>
+            </div>
+          </div>
         )}
       </div>
 

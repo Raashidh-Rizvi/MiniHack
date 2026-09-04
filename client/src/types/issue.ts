@@ -30,6 +30,8 @@ export interface Issue {
   description: string;
   category: CategoryType;
   location: string;
+  latitude?: number | null;
+  longitude?: number | null;
   severity: Severity;
   peopleAffected: number;
   priorityScore: number;
@@ -51,6 +53,8 @@ export interface IssueCreateDTO {
   description: string;
   category: CategoryType;
   location: string;
+  latitude?: number | null;
+  longitude?: number | null;
   severity: Severity;
   peopleAffected: number;
   reportedBy?: number;
@@ -61,6 +65,8 @@ export interface IssueUpdateDTO {
   title?: string;
   description?: string;
   location?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   severity?: Severity;
   peopleAffected?: number;
 }

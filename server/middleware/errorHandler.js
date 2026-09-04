@@ -23,9 +23,15 @@ const errorHandler = (err, req, res, next) => {
 
   // Mongoose CastError (invalid ObjectId / ID)
   if (err.name === 'CastError') {
-    return res.status(404).json({
+    if (['id', '_id', 'numericId'].includes(err.path)) {
+      return res.status(404).json({
+        success: false,
+        message: `Resource not found with ID: ${err.value}`,
+      });
+    }
+    return res.status(400).json({
       success: false,
-      message: `Resource not found with ID: ${err.value}`,
+      message: `Invalid value for ${err.path}: ${err.value}`,
     });
   }
 

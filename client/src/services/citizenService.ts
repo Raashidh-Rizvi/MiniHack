@@ -1,6 +1,6 @@
 import { apiClient, allowLocalDemo } from './api';
-import { calculatePriorityScore } from '../utils/priority';
-import { Issue, IssueCreateDTO, IssueUpdateDTO, User } from '../types/issue';
+import { calculatePriorityScore, PriorityBreakdown } from '../utils/priority';
+import { Issue, IssueCreateDTO, IssueUpdateDTO, PriorityLevel, Severity, User } from '../types/issue';
 import { MOCK_ISSUES, MOCK_USERS } from '../data/mockIssues';
 
 // Local storage key for fallback persistence
@@ -28,6 +28,32 @@ const setStoredReports = (reports: Issue[]) => {
 };
 
 export const citizenService = {
+  // DYNAMIC ESTIMATE: Calculate live priority via backend Priority Engine
+  async estimatePriority(payload: {
+    severity: Severity;
+    peopleAffected: number;
+    urgency?: Severity;
+  }): Promise<{ score: number; level: PriorityLevel; breakdown: PriorityBreakdown }> {
+    try {
+      const response = await apiClient.post<{
+        success: boolean;
+        data: {
+          priorityScore: number;
+          priorityLevel: PriorityLevel;
+          breakdown: PriorityBreakdown;
+        };
+      }>('/issues/calculate-priority', payload);
+      return {
+        score: response.data.data.priorityScore,
+        level: response.data.data.priorityLevel,
+        breakdown: response.data.data.breakdown,
+      };
+    } catch {
+      // Local mathematical fallback mirroring server formula
+      return calculatePriorityScore(payload.severity, payload.peopleAffected, 0, payload.urgency);
+    }
+  },
+
   // CREATE: Report a new issue
   async createIssue(payload: IssueCreateDTO): Promise<Issue> {
     try {
@@ -45,6 +71,8 @@ export const citizenService = {
         description: payload.description,
         category: payload.category,
         location: payload.location,
+        latitude: payload.latitude ?? null,
+        longitude: payload.longitude ?? null,
         severity: payload.severity,
         peopleAffected: payload.peopleAffected,
         priorityScore: calculatePriorityScore(payload.severity, payload.peopleAffected).score,

@@ -17,6 +17,7 @@ import {
   Flame,
 } from 'lucide-react';
 import { CategoryType, IssueCreateDTO, Severity } from '../../types/issue';
+import { LocationPickerMap } from '../map/LocationPickerMap';
 
 interface IssueFormProps {
   onSubmit: (data: IssueCreateDTO) => Promise<void>;
@@ -46,6 +47,8 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<CategoryType>('ROAD');
   const [location, setLocation] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [severity, setSeverity] = useState<Severity>('MEDIUM');
   const [peopleAffected, setPeopleAffected] = useState<number>(25);
 
@@ -136,6 +139,8 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
       description: description.trim(),
       category,
       location: location.trim(),
+      latitude,
+      longitude,
       severity,
       peopleAffected: Number(peopleAffected),
     });
@@ -248,11 +253,30 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
         </div>
       </div>
 
-      {/* Location Input & Quick Suggestions */}
-      <div className="space-y-2">
+      {/* Location Input & OpenStreetMap Leaflet Map */}
+      <div className="space-y-3">
         <label className="text-xs font-bold uppercase tracking-wider text-heading block">
-          Location or Landmark <span className="text-crimson-500">*</span>
+          Problem Location & Address <span className="text-crimson-500">*</span>
         </label>
+
+        <LocationPickerMap
+          initialLocation={location}
+          initialLat={latitude}
+          initialLng={longitude}
+          onLocationSelect={(address, lat, lng) => {
+            setLocation(address);
+            setLatitude(lat);
+            setLongitude(lng);
+            if (errors.location) {
+              setErrors((prev) => {
+                const next = { ...prev };
+                delete next.location;
+                return next;
+              });
+            }
+          }}
+        />
+
         <div className="relative">
           <MapPin className="w-4 h-4 text-muted absolute left-3.5 top-3.5 pointer-events-none" />
           <input

@@ -26,6 +26,14 @@ function fields(data, create = false) {
     if (!['number', 'string'].includes(typeof value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1) throw fail(400, 'People affected must be a positive integer.');
     result.peopleAffected = Number(value);
   }
+  if (data.latitude !== undefined && data.latitude !== null && data.latitude !== '') {
+    const lat = Number(data.latitude);
+    if (!isNaN(lat) && lat >= -90 && lat <= 90) result.latitude = lat;
+  }
+  if (data.longitude !== undefined && data.longitude !== null && data.longitude !== '') {
+    const lng = Number(data.longitude);
+    if (!isNaN(lng) && lng >= -180 && lng <= 180) result.longitude = lng;
+  }
   return result;
 }
 
@@ -124,6 +132,46 @@ const getAllIssues = handle(async (req, res) => {
 
 const getIssueById = handle(async (req, res) => res.json({ success: true, data: policy.publicIssue(await store.get(req.params.id)) }));
 
+const estimatePriority = handle(async (req, res) => {
+  const data = body(req);
+  const severity = policy.enumValue(data.severity ?? 'MEDIUM', policy.severities, 'severity');
+  const count = Number(data.peopleAffected ?? 10);
+  if (!['number', 'string'].includes(typeof (data.peopleAffected ?? 10)) || !Number.isSafeInteger(count) || count < 1) {
+    throw fail(400, 'People affected must be a positive integer.');
+  }
+  const urgency = data.urgency ? policy.enumValue(data.urgency, policy.severities, 'urgency') : null;
+  const result = calculatePriority(severity, count, urgency, data.createdAt ? new Date(data.createdAt) : null);
+
+  const sevPoints = { LOW: 25, MEDIUM: 50, HIGH: 75, CRITICAL: 100 };
+  const sevScore = sevPoints[severity] || 50;
+  let popScore = 20;
+  if (count > 300) popScore = 100;
+  else if (count >= 151) popScore = 85;
+  else if (count >= 51) popScore = 70;
+  else if (count >= 11) popScore = 45;
+  const urgScore = sevPoints[(urgency || severity).toUpperCase()] || sevScore;
+  const ageScore = 15;
+
+  res.json({
+    success: true,
+    data: {
+      ...result,
+      breakdown: {
+        severityScore: Math.round(sevScore * 0.4),
+        impactScore: Math.round(popScore * 0.3),
+        urgencyScore: Math.round(urgScore * 0.2),
+        ageScore: Math.round(ageScore * 0.1),
+        raw: {
+          severity: sevScore,
+          peopleAffected: popScore,
+          urgency: urgScore,
+          age: ageScore,
+        },
+      },
+    },
+  });
+});
+
 module.exports = {
   createIssue,
   getMyReports,
@@ -134,4 +182,5 @@ module.exports = {
   cancelIssue,
   getAllIssues,
   getIssueById,
+  estimatePriority,
 };

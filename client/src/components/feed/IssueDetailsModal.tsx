@@ -14,6 +14,7 @@ import { SupportButton } from './SupportButton';
 import { formatDate } from '../../utils/formatters';
 import { getPriorityBadgeColor, getStatusBadgeColor } from '../../utils/priority';
 import { Link } from 'react-router-dom';
+import { IssueLocationMiniMap } from '../map/IssueLocationMiniMap';
 
 interface IssueDetailsModalProps {
   issue: Issue | null;
@@ -118,6 +119,16 @@ export const IssueDetailsModal: React.FC<IssueDetailsModalProps> = ({
           <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
             {issue.description}
           </p>
+        </div>
+
+        {/* Location OpenStreetMap Mini Map */}
+        <div className="mb-6">
+          <IssueLocationMiniMap
+            location={issue.location}
+            latitude={issue.latitude}
+            longitude={issue.longitude}
+            title={issue.title}
+          />
         </div>
 
         {/* Priority Engine Score Breakdown */}

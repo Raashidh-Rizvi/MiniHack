@@ -11,13 +11,13 @@ import {
   MapPin,
   Sun,
   Moon,
-  Flame,
   LogIn,
   LogOut,
   UserPlus,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
+import { BrandLogo } from '../common/BrandLogo';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -38,35 +38,10 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/25 group-hover:scale-105 transition-transform">
-              <Flame className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-1.5">
-                <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                  Grama<span className="text-red-500">Fix</span>
-                </span>
-                <span className="text-[10px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-                  MVP
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 hidden sm:block">Report. Prioritize. Fix.</p>
-            </div>
-          </Link>
+          <BrandLogo />
 
           {/* Desktop Navigation */}
           <nav className="hidden xl:flex items-center space-x-1 lg:space-x-2">
-            <Link
-              to="/"
-              className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                isActive('/')
-                  ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
-              }`}
-            >
-              Home
-            </Link>
             <Link
               to="/issues"
               className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
@@ -234,13 +209,6 @@ export const Navbar: React.FC = () => {
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="xl:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#121722] px-4 pt-3 pb-5 space-y-2">
-          <Link
-            to="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
-          >
-            Home
-          </Link>
           <Link
             to="/issues"
             onClick={() => setMobileMenuOpen(false)}
