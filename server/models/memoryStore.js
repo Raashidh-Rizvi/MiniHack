@@ -169,7 +169,8 @@ module.exports = {
   getIssueById: (id) => issues.find((i) => i.id === Number(id) || i.id === id),
   getMyReports: (userId = 1) => issues.filter((i) => i.reportedBy === Number(userId)),
   createIssue: (data) => {
-    const { priorityScore, priorityLevel } = calculatePriority(data.severity, data.peopleAffected);
+    const createdAt = new Date().toISOString();
+    const { priorityScore, priorityLevel } = calculatePriority(data.severity, data.peopleAffected, null, createdAt);
     const catKey = (data.category || 'OTHER').toUpperCase();
     const officerInfo = CATEGORY_OFFICER_MAP[catKey] || CATEGORY_OFFICER_MAP['OTHER'];
     const newIssue = {
@@ -184,13 +185,15 @@ module.exports = {
       priorityLevel,
       status: 'REPORTED',
       supportCount: 0,
+      adminHistory: [],
+      fieldNotes: '',
       reportedBy: Number(data.reportedBy) || 1,
       reportedByName: data.reportedByName || 'Kasun Perera',
       adminNotes: '',
       assignedOfficer: officerInfo.id,
       assignedOfficerName: officerInfo.name,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt,
+      updatedAt: createdAt,
     };
     issues.unshift(newIssue);
     return newIssue;
