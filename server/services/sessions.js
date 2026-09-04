@@ -13,7 +13,7 @@ function issue(user, now = Date.now()) {
 async function resolve(token, now = Date.now()) {
   if (typeof token !== 'string' || !/^[a-f0-9]{64}$/.test(token)) return null;
   const key = digest(token); const session = registry.get(key);
-  if (!session || session.expiresAt <= now || session.storage !== mode()) { registry.delete(key); return null; }
+  if (!session || session.expiresAt <= now) { registry.delete(key); return null; }
   const user = await users.byId(session.userId);
   return user ? users.safeUser(user) : null;
 }
