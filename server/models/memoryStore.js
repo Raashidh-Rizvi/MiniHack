@@ -204,4 +204,63 @@ module.exports = {
     issues.splice(issueIndex, 1);
     return true;
   },
+
+  // ─── Admin / Priority Engine Methods ────────────────────────────────────────
+
+  getAdminStats: () => {
+    const total = issues.length;
+    const open = issues.filter((i) => ['REPORTED', 'UNDER_REVIEW'].includes(i.status)).length;
+    const inProgress = issues.filter((i) => i.status === 'IN_PROGRESS').length;
+    const critical = issues.filter((i) => i.priorityLevel === 'CRITICAL').length;
+    const resolved = issues.filter((i) => i.status === 'RESOLVED').length;
+    return { totalIssues: total, openIssues: open, inProgressIssues: inProgress, criticalIssues: critical, resolvedIssues: resolved };
+  },
+
+  getPriorityQueue: ({ status, priorityLevel, category, search } = {}) => {
+    let filtered = [...issues];
+    if (status && status !== 'ALL') filtered = filtered.filter((i) => i.status === status.toUpperCase());
+    if (priorityLevel && priorityLevel !== 'ALL') filtered = filtered.filter((i) => i.priorityLevel === priorityLevel.toUpperCase());
+    if (category && category !== 'ALL') filtered = filtered.filter((i) => i.category === category.toUpperCase());
+    if (search) {
+      const term = search.toLowerCase();
+      filtered = filtered.filter(
+        (i) =>
+          i.title.toLowerCase().includes(term) ||
+          i.location.toLowerCase().includes(term) ||
+          i.description.toLowerCase().includes(term)
+      );
+    }
+    // Sort descending by priority score, then ascending by age (oldest unresolved first)
+    filtered.sort((a, b) => b.priorityScore - a.priorityScore || new Date(a.createdAt) - new Date(b.createdAt));
+    return filtered;
+  },
+
+  updateIssueStatus: (id, { newStatus, adminNotes, adjustedSeverity } = {}) => {
+    const issueIndex = issues.findIndex((i) => i.id === Number(id) || i.id === id);
+    if (issueIndex === -1) return null;
+
+    const existing = issues[issueIndex];
+    const updated = {
+      ...existing,
+      status: newStatus.toUpperCase(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (adminNotes !== undefined) updated.adminNotes = adminNotes;
+
+    if (adjustedSeverity) {
+      updated.severity = adjustedSeverity.toUpperCase();
+      const { priorityScore, priorityLevel } = calculatePriority(
+        updated.severity,
+        updated.peopleAffected,
+        null,
+        updated.createdAt
+      );
+      updated.priorityScore = priorityScore;
+      updated.priorityLevel = priorityLevel;
+    }
+
+    issues[issueIndex] = updated;
+    return updated;
+  },
 };
