@@ -12,7 +12,7 @@ interface Props {
 }
 
 const SRI_LANKAN_AREAS = [
-  'Matale Municipal Council, Matale',
+
   'Matale Town, Matale',
   'Trincomalee Street, Matale',
   'Peradeniya Road, Kandy',
@@ -150,11 +150,10 @@ export const CreateOfficerModal: React.FC<Props> = ({
           <button
             type="button"
             onClick={() => setActiveTab('create')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'create'
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'create'
                 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
-            }`}
+              }`}
           >
             <UserPlus className="w-4 h-4" />
             <span>Provision New Officer</span>
@@ -162,11 +161,10 @@ export const CreateOfficerModal: React.FC<Props> = ({
           <button
             type="button"
             onClick={() => setActiveTab('list')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'list'
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'list'
                 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
-            }`}
+              }`}
           >
             <Users className="w-4 h-4" />
             <span>Active Officers ({officers.length})</span>
