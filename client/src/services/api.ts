@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create Axios client with base API URL
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: (import.meta as any).env?.VITE_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -11,8 +11,8 @@ export const apiClient = axios.create({
 
 // Response interceptor for clear error messaging
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response: any) => response,
+  (error: any) => {
     const message =
       error.response?.data?.message ||
       error.message ||

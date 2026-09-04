@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   Share2,
   ShieldCheck,
-  Building,
 } from 'lucide-react';
 
 const LIFECYCLE_STEPS: { status: IssueStatus; label: string; desc: string }[] = [

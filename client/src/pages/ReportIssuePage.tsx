@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { IssueCreateDTO, Issue } from '../types/issue';
 import { citizenService } from '../services/citizenService';
 import { useAuth } from '../hooks/useAuth';
@@ -7,7 +7,6 @@ import { IssueForm } from '../components/citizen/IssueForm';
 import {
   CheckCircle2,
   AlertTriangle,
-  ArrowRight,
   Shield,
   FileText,
   Clock,
@@ -17,7 +16,6 @@ import {
 import { getPriorityBadgeColor } from '../utils/priority';
 
 export const ReportIssuePage: React.FC = () => {
-  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [createdIssue, setCreatedIssue] = useState<Issue | null>(null);
   const [submitting, setSubmitting] = useState(false);

@@ -12,7 +12,6 @@ import {
   AlertTriangle,
   Trees,
   HelpCircle,
-  Sparkles,
   Send,
   Loader2,
   Flame,

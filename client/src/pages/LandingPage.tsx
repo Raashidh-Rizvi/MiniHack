@@ -2,21 +2,15 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Flame,
-  ArrowRight,
   Sparkles,
-  Shield,
-  Activity,
   Cpu,
   Cloud,
-  Layers,
   Compass,
   Waves,
   Droplet,
   Lightbulb,
   CheckCircle2,
-  Users,
   ChevronRight,
-  BarChart3,
   TrendingUp,
 } from 'lucide-react';
 import { calculatePriorityScore, getPriorityBadgeColor } from '../utils/priority';

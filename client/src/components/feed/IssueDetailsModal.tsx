@@ -7,7 +7,6 @@ import {
   Calendar,
   AlertTriangle,
   CheckCircle2,
-  Clock,
   Share2,
   ExternalLink,
 } from 'lucide-react';
