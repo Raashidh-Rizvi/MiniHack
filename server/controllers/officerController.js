@@ -3,6 +3,15 @@ const memoryStore = require('../models/memoryStore');
 const { getIsConnected } = require('../config/db');
 const { calculatePriority } = require('../utils/priorityCalculator');
 
+// Phase 3: Defines the only allowed status transitions for officers.
+// An officer CANNOT skip a step. Example: REPORTED → IN_PROGRESS is forbidden.
+const ALLOWED_TRANSITIONS = {
+  REPORTED:     ['UNDER_REVIEW'],
+  UNDER_REVIEW: ['IN_PROGRESS'],
+  IN_PROGRESS:  ['RESOLVED'],
+  RESOLVED:     [], // Final state — no further changes allowed
+};
+
 // @desc    Get issues assigned to this officer
 // @route   GET /api/officer/queue
 // @access  Officer (JWT required)
@@ -106,6 +115,19 @@ const officerUpdateStatus = async (req, res, next) => {
         });
       }
 
+      // Phase 3: Validate that the requested status follows the correct sequence.
+      // This is enforced on the SERVER so the client cannot bypass it.
+      const currentStatus = issue.status;
+      const allowedNext = ALLOWED_TRANSITIONS[currentStatus] || [];
+      if (!allowedNext.includes(newStatus.toUpperCase())) {
+        return res.status(400).json({
+          success: false,
+          message: allowedNext.length === 0
+            ? `Issue is already in its final state (${currentStatus}). No further updates are allowed.`
+            : `Invalid transition: cannot move from ${currentStatus} to ${newStatus.toUpperCase()}. Allowed next step: ${allowedNext.join(', ')}.`,
+        });
+      }
+
       issue.status = newStatus.toUpperCase();
       if (fieldNotes !== undefined) issue.adminNotes = fieldNotes;
 
@@ -126,6 +148,19 @@ const officerUpdateStatus = async (req, res, next) => {
           message: 'Access denied. This issue is not assigned to you or does not exist.',
         });
       }
+
+      // Phase 3: Validate transition for memory-store path as well.
+      const currentStatus = existing.status;
+      const allowedNext = ALLOWED_TRANSITIONS[currentStatus] || [];
+      if (!allowedNext.includes(newStatus.toUpperCase())) {
+        return res.status(400).json({
+          success: false,
+          message: allowedNext.length === 0
+            ? `Issue is already in its final state (${currentStatus}). No further updates are allowed.`
+            : `Invalid transition: cannot move from ${currentStatus} to ${newStatus.toUpperCase()}. Allowed next step: ${allowedNext.join(', ')}.`,
+        });
+      }
+
       const updated = memoryStore.updateIssueStatus(id, { newStatus, adminNotes: fieldNotes });
       if (!updated) {
         return res.status(404).json({ success: false, message: `Issue not found with id ${id}` });
