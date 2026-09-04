@@ -16,7 +16,6 @@ import {
   LogIn,
   LogOut,
   UserPlus,
-  LayoutDashboard,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
@@ -144,22 +143,22 @@ export const Navbar: React.FC = () => {
                   to="/admin"
                   className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
                     isActive('/admin')
-                      ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'
+                      ? 'bg-purple-500/15 text-purple-600 dark:text-rose-400 border border-purple-500/30'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
                   }`}
                 >
-                  <Shield className="w-4 h-4 text-indigo-500" />
+                  <Shield className="w-4 h-4 text-purple-600 dark:text-rose-400" />
                   <span>Admin Dashboard</span>
                 </Link>
                 <Link
                   to="/issues"
                   className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
                     isActive('/issues')
-                      ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'
+                      ? 'bg-purple-500/15 text-purple-600 dark:text-rose-400 border border-purple-500/30'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
                   }`}
                 >
-                  <Layers className="w-4 h-4 text-indigo-500" />
+                  <Layers className="w-4 h-4 text-purple-600 dark:text-rose-400" />
                   <span>Community Feed</span>
                 </Link>
               </>
@@ -171,22 +170,22 @@ export const Navbar: React.FC = () => {
                   to="/officer"
                   className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
                     isActive('/officer')
-                      ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'
+                      ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
                   }`}
                 >
-                  <Building2 className="w-4 h-4 text-teal-500" />
+                  <Building2 className="w-4 h-4 text-orange-500" />
                   <span>Officer Dashboard</span>
                 </Link>
                 <Link
                   to="/issues"
                   className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
                     isActive('/issues')
-                      ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20'
+                      ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated'
                   }`}
                 >
-                  <Layers className="w-4 h-4 text-teal-500" />
+                  <Layers className="w-4 h-4 text-orange-500" />
                   <span>Community Feed</span>
                 </Link>
               </>
@@ -230,7 +229,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => handleRoleSwitch('OFFICER')}
                 className={`px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1 ${
                   isOfficer
-                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30'
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md shadow-orange-500/30'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
                 title="Role 2: Municipal Officer (Eng. Bandara)"
@@ -243,7 +242,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => handleRoleSwitch('ADMIN')}
                 className={`px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1 ${
                   isAdmin
-                    ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
+                    ? 'bg-gradient-to-r from-purple-800 via-fuchsia-800 to-rose-700 text-white shadow-md shadow-purple-800/30'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
                 title="Role 3: System Admin (Dr. Priyantha)"
@@ -316,7 +315,13 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               onClick={handleMobileRoleSwitch}
-              className="px-2.5 py-1 rounded-lg text-xs bg-slate-100 dark:bg-surface-elevated border border-slate-200 dark:border-white/10 font-bold"
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors ${
+                role === 'OFFICER'
+                  ? 'bg-orange-500/15 border-orange-500/40 text-orange-600 dark:text-orange-400'
+                  : role === 'ADMIN'
+                  ? 'bg-purple-500/15 border-purple-500/40 text-purple-600 dark:text-rose-400'
+                  : 'bg-slate-100 dark:bg-surface-elevated border-slate-200 dark:border-white/10'
+              }`}
             >
               {role === 'OFFICER' ? '👷 Officer' : role === 'ADMIN' ? '🛡️ Admin' : '👤 Citizen'}
             </button>
@@ -374,7 +379,7 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 flex items-center gap-2"
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-purple-600 dark:text-rose-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 flex items-center gap-2"
               >
                 <Shield className="w-4 h-4" />
                 Admin Dashboard
@@ -394,7 +399,7 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/officer"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm font-semibold text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10 flex items-center gap-2"
+                className="block px-3 py-2 rounded-xl text-sm font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/20 flex items-center gap-2"
               >
                 <Building2 className="w-4 h-4" />
                 Officer Dashboard

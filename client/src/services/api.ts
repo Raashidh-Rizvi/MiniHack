@@ -9,14 +9,45 @@ export const apiClient = axios.create({
   timeout: 8000,
 });
 
-// Response interceptor for clear error messaging
+export interface ApiError extends Error {
+  status?: number;
+  errors?: Array<{ field?: string; message: string } | string>;
+  fieldErrors?: Record<string, string>;
+  response?: any;
+}
+
+// Response interceptor for clear, suitable error messaging
 apiClient.interceptors.response.use(
   (response: any) => response,
   (error: any) => {
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      'An unexpected error occurred while contacting the server.';
-    return Promise.reject(new Error(message));
+    const data = error.response?.data;
+    let message = data?.message || error.message || 'An unexpected error occurred while contacting the server.';
+    
+    // If backend provided detailed validation errors array, construct clear composite message
+    if (Array.isArray(data?.errors) && data.errors.length > 0) {
+      const errorList = data.errors.map((e: any) => (typeof e === 'string' ? e : e.message || e.field || 'Invalid field'));
+      if (!data.message || data.message === 'Validation Error' || data.message.includes('Validation failed')) {
+        message = errorList.join('. ');
+      } else {
+        message = `${message}: ${errorList.join(', ')}`;
+      }
+    }
+
+    const customError: ApiError = new Error(message);
+    customError.status = error.response?.status;
+    customError.response = error.response;
+    customError.errors = data?.errors;
+
+    if (Array.isArray(data?.errors)) {
+      const fieldMap: Record<string, string> = {};
+      data.errors.forEach((e: any) => {
+        if (typeof e === 'object' && e?.field && e?.message) {
+          fieldMap[e.field] = e.message;
+        }
+      });
+      customError.fieldErrors = fieldMap;
+    }
+
+    return Promise.reject(customError);
   }
 );

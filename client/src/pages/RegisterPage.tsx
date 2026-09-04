@@ -158,8 +158,8 @@ export const RegisterPage: React.FC = () => {
       subtitle: 'Field Staff',
       desc: 'Triage reported hazards, update repair status, write notes.',
       icon: Building2,
-      color: 'border-amber-500 bg-amber-500/10 text-amber-500',
-      activeRing: 'ring-2 ring-amber-500 border-amber-500 bg-amber-500/15',
+      color: 'border-orange-500 bg-orange-500/10 text-orange-500',
+      activeRing: 'ring-2 ring-orange-500 border-orange-500 bg-orange-500/15',
     },
     {
       role: 'ADMIN' as UserRole,
@@ -167,8 +167,8 @@ export const RegisterPage: React.FC = () => {
       subtitle: 'Governance',
       desc: 'Platform governance, priority scoring, analytics & moderation.',
       icon: Shield,
-      color: 'border-red-500 bg-red-500/10 text-red-500',
-      activeRing: 'ring-2 ring-red-500 border-red-500 bg-red-500/15',
+      color: 'border-purple-600 dark:border-rose-500 bg-purple-500/10 text-purple-600 dark:text-rose-400',
+      activeRing: 'ring-2 ring-purple-600 border-purple-600 dark:border-rose-500 bg-purple-900/20 shadow-[0_0_15px_rgba(168,85,247,0.25)]',
     },
   ];
 
@@ -184,7 +184,14 @@ export const RegisterPage: React.FC = () => {
     });
     setServerError(null);
 
-    if (!isFormValid) return;
+    if (!isFormValid) {
+      if (!agreeTerms) {
+        setServerError('Please agree to the GramaFix Civic Code of Conduct and complete all required fields.');
+      } else {
+        setServerError('Please review and correct the required fields highlighted below.');
+      }
+      return;
+    }
 
     setIsSubmitting(true);
     const result = await register({

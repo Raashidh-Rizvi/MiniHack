@@ -7,26 +7,26 @@ export const AdminPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-canvas">
       {/* Admin page header */}
-      <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white">
+      <div className="bg-gradient-to-r from-purple-950 via-rose-950 to-slate-900 text-white border-b border-purple-900/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-3 mb-1">
             <Link
               to="/"
-              className="flex items-center gap-1.5 text-indigo-300 hover:text-white text-sm transition-colors"
+              className="flex items-center gap-1.5 text-rose-300 hover:text-white text-sm transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to site
             </Link>
           </div>
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 p-3 rounded-xl bg-indigo-500/20 border border-indigo-500/30">
-              <Shield className="w-7 h-7 text-indigo-300" />
+            <div className="flex-shrink-0 p-3 rounded-xl bg-purple-500/20 border border-purple-500/30">
+              <Shield className="w-7 h-7 text-rose-400" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
                 Community Admin Portal
               </h1>
-              <p className="mt-1 text-indigo-200 text-sm max-w-2xl">
+              <p className="mt-1 text-rose-200/90 text-sm max-w-2xl">
                 Review and triage community issues ranked by the GramaFix Priority Engine. 
                 Issues are scored by severity (40%), people affected (30%), urgency (20%), and report age (10%).
               </p>
@@ -34,8 +34,8 @@ export const AdminPage: React.FC = () => {
           </div>
 
           {/* Priority formula banner */}
-          <div className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10 font-mono text-xs text-indigo-200">
-            <span className="text-indigo-400 font-semibold">Priority Score</span>
+          <div className="mt-6 p-4 rounded-xl bg-white/5 border border-purple-500/20 font-mono text-xs text-rose-200">
+            <span className="text-purple-300 font-semibold">Priority Score</span>
             {' = '}
             <span className="text-amber-300">Severity × 0.40</span>
             {' + '}

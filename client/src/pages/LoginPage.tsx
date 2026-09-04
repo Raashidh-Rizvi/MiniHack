@@ -76,8 +76,8 @@ export const LoginPage: React.FC = () => {
       email: 'officer.bandara@gramafix.lk',
       password: 'officer123',
       icon: Building2,
-      color: 'text-amber-500 bg-amber-500/10 border-amber-500/30 hover:border-amber-500',
-      activeColor: 'border-amber-500 bg-amber-500/15 shadow-[0_0_15px_rgba(245,158,11,0.25)]',
+      color: 'text-orange-500 bg-orange-500/10 border-orange-500/30 hover:border-orange-500',
+      activeColor: 'border-orange-500 bg-orange-500/15 shadow-[0_0_15px_rgba(249,115,22,0.25)]',
     },
     {
       role: 'ADMIN' as UserRole,
@@ -86,10 +86,12 @@ export const LoginPage: React.FC = () => {
       email: 'admin.priyantha@gramafix.lk',
       password: 'admin123',
       icon: Shield,
-      color: 'text-red-500 bg-red-500/10 border-red-500/30 hover:border-red-500',
-      activeColor: 'border-red-500 bg-red-500/15 shadow-[0_0_15px_rgba(239,68,68,0.25)]',
+      color: 'text-purple-600 dark:text-rose-400 bg-purple-500/10 border-purple-500/30 hover:border-purple-500',
+      activeColor: 'border-purple-600 dark:border-rose-500 bg-purple-900/20 shadow-[0_0_15px_rgba(168,85,247,0.25)]',
     },
   ];
+
+  const [showDemoHelp, setShowDemoHelp] = useState(false);
 
   const handleApplyPreset = (preset: (typeof demoPresets)[0]) => {
     setEmail(preset.email);
@@ -97,6 +99,7 @@ export const LoginPage: React.FC = () => {
     setActivePresetRole(preset.role);
     setServerError(null);
     setTouched({ email: true, password: true });
+    setShowDemoHelp(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,7 +107,20 @@ export const LoginPage: React.FC = () => {
     setTouched({ email: true, password: true });
     setServerError(null);
 
-    if (!isFormValid) return;
+    if (!isFormValid) {
+      if (!email.trim() && !password) {
+        setServerError('Please enter your email address and password to sign in.');
+      } else if (!email.trim()) {
+        setServerError('Email address is required.');
+      } else if (!isEmailValid) {
+        setServerError('Please enter a valid email address (e.g. name@domain.com).');
+      } else if (!password) {
+        setServerError('Password is required.');
+      } else if (!isPasswordValid) {
+        setServerError('Password must be at least 6 characters long.');
+      }
+      return;
+    }
 
     setIsSubmitting(true);
     const result = await login({ email: email.trim(), password });
@@ -121,7 +137,7 @@ export const LoginPage: React.FC = () => {
         navigate('/citizen');
       }
     } else {
-      setServerError(result.error || 'Invalid credentials. Please verify and try again.');
+      setServerError(result.error || 'Invalid email or password. Please verify credentials and try again.');
     }
   };
 
@@ -248,12 +264,27 @@ export const LoginPage: React.FC = () => {
                 </label>
                 <button
                   type="button"
-                  onClick={() => alert('For hackathon demonstration, use password123, officer123, or admin123.')}
+                  onClick={() => setShowDemoHelp(!showDemoHelp)}
                   className="text-xs text-red-500 hover:text-red-600 transition-colors font-semibold"
                 >
                   Forgot password?
                 </button>
               </div>
+
+              {showDemoHelp && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-600 dark:text-amber-400 space-y-1 animate-fadeIn">
+                  <div className="font-bold flex items-center space-x-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Demo Hackathon Credentials</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    Use one of the 1-click presets above, or log in with:
+                    <br />• <strong>Citizen</strong>: <code className="text-red-500">kasun.citizen@gramafix.lk</code> / <code className="text-red-500">password123</code>
+                    <br />• <strong>Officer</strong>: <code className="text-red-500">officer.bandara@gramafix.lk</code> / <code className="text-red-500">officer123</code>
+                    <br />• <strong>Admin</strong>: <code className="text-red-500">admin.priyantha@gramafix.lk</code> / <code className="text-red-500">admin123</code>
+                  </p>
+                </div>
+              )}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />

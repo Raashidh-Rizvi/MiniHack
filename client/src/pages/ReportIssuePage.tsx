@@ -20,10 +20,12 @@ export const ReportIssuePage: React.FC = () => {
   const [createdIssue, setCreatedIssue] = useState<Issue | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (formData: IssueCreateDTO) => {
     setSubmitting(true);
     setSubmitError(null);
+    setFieldErrors({});
 
     try {
       const payload: IssueCreateDTO = {
@@ -36,7 +38,11 @@ export const ReportIssuePage: React.FC = () => {
       setCreatedIssue(newIssue);
     } catch (err: any) {
       console.error('Submission failed:', err);
-      setSubmitError(err.message || 'Unable to register issue. Please retry.');
+      const msg = err.message || 'Unable to register issue. Please retry.';
+      setSubmitError(msg);
+      if (err.fieldErrors) {
+        setFieldErrors(err.fieldErrors);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -165,6 +171,7 @@ export const ReportIssuePage: React.FC = () => {
           onSubmit={handleSubmit}
           isSubmitting={submitting}
           submitButtonText="Submit Community Report"
+          serverErrors={fieldErrors}
         />
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   Flame,
@@ -11,18 +11,10 @@ import {
   Lightbulb,
   CheckCircle2,
   ChevronRight,
-  TrendingUp,
 } from 'lucide-react';
-import { calculatePriorityScore, getPriorityBadgeColor } from '../utils/priority';
-import { Severity } from '../types/issue';
+import { ExecutiveDashboardPreview } from '../components/landing/ExecutiveDashboardPreview';
 
 export const LandingPage: React.FC = () => {
-  // Interactive Hero Calculator State
-  const [calcSeverity, setCalcSeverity] = useState<Severity>('HIGH');
-  const [calcPeople, setCalcPeople] = useState<number>(120);
-
-  const previewScore = calculatePriorityScore(calcSeverity, calcPeople, 12);
-  const previewBadge = getPriorityBadgeColor(previewScore.level);
 
   return (
     <div className="min-h-screen overflow-hidden">
@@ -92,100 +84,7 @@ export const LandingPage: React.FC = () => {
 
           {/* Right Column: Perspective Analytics Dashboard Preview Card */}
           <div className="lg:col-span-6 relative">
-            {/* Perspective Card Container */}
-            <div className="relative rounded-3xl bg-slate-900 dark:bg-[#121722]/90 border border-slate-700/60 dark:border-white/10 shadow-[0_24px_50px_-12px_rgba(239,68,68,0.25)] p-5 sm:p-7 backdrop-blur-xl text-white">
-              {/* Dashboard Mockup Top Bar */}
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  <span className="text-xs font-mono text-slate-400 ml-2">GramaFix Executive Dashboard</span>
-                </div>
-                <div className="flex items-center space-x-1 text-[11px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
-                  <span>Live Queue</span>
-                </div>
-              </div>
-
-              {/* Mini Sparkline Chart simulation */}
-              <div className="grid grid-cols-3 gap-3 mb-5">
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                  <div className="text-[10px] text-slate-400">Total Reports</div>
-                  <div className="text-xl font-bold text-white mt-0.5 tabular-nums">412</div>
-                  <div className="text-[10px] text-emerald-400 flex items-center mt-1">
-                    <TrendingUp className="w-3 h-3 mr-0.5" /> +18% this week
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                  <div className="text-[10px] text-slate-400">Avg Priority Score</div>
-                  <div className="text-xl font-bold text-red-400 mt-0.5 tabular-nums">78.4</div>
-                  <div className="text-[10px] text-red-400/80 mt-1">High Severity</div>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                  <div className="text-[10px] text-slate-400">Resolved Rate</div>
-                  <div className="text-xl font-bold text-white mt-0.5 tabular-nums">92%</div>
-                  <div className="text-[10px] text-sky-400 mt-1">Under 48 hours</div>
-                </div>
-              </div>
-
-              {/* Interactive priority simulation inside preview */}
-              <div className="p-4 rounded-2xl bg-black/40 border border-red-500/20 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-300">Live Impact Simulation</span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${previewBadge.bg} ${previewBadge.text} ${previewBadge.border}`}>
-                    Score: {previewScore.score}/100 ({previewScore.level})
-                  </span>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Severity: {calcSeverity}</span>
-                    <div className="flex space-x-1">
-                      {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const).map((sev) => (
-                        <button
-                          key={sev}
-                          type="button"
-                          onClick={() => setCalcSeverity(sev)}
-                          className={`px-1.5 py-0.5 rounded text-[10px] ${
-                            calcSeverity === sev ? 'bg-red-500 text-white' : 'bg-white/10 text-slate-400'
-                          }`}
-                        >
-                          {sev[0]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Affected Population:</span>
-                    <span className="text-white font-bold">{calcPeople} people</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={10}
-                    max={400}
-                    step={10}
-                    value={calcPeople}
-                    onChange={(e) => setCalcPeople(Number(e.target.value))}
-                    className="w-full accent-red-500 h-1.5 bg-white/20 rounded-lg cursor-pointer"
-                  />
-                </div>
-              </div>
-
-              {/* Sample Ranked Issue Row */}
-              <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
-                  <span className="text-slate-200 font-medium truncate max-w-[200px]">
-                    Blocked Culvert, Matale Hindu College
-                  </span>
-                </div>
-                <span className="text-red-400 font-bold">Priority #1</span>
-              </div>
-            </div>
+            <ExecutiveDashboardPreview />
           </div>
         </div>
       </section>

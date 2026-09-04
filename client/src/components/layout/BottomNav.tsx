@@ -64,7 +64,7 @@ export const BottomNav: React.FC = () => {
             <Link
               to="/admin"
               className={`flex flex-col items-center py-1 px-6 rounded-xl transition-all ${
-                isActive('/admin') ? 'text-indigo-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                isActive('/admin') ? 'text-purple-600 dark:text-rose-400 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Shield className="w-5 h-5" />
@@ -73,7 +73,7 @@ export const BottomNav: React.FC = () => {
             <Link
               to="/issues"
               className={`flex flex-col items-center py-1 px-6 rounded-xl transition-all ${
-                isActive('/issues') ? 'text-indigo-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                isActive('/issues') ? 'text-purple-600 dark:text-rose-400 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Layers className="w-5 h-5" />
@@ -87,7 +87,7 @@ export const BottomNav: React.FC = () => {
             <Link
               to="/officer"
               className={`flex flex-col items-center py-1 px-6 rounded-xl transition-all ${
-                isActive('/officer') ? 'text-teal-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                isActive('/officer') ? 'text-orange-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Building2 className="w-5 h-5" />
@@ -96,7 +96,7 @@ export const BottomNav: React.FC = () => {
             <Link
               to="/issues"
               className={`flex flex-col items-center py-1 px-6 rounded-xl transition-all ${
-                isActive('/issues') ? 'text-teal-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                isActive('/issues') ? 'text-orange-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Layers className="w-5 h-5" />
