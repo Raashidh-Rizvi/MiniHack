@@ -1,257 +1,36 @@
-const memoryStore = require('../models/memoryStore');
+const memory = require('../models/memoryStore');
 const User = require('../models/User');
 const { getIsConnected } = require('../config/db');
-
-// Helper to validate email format
-const isValidEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+const users = require('../services/users');
+const sessions = require('../services/sessions');
+const { hashPassword, verifyPassword } = require('../utils/passwords');
+const { fail, handle, body } = require('../utils/http');
+const emailValue = (value) => {
+  if (typeof value !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) throw fail(400, 'A valid email is required.');
+  return value.trim().toLowerCase();
 };
-
-// @desc    Get demo users for quick persona switching
-// @route   GET /api/auth/demo-users
-// @access  Public
-const getDemoUsers = async (req, res, next) => {
-  try {
-    if (getIsConnected()) {
-      let users = await User.find().select('-password');
-      if (users.length === 0) {
-        // Seed initial demo users — use create() so pre-validate hooks run
-        const demoData = memoryStore.getDemoUsers().map((u) => ({
-          numericId: u.numericId || u.id,
-          fullName: u.fullName,
-          email: u.email,
-          role: u.role,
-          communityArea: u.communityArea,
-          password: u.password,
-        }));
-        const created = [];
-        for (const data of demoData) {
-          try {
-            const doc = await User.create(data);
-            created.push(doc);
-          } catch (e) {
-            // Skip duplicates (e.g. user already seeded)
-            if (e.code !== 11000) throw e;
-          }
-        }
-        users = created.length > 0 ? created : await User.find().select('-password');
-      }
-      return res.status(200).json({
-        success: true,
-        data: users,
-      });
-    } else {
-      const demoData = memoryStore.getDemoUsers().map(({ password, ...rest }) => rest);
-      return res.status(200).json({
-        success: true,
-        data: demoData,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Authenticate user & get token
-// @route   POST /api/auth/login
-// @access  Public
-const loginUser = async (req, res, next) => {
-  try {
-    const { email, password } = req.body || {};
-
-    if (!email || !String(email).trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email address is required.',
-      });
-    }
-
-    if (!isValidEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide a valid email address.',
-      });
-    }
-
-    if (!password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password is required.',
-      });
-    }
-
-    const normalizedEmail = String(email).trim().toLowerCase();
-
-    if (getIsConnected()) {
-      const user = await User.findOne({ email: normalizedEmail });
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password.',
-        });
-      }
-
-      // Check password (supports default or match)
-      if (user.password && user.password !== password) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password.',
-        });
-      }
-
-      const userData = user.toJSON();
-      delete userData.password;
-
-      return res.status(200).json({
-        success: true,
-        message: 'Authentication successful.',
-        data: userData,
-        token: `gramafix_jwt_${user.id}_${Date.now()}`,
-      });
-    } else {
-      // Memory Store Fallback
-      const user = memoryStore.findUserByEmail(normalizedEmail);
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password.',
-        });
-      }
-
-      if (user.password && user.password !== password) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password.',
-        });
-      }
-
-      const { password: _, ...userData } = user;
-
-      return res.status(200).json({
-        success: true,
-        message: 'Authentication successful.',
-        data: userData,
-        token: `gramafix_jwt_${user.id}_${Date.now()}`,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
-const registerUser = async (req, res, next) => {
-  try {
-    const { fullName, email, password, communityArea, role } = req.body || {};
-
-    // Validations
-    if (!fullName || String(fullName).trim().length < 3) {
-      return res.status(400).json({
-        success: false,
-        message: 'Full name is required and must be at least 3 characters.',
-      });
-    }
-
-    if (!email || !String(email).trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email address is required.',
-      });
-    }
-
-    if (!isValidEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please enter a valid email address (e.g. name@domain.com).',
-      });
-    }
-
-    if (!password || String(password).length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 6 characters long.',
-      });
-    }
-
-    const normalizedEmail = String(email).trim().toLowerCase();
-    let assignedRole = 'CITIZEN';
-    if (role === 'OFFICER') {
-      assignedRole = 'OFFICER';
-    } else if (role === 'ADMIN' || role === 'SYSTEM_ADMIN') {
-      assignedRole = 'ADMIN';
-    } else {
-      assignedRole = 'CITIZEN';
-    }
-    const area = communityArea && String(communityArea).trim() ? String(communityArea).trim() : 'Matale Town';
-
-    if (getIsConnected()) {
-      // Check existing email
-      const existingUser = await User.findOne({ email: normalizedEmail });
-      if (existingUser) {
-        return res.status(409).json({
-          success: false,
-          message: 'An account with this email address already exists. Please sign in instead.',
-        });
-      }
-
-      // Generate numericId
-      const lastUser = await User.findOne().sort({ numericId: -1 });
-      const nextId = lastUser ? (lastUser.numericId || 100) + 1 : 101;
-
-      const newUser = await User.create({
-        numericId: nextId,
-        fullName: String(fullName).trim(),
-        email: normalizedEmail,
-        password: String(password),
-        role: assignedRole,
-        communityArea: area,
-      });
-
-      const userData = newUser.toJSON();
-      delete userData.password;
-
-      return res.status(201).json({
-        success: true,
-        message: 'Account registered successfully.',
-        data: userData,
-        token: `gramafix_jwt_${newUser.numericId}_${Date.now()}`,
-      });
-    } else {
-      // Memory Store Fallback
-      const existingUser = memoryStore.findUserByEmail(normalizedEmail);
-      if (existingUser) {
-        return res.status(409).json({
-          success: false,
-          message: 'An account with this email address already exists. Please sign in instead.',
-        });
-      }
-
-      const created = memoryStore.createUser({
-        fullName: String(fullName).trim(),
-        email: normalizedEmail,
-        password: String(password),
-        role: assignedRole,
-        communityArea: area,
-      });
-
-      const { password: _, ...userData } = created;
-
-      return res.status(201).json({
-        success: true,
-        message: 'Account registered successfully.',
-        data: userData,
-        token: `gramafix_jwt_${created.id}_${Date.now()}`,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-module.exports = {
-  getDemoUsers,
-  loginUser,
-  registerUser,
-};
+const loginUser = handle(async (req, res) => {
+  const data = body(req); const email = emailValue(data.email);
+  const user = await users.byEmail(email);
+  if (!user || !(await verifyPassword(data.password, user.password))) throw fail(401, 'Invalid email or password.');
+  if (!user.password.startsWith('scrypt:')) await users.savePassword(user, await hashPassword(data.password));
+  res.json({ success: true, data: users.safeUser(user), token: sessions.issue(user) });
+});
+const registerUser = handle(async (req, res) => {
+  const data = body(req); const email = emailValue(data.email);
+  if (data.role !== undefined && !['CITIZEN', 'RESIDENT'].includes(data.role)) throw fail(403, 'Officer and administrator accounts require controlled provisioning.');
+  if (typeof data.fullName !== 'string' || data.fullName.trim().length < 3 || data.fullName.length > 100) throw fail(400, 'Name must be 3-100 characters.');
+  if (typeof data.password !== 'string' || data.password.length < 6 || data.password.length > 128) throw fail(400, 'Password must be 6-128 characters.');
+  if (data.communityArea !== undefined && (typeof data.communityArea !== 'string' || data.communityArea.length > 120)) throw fail(400, 'Invalid community area.');
+  if (await users.byEmail(email)) throw fail(409, 'An account with this email already exists.');
+  const fields = { email, fullName: data.fullName.trim(), password: await hashPassword(data.password), role: 'CITIZEN', communityArea: data.communityArea?.trim() || 'Matale Town' };
+  const user = getIsConnected() ? await User.create(fields) : memory.createUser(fields);
+  res.status(201).json({ success: true, data: users.safeUser(user), token: sessions.issue(user) });
+});
+const getDemoUsers = handle(async (req, res) => {
+  // Public reads never provision accounts or enumerate real database users.
+  res.json({ success: true, data: getIsConnected() ? [] : memory.getDemoUsers().map(users.safeUser) });
+});
+const me = handle(async (req, res) => res.json({ success: true, data: req.user }));
+const logout = handle(async (req, res) => { sessions.revoke(req.token); res.json({ success: true }); });
+module.exports = { loginUser, registerUser, getDemoUsers, me, logout };
