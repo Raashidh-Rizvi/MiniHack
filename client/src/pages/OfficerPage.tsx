@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Building2, AlertTriangle, CheckCircle, Clock, Activity,
   Search, RefreshCw, ArrowLeft, MapPin, Users,
-  ChevronRight, FileText, Shield, X,
+  ChevronRight, FileText, X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Issue, IssueStatus } from '../types/issue';
@@ -310,13 +310,8 @@ export const OfficerPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-3 mb-4">
             <Link
-<<<<<<< HEAD
-              to="/"
-              className="flex items-center gap-1.5 text-orange-300 hover:text-white text-sm transition-colors"
-=======
               to="/issues"
-              className="flex items-center gap-1.5 text-teal-300 hover:text-white text-sm transition-colors"
->>>>>>> 90b1160f1914f19d7c0fa3ca4b22a1bc062844b5
+              className="flex items-center gap-1.5 text-orange-300 hover:text-white text-sm transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Community Feed

@@ -16,6 +16,7 @@ import {
   LogIn,
   LogOut,
   UserPlus,
+  LayoutDashboard,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';

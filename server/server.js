@@ -90,7 +90,11 @@ function startServer(attempt = 1) {
   });
 }
 
-startServer();
+// Only start listening if executed directly (e.g. node server.js or npm run dev)
+// When imported as a Vercel serverless function, app is exported directly
+if (require.main === module) {
+  startServer();
+}
 
 // Graceful shutdown — lets nodemon cleanly release port before restart
 const shutdown = (signal) => {
