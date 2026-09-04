@@ -15,10 +15,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem('gramafix_theme');
       if (saved === 'dark' || saved === 'light') return saved;
-      // Default to dark theme matching SAS executive analytics design
-      return 'dark';
+      // Default to light theme
+      return 'light';
     } catch {
-      return 'dark';
+      return 'light';
     }
   });
 
