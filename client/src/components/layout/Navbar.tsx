@@ -7,7 +7,6 @@ import {
   FileText,
   Shield,
   Layers,
-  UserCheck,
   Building2,
   MapPin,
   Sun,
@@ -24,7 +23,7 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, role, switchRole, isAuthenticated, logout } = useAuth();
+  const { currentUser, role, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const isActive = (path: string) => location.pathname === path;
@@ -57,7 +56,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+          <nav className="hidden xl:flex items-center space-x-1 lg:space-x-2">
             <Link
               to="/"
               className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
@@ -79,7 +78,7 @@ export const Navbar: React.FC = () => {
               <Layers className="w-4 h-4 text-red-500" />
               <span>Community Feed</span>
             </Link>
-            <Link
+            {(!isAuthenticated || role === 'CITIZEN' || role === 'RESIDENT') && (<Link
               to="/my-reports"
               className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 isActive('/my-reports')
@@ -89,8 +88,8 @@ export const Navbar: React.FC = () => {
             >
               <FileText className="w-4 h-4 text-sky-500" />
               <span>My Reports</span>
-            </Link>
-            <Link
+            </Link>)}
+            {(!isAuthenticated || role === 'CITIZEN' || role === 'RESIDENT') && (<Link
               to="/report"
               className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 isActive('/report')
@@ -100,8 +99,8 @@ export const Navbar: React.FC = () => {
             >
               <PlusCircle className="w-4 h-4 text-emerald-500" />
               <span>Report Issue</span>
-            </Link>
-            <Link
+            </Link>)}
+            {isAuthenticated && role === 'ADMIN' && (<Link
               to="/admin"
               className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 isActive('/admin')
@@ -111,9 +110,9 @@ export const Navbar: React.FC = () => {
             >
               <Shield className="w-4 h-4 text-indigo-500" />
               <span>Admin</span>
-            </Link>
+            </Link>)}
             {/* Officer Portal — shown highlighted when role is OFFICER */}
-            <Link
+            {isAuthenticated && role === 'OFFICER' && (<Link
               to="/officer"
               className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 isActive('/officer')
@@ -130,11 +129,11 @@ export const Navbar: React.FC = () => {
                   You
                 </span>
               )}
-            </Link>
+            </Link>)}
           </nav>
 
           {/* Right Controls: Theme Toggle, 3-Role Switcher, Auth Links */}
-          <div className="hidden sm:flex items-center space-x-2.5">
+          <div className="hidden xl:flex items-center space-x-2.5">
             {/* Theme Toggle (Dark / Light) */}
             <button
               type="button"
@@ -150,48 +149,7 @@ export const Navbar: React.FC = () => {
               )}
             </button>
 
-            {/* 3-Role Persona Switcher (Citizen vs Officer vs Admin) */}
-            <div className="flex items-center bg-slate-100 dark:bg-surface-elevated rounded-full p-1 border border-slate-200 dark:border-white/10 text-xs">
-              <button
-                type="button"
-                onClick={() => switchRole('CITIZEN')}
-                className={`px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1 ${
-                  role === 'CITIZEN' || role === 'RESIDENT'
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
-                title="Role 1: Citizen (Kasun Perera)"
-              >
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>Citizen</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => switchRole('OFFICER')}
-                className={`px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1 ${
-                  role === 'OFFICER'
-                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
-                title="Role 2: Municipal Officer (Eng. Bandara)"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Officer</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => switchRole('ADMIN')}
-                className={`px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1 ${
-                  role === 'ADMIN'
-                    ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
-                title="Role 3: System Admin (Dr. Priyantha)"
-              >
-                <Shield className="w-3.5 h-3.5" />
-                <span>Admin</span>
-              </button>
-            </div>
+            {isAuthenticated && <span className="text-xs font-bold px-2">{role === "ADMIN" ? "Administrator" : role === "OFFICER" ? "Officer" : "Citizen"}</span>}
 
             {/* Auth Actions: Sign In / Register / Log Out */}
             {isAuthenticated ? (
@@ -243,7 +201,7 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Mobile hamburger button */}
-          <div className="flex md:hidden items-center space-x-2">
+          <div className="flex xl:hidden items-center space-x-2">
             <button
               type="button"
               onClick={toggleTheme}
@@ -255,11 +213,7 @@ export const Navbar: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => {
-                if (role === 'CITIZEN' || role === 'RESIDENT') switchRole('OFFICER');
-                else if (role === 'OFFICER') switchRole('ADMIN');
-                else switchRole('CITIZEN');
-              }}
+              onClick={() => navigate(isAuthenticated ? (role === 'ADMIN' ? '/admin' : role === 'OFFICER' ? '/officer' : '/my-reports') : '/login')}
               className="px-2.5 py-1 rounded-lg text-xs bg-slate-100 dark:bg-surface-elevated border border-slate-200 dark:border-white/10 font-bold"
             >
               {role === 'OFFICER' ? '👷 Officer' : role === 'ADMIN' ? '🛡️ Admin' : '👤 Citizen'}
@@ -279,7 +233,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#121722] px-4 pt-3 pb-5 space-y-2">
+        <div className="xl:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#121722] px-4 pt-3 pb-5 space-y-2">
           <Link
             to="/"
             onClick={() => setMobileMenuOpen(false)}
@@ -294,22 +248,22 @@ export const Navbar: React.FC = () => {
           >
             Community Feed
           </Link>
-          <Link
+          {(!isAuthenticated || role === 'CITIZEN' || role === 'RESIDENT') && (<Link
             to="/my-reports"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-surface-elevated"
           >
             My Reports
-          </Link>
-          <Link
+          </Link>)}
+          {(!isAuthenticated || role === 'CITIZEN' || role === 'RESIDENT') && (<Link
             to="/report"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2.5 rounded-xl text-sm font-bold text-center text-white bg-gradient-to-r from-red-500 to-red-600 shadow-[0_4px_16px_rgba(239,68,68,0.4)]"
           >
             Report an Issue
-          </Link>
+          </Link>)}
 
-          <div className="pt-2 border-t border-slate-200 dark:border-white/10 grid grid-cols-2 gap-2">
+          {!isAuthenticated && <div className="pt-2 border-t border-slate-200 dark:border-white/10 grid grid-cols-2 gap-2">
             <Link
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
@@ -324,16 +278,17 @@ export const Navbar: React.FC = () => {
             >
               Register
             </Link>
-          </div>
-          <Link
+          </div>}
+          {isAuthenticated && <button className="px-3 py-2 text-sm font-bold" onClick={() => { setMobileMenuOpen(false); handleLogout(); }}>Sign Out</button>}
+          {isAuthenticated && role === 'ADMIN' && (<Link
             to="/admin"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 rounded-xl text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 flex items-center gap-2"
           >
             <Shield className="w-4 h-4" />
             Admin Portal
-          </Link>
-          <Link
+          </Link>)}
+          {isAuthenticated && role === 'OFFICER' && (<Link
             to="/officer"
             onClick={() => setMobileMenuOpen(false)}
             className={`block px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 ${
@@ -349,7 +304,7 @@ export const Navbar: React.FC = () => {
                 Your Workspace
               </span>
             )}
-          </Link>
+          </Link>)}
         </div>
       )}
     </header>

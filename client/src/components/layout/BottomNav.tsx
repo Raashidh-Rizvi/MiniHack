@@ -1,9 +1,12 @@
 import React from 'react';
+import { useAuth } from '../../hooks/useAuth';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, PlusCircle, FileText, Layers, Shield } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
   const location = useLocation();
+  const { role, isAuthenticated } = useAuth();
+  const dashboard = role === 'ADMIN' ? '/admin' : '/officer';
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -19,7 +22,7 @@ export const BottomNav: React.FC = () => {
           <span className="text-[10px] mt-0.5">Home</span>
         </Link>
 
-        <Link
+        {(!isAuthenticated || role === 'CITIZEN' || role === 'RESIDENT') && (<Link
           to="/report"
           className="flex flex-col items-center -mt-5 relative group"
         >
@@ -27,7 +30,7 @@ export const BottomNav: React.FC = () => {
             <PlusCircle className="w-6 h-6" />
           </div>
           <span className="text-[10px] text-red-500 font-bold mt-1">Report</span>
-        </Link>
+        </Link>)}
 
         <Link
           to="/issues"
@@ -39,7 +42,7 @@ export const BottomNav: React.FC = () => {
           <span className="text-[10px] mt-0.5">Feed</span>
         </Link>
 
-        <Link
+        {(!isAuthenticated || role === 'CITIZEN' || role === 'RESIDENT') && (<Link
           to="/my-reports"
           className={`flex flex-col items-center py-1 px-3 rounded-xl transition-all ${
             isActive('/my-reports') ? 'text-red-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -47,17 +50,17 @@ export const BottomNav: React.FC = () => {
         >
           <FileText className="w-5 h-5" />
           <span className="text-[10px] mt-0.5">My Reports</span>
-        </Link>
+        </Link>)}
 
-        <Link
-          to="/admin"
+        {isAuthenticated && (role === 'ADMIN' || role === 'OFFICER') && (<Link
+          to={dashboard}
           className={`flex flex-col items-center py-1 px-3 rounded-xl transition-all ${
-            isActive('/admin') ? 'text-indigo-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            isActive(dashboard) ? 'text-indigo-500 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <Shield className="w-5 h-5" />
-          <span className="text-[10px] mt-0.5">Admin</span>
-        </Link>
+          <span className="text-[10px] mt-0.5">Dashboard</span>
+        </Link>)}
       </div>
     </div>
   );
