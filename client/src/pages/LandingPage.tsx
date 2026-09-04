@@ -1,8 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Flame,
-  Sparkles,
   Cpu,
   Cloud,
   Compass,
@@ -16,6 +14,7 @@ import {
   Clock,
   ShieldAlert,
 } from 'lucide-react';
+import { SriLankanLion } from '../components/common/SriLankanLion';
 import { ExecutiveDashboardPreview } from '../components/landing/ExecutiveDashboardPreview';
 
 export const LandingPage: React.FC = () => {
@@ -34,7 +33,7 @@ export const LandingPage: React.FC = () => {
           {/* Left Column: Value Proposition & Dual CTAs */}
           <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 shadow-[0_0_16px_rgba(239,68,68,0.15)]">
-              <Sparkles className="w-3.5 h-3.5" />
+              <SriLankanLion size={15} color="#EF4444" accentColor="#991B1B" />
               <span>GramaFix® Civic Intelligence Platform</span>
             </div>
 
@@ -186,7 +185,7 @@ export const LandingPage: React.FC = () => {
           {/* Card 3: Intelligent Automation -> Civilian Endorsement */}
           <div className="p-7 rounded-3xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 hover:border-red-500/40 shadow-sm hover:shadow-[0_12px_32px_-8px_rgba(239,68,68,0.2)] transition-all duration-300 group">
             <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 shadow-[0_6px_20px_rgba(239,68,68,0.4)] flex items-center justify-center text-white mb-5 group-hover:scale-105 transition-transform duration-300">
-              <Flame className="w-6 h-6" />
+              <SriLankanLion size={26} color="#FFFFFF" accentColor="#EF4444" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
               Civilian Upvoting Weight

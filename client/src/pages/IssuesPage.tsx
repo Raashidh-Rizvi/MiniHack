@@ -8,7 +8,6 @@ import {
   Search,
   Filter,
   SlidersHorizontal,
-  Flame,
   AlertOctagon,
   CheckCircle,
   PlusCircle,
@@ -17,6 +16,7 @@ import {
   List,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SriLankanLion } from '../components/common/SriLankanLion';
 import { IssuesExplorerMap } from '../components/map/IssuesExplorerMap';
 
 export const IssuesPage: React.FC = () => {
@@ -93,7 +93,7 @@ export const IssuesPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 mb-2">
-            <Flame className="w-3.5 h-3.5" />
+            <SriLankanLion size={15} color="#EF4444" accentColor="#991B1B" />
             <span>Sri Lankan Civic Impact Live Feed</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -153,7 +153,7 @@ export const IssuesPage: React.FC = () => {
 
         <div className="p-4 rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 flex items-center space-x-3 shadow-sm">
           <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center flex-shrink-0">
-            <Flame className="w-5 h-5" />
+            <SriLankanLion size={20} color="#EF4444" accentColor="#991B1B" />
           </div>
           <div>
             <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums">

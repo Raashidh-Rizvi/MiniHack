@@ -10,9 +10,9 @@ import { getPriorityBadgeColor } from '../../utils/priority';
 import {
   MapPin,
   Layers,
-  Flame,
   Eye,
 } from 'lucide-react';
+import { SriLankanLion } from '../common/SriLankanLion';
 
 interface IssuesExplorerMapProps {
   issues: Issue[];
@@ -171,7 +171,7 @@ export const IssuesExplorerMap: React.FC<IssuesExplorerMapProps> = ({
 
           <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-white/5">
             <div className="flex items-center space-x-1 text-xs text-rose-500 font-bold">
-              <Flame className="w-3.5 h-3.5" />
+              <SriLankanLion size={14} color="#EF4444" accentColor="#991B1B" />
               <span>{activeIssue.supportCount || 0} Upvotes</span>
             </div>
 

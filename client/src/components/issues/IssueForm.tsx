@@ -14,8 +14,8 @@ import {
   HelpCircle,
   Send,
   Loader2,
-  Flame,
 } from 'lucide-react';
+import { SriLankanLion } from '../common/SriLankanLion';
 import { CategoryType, IssueCreateDTO, Severity } from '../../types/issue';
 import { LocationPickerMap } from '../map/LocationPickerMap';
 
@@ -153,8 +153,8 @@ export const IssueForm: React.FC<IssueFormProps> = ({ onSubmit, isSubmitting = f
         <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle,rgba(239,68,68,0.15)_0%,transparent_70%)] pointer-events-none" />
 
         <div className="flex items-center space-x-3 z-10">
-          <div className="w-10 h-10 rounded-xl bg-crimson-500/15 border border-crimson-500/30 flex items-center justify-center text-crimson-500">
-            <Flame className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-crimson-500/15 border border-crimson-500/30 flex items-center justify-center text-crimson-500 shadow-sm shadow-red-500/10">
+            <SriLankanLion size={24} color="#EF4444" accentColor="#991B1B" />
           </div>
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-heading">

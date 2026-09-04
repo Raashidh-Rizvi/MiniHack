@@ -14,13 +14,16 @@ import {
   LogIn,
   LogOut,
   UserPlus,
+  PhoneCall,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
 import { BrandLogo } from '../common/BrandLogo';
+import { EmergencyModal } from '../common/EmergencyModal';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, role, isAuthenticated, logout } = useAuth();
@@ -109,6 +112,18 @@ export const Navbar: React.FC = () => {
 
           {/* Right Controls: Theme Toggle, 3-Role Switcher, Auth Links */}
           <div className="hidden xl:flex items-center space-x-2.5">
+            {/* Quick Emergency Hotlines SOS Button */}
+            <button
+              type="button"
+              onClick={() => setEmergencyModalOpen(true)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-black text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 transition-all cursor-pointer group shadow-sm"
+              title="Official Sri Lankan Government Emergency Numbers"
+            >
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <PhoneCall className="w-3.5 h-3.5 text-red-500" />
+              <span>119 / 1990 SOS</span>
+            </button>
+
             {/* Theme Toggle (Dark / Light) */}
             <button
               type="button"
@@ -273,8 +288,27 @@ export const Navbar: React.FC = () => {
               </span>
             )}
           </Link>)}
+
+          {/* Mobile Emergency SOS Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setEmergencyModalOpen(true);
+            }}
+            className="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl text-xs font-black text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-colors"
+          >
+            <PhoneCall className="w-3.5 h-3.5 text-red-500" />
+            <span>Government Emergency Hotlines (119, 1990, 117)</span>
+          </button>
         </div>
       )}
+
+      {/* Global Emergency Directory Modal */}
+      <EmergencyModal
+        isOpen={emergencyModalOpen}
+        onClose={() => setEmergencyModalOpen(false)}
+      />
     </header>
   );
 };

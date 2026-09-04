@@ -16,6 +16,8 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { IssueLocationMiniMap } from '../components/map/IssueLocationMiniMap';
+import { EmergencyBanner } from '../components/common/EmergencyBanner';
+import { EmergencyModal } from '../components/common/EmergencyModal';
 
 const LIFECYCLE_STEPS: { status: IssueStatus; label: string; desc: string }[] = [
   { status: 'REPORTED', label: 'Reported', desc: 'Submitted by neighborhood resident' },
@@ -29,6 +31,7 @@ export const IssueDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [issue, setIssue] = useState<Issue | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [emergencyModalOpen, setEmergencyModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (!id) return;
@@ -183,6 +186,16 @@ export const IssueDetailPage: React.FC = () => {
           />
         </div>
 
+        {/* Urgent Government Emergency Advisory for High / Critical Issues */}
+        {(issue.severity === 'CRITICAL' || issue.severity === 'HIGH') && (
+          <EmergencyBanner
+            category={issue.category}
+            severity={issue.severity}
+            onOpenDirectory={() => setEmergencyModalOpen(true)}
+            className="mb-8"
+          />
+        )}
+
         {/* Priority Engine Metric Calculation Box */}
         <div className="p-6 rounded-2xl bg-gradient-to-br from-red-500/5 to-transparent border border-red-500/20 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
@@ -301,6 +314,13 @@ export const IssueDetailPage: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Official Government Emergency Directory Modal */}
+      <EmergencyModal
+        isOpen={emergencyModalOpen}
+        onClose={() => setEmergencyModalOpen(false)}
+        initialCategory={issue.category === 'WATER' || issue.category === 'STREETLIGHT' ? 'UTILITY' : issue.category === 'DRAINAGE' ? 'DISASTER' : 'ALL'}
+      />
     </div>
   );
 };

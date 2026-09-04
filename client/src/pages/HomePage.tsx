@@ -17,9 +17,9 @@ import {
   TrendingUp,
   Activity,
   BarChart3,
-  Flame,
   ArrowUpRight,
 } from 'lucide-react';
+import { SriLankanLion } from '../components/common/SriLankanLion';
 import { feedService } from '../services/feedService';
 import { Issue } from '../types/issue';
 
@@ -143,7 +143,7 @@ export const HomePage: React.FC = () => {
               <div className="grid grid-cols-3 gap-3">
                 <div className="p-3 rounded-xl bg-surface border border-subtle">
                   <div className="flex items-center space-x-1 text-muted text-[10px] uppercase font-bold mb-1">
-                    <Flame className="w-3 h-3 text-crimson-500" />
+                    <SriLankanLion size={12} color="#EF4444" accentColor="#991B1B" />
                     <span>Critical</span>
                   </div>
                   <p className="text-lg font-black text-crimson-500">{criticalCount}</p>
