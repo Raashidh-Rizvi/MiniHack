@@ -6,6 +6,21 @@ const Issue = require('./models/Issue');
 
 const seedIssues = [
   {
+    numericId: 101,
+    title: 'Dangerous Open Manhole on Main Street',
+    description: 'Uncovered manhole posing severe hazard to pedestrians and vehicles at night',
+    category: 'ROAD',
+    location: 'Main Street, Colombo',
+    severity: 'CRITICAL',
+    peopleAffected: 120,
+    priorityScore: 82,
+    priorityLevel: 'HIGH',
+    status: 'REPORTED',
+    supportCount: 0,
+    reportedBy: 1,
+    reportedByName: 'Kasun Perera',
+  },
+  {
     numericId: 102,
     title: 'Deep Hazardous Pothole Near Kandy Clock Tower',
     description: 'Massive pothole approx 2 feet wide on the main bus lane. Motorbikes frequently swerve into oncoming traffic to avoid it, causing near collisions.',
@@ -35,6 +50,8 @@ const seedIssues = [
     supportCount: 14,
     reportedBy: 2,
     reportedByName: 'Eng. Bandara',
+    assignedOfficer: 2,
+    assignedOfficerName: 'Eng. Bandara',
     adminNotes: 'Technician dispatched for lamp replacement.',
   },
   {
