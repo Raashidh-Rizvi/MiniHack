@@ -88,20 +88,27 @@ gramafix/
 
 ### Branches & Workflow
 
-Each member gets an isolated feature branch:
+The repository enforces a strict **`dev` branch integration workflow**:
 
 ```text
-main
-├── feature/frontend (Member 1)
-├── feature/backend  (Member 2)
-└── feature/admin    (Member 3)
+main (Production / Final Release)
+  ▲
+  │ Pull Request (Final Submission Milestone)
+  │
+dev (Active Team Development & Integration) ── [DEFAULT WORKING BRANCH]
+  ▲
+  ├── Pull Request ── feature/citizen-intake (Member 1)
+  ├── Pull Request ── feature/community-feed (Member 2)
+  └── Pull Request ── feature/admin-triage   (Member 3)
 ```
 
-> [!WARNING]
-> Don't keep separate branches alive for hours. Use short-lived branches merged into `main` via PRs:
-> ```text
-> feature/* ──> Pull Request ──> main
-> ```
+> [!CAUTION]
+> **STRICT GIT POLICY: ALWAYS PUSH TO `dev` & RAISE PRs TO `dev`, NEVER DIRECT TO `main`!**  
+> 1. **Never commit directly to `main`.** `main` is strictly reserved for the final evaluated release and production deployment.
+> 2. Always branch off from `dev` and push changes to `dev` or your feature branch (`feature/*`).
+> 3. All Pull Requests **MUST target base branch `dev`**.
+> 4. Do not keep long-lived isolated branches: merge tested feature PRs into `dev` frequently to detect integration issues early.
+> 5. Only during the final release checkpoint (Phase 6) will `dev` be merged into `main` via a verified PR.
 
 ### Pre-Coding Agreement Checklist
 Before anyone writes a line of code, agree on:
